@@ -27,6 +27,9 @@ body{min-height:100vh;font-family:system-ui,"Segoe UI",sans-serif;color:var(--te
   border:1px solid var(--line);border-radius:14px}
 .hdr h1{font-size:1.15rem;letter-spacing:.05em;margin:0}
 .hdr p{margin:.2rem 0 0;font-size:.72rem;color:var(--cyan);letter-spacing:.08em}
+.hdr__keys{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
+.hdr__keys input{width:16rem;max-width:70vw}
+.hdr__keys .keyhint{font-size:.62rem;color:var(--dim);width:100%;text-align:right}
 .tabs{display:flex;gap:.5rem;margin-bottom:.45rem;flex-wrap:wrap;position:sticky;top:0;z-index:20;
   padding:.55rem 0 .55rem;background:linear-gradient(180deg,rgba(8,11,18,.97) 60%,rgba(8,11,18,.85));
   backdrop-filter:blur(8px)}
@@ -124,7 +127,13 @@ hr{border:none;border-top:1px solid var(--line);margin:1rem 0}
       <h1>✈ INTEGRATED FLIGHT OPS BRIEFER</h1>
       <p>NOTAM BRIEFING + JOINT BRIEFING · ONE COMBINED PDF</p>
     </div>
-    <div class="small">© Moon-Sik Yim · Pilot Ops Center 연동</div>
+    <div class="hdr__keys">
+      <input type="password" id="geminiKey" placeholder="GEMINI API KEY (한 번만 입력)">
+      <button class="btn ghost" type="button" onclick="saveKey()">키 저장</button>
+      <button class="btn ghost" type="button" onclick="clearKey()">지우기</button>
+      <span class="status" id="keyStatus" style="margin:0;min-height:0"></span>
+      <div class="keyhint">① NOTAM · ② Joint Briefing AI 추출에 공통 사용</div>
+    </div>
   </div>
 
   <div class="notice info">
@@ -184,9 +193,8 @@ ROUTE: RKSI → KLAX · FLT 11H20M
     <div class="panel">
       <h2>Joint Briefing Briefer · FPL / OFP 업로드 &amp; AI 추출</h2>
       <div class="row">
-        <input type="password" id="geminiKey" placeholder="GEMINI API KEY" style="max-width:20rem">
-        <button class="btn ghost" onclick="saveKey()">키 저장</button>
         <button class="btn ghost" onclick="loadSample()">샘플 데이터로 채우기</button>
+        <span class="status" id="extractStatus"></span>
       </div>
       <div class="field">
         <label>FPL / OFP / Dispatch Release PDF</label>
@@ -194,9 +202,8 @@ ROUTE: RKSI → KLAX · FLT 11H20M
       </div>
       <div class="row">
         <button class="btn go" id="btnExtract" onclick="extractWithAI()" disabled>AI로 데이터 추출 ▸</button>
-        <span class="status" id="extractStatus"></span>
       </div>
-      <p class="hint">PDF를 열면 텍스트를 추출하고, AI 추출 버튼을 누르면 Gemini가 아래 항목을 채웁니다. AI 없이 손으로 직접 입력해도 됩니다. 아래 값이 실제로 Python 스크립트에 그대로 들어갑니다.</p>
+      <p class="hint">API Key는 <b>상단에서 한 번만</b> 입력하면 됩니다 (① NOTAM 앱과 공유). PDF를 연 뒤 AI 추출을 누르거나, 손으로 직접 입력해도 됩니다.</p>
     </div>
 
     <div class="panel">
@@ -338,12 +345,6 @@ function pullNotamFromFrame(){
     if (st){ st.textContent = '❌ ' + e.message; st.className = 'status err'; }
   }
 }
-function pushApiKeyToFrame(){
-  const key = document.getElementById('geminiKey').value.trim();
-  const frame = document.getElementById('notamFrame');
-  if (!key || !frame || !frame.contentWindow) return;
-  try { frame.contentWindow.postMessage({ type:'IFOB_SET_API_KEY', key, source:'ifob' }, '*'); } catch(_){}
-}
 function applyNotamSummaryFromChild(text, auto){
   const ta = document.getElementById('notamSummary');
   const st = document.getElementById('notamBridgeStatus');
@@ -389,16 +390,49 @@ function renderAlertBtns(){
 function setAlert(l){ selectedAlert=l; renderAlertBtns(); }
 renderAlertBtns();
 
-// ============ API KEY ============
+// ============ API KEY (단일 입력 · NOTAM iframe + Joint AI 공유) ============
+function getApiKey(){ return (document.getElementById('geminiKey').value || '').trim(); }
+function setKeyStatus(msg, isErr){
+  const st = document.getElementById('keyStatus');
+  if (!st) return;
+  st.textContent = msg || '';
+  st.className = 'status' + (isErr ? ' err' : '');
+  st.style.margin = '0';
+  st.style.minHeight = '0';
+}
+function pushApiKeyToFrame(){
+  const key = getApiKey();
+  const frame = document.getElementById('notamFrame');
+  if (!frame || !frame.contentWindow) return;
+  try { frame.contentWindow.postMessage({ type:'IFOB_SET_API_KEY', key, source:'ifob' }, '*'); } catch(_){}
+}
 function saveKey(){
-  const k = document.getElementById('geminiKey').value.trim();
-  if(k){ localStorage.setItem('ifob_gemini_key', k); pushApiKeyToFrame(); alert('저장되었습니다 (이 브라우저에만 보관).'); }
+  const k = getApiKey();
+  if (!k){ setKeyStatus('키를 입력하세요', true); return; }
+  try { localStorage.setItem('ifob_gemini_key', k); } catch(_){}
+  pushApiKeyToFrame();
+  setKeyStatus('✓ 저장됨 · NOTAM/Joint 공통');
+}
+function clearKey(){
+  document.getElementById('geminiKey').value = '';
+  try { localStorage.removeItem('ifob_gemini_key'); } catch(_){}
+  pushApiKeyToFrame(); // 빈 키 전달 → iframe도 비움
+  setKeyStatus('지움');
 }
 (function restoreKey(){
-  const k = localStorage.getItem('ifob_gemini_key');
-  if(k) document.getElementById('geminiKey').value = k;
+  try {
+    const k = localStorage.getItem('ifob_gemini_key');
+    if (k){ document.getElementById('geminiKey').value = k; setKeyStatus('저장된 키 불러옴'); }
+  } catch(_){}
 })();
-document.getElementById('geminiKey').addEventListener('change', pushApiKeyToFrame);
+document.getElementById('geminiKey').addEventListener('input', () => {
+  pushApiKeyToFrame();
+});
+document.getElementById('geminiKey').addEventListener('change', () => {
+  const k = getApiKey();
+  if (k){ try { localStorage.setItem('ifob_gemini_key', k); } catch(_){} }
+  pushApiKeyToFrame();
+});
 
 // ============ WEATHER BLOCKS ============
 const WX_KEYS = [
@@ -481,9 +515,9 @@ TEXT:
 """${'{{TEXT}}'}"""`;
 
 async function extractWithAI(){
-  const key = document.getElementById('geminiKey').value.trim();
+  const key = getApiKey();
   const st = document.getElementById('extractStatus');
-  if(!key){ st.textContent="❌ Gemini API Key를 입력하세요."; st.className='status err'; return; }
+  if(!key){ st.textContent="❌ 상단에 Gemini API Key를 입력하세요."; st.className='status err'; return; }
   if(!extractedText){ st.textContent="❌ 먼저 PDF를 업로드하세요."; st.className='status err'; return; }
   st.textContent = "AI 분석 중…"; st.className='status';
   const prompt = EXTRACT_PROMPT_SPEC.replace('{{TEXT}}', extractedText.slice(0,60000));
