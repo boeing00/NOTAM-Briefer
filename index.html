@@ -339,6 +339,7 @@
                         <input type="file" id="pdfFile" class="hidden" accept="application/pdf" onchange="handlePDF(this)">
                         <button onclick="document.getElementById('pdfFile').click()" class="btn btn--ghost">📕 OPEN PDF</button>
                         <button onclick="runAnalysis()" id="btnAnalyze" class="btn btn--go" disabled>ANALYZE ▸</button>
+                        <button onclick="sendToJointBriefing()" id="btnSendJoint" class="btn btn--amber hidden" title="Integrated Flight Ops Briefer로 NOTAM 요약 전송">↗ 통합 브리핑으로</button>
                     </div>
                 </div>
                 <div id="docCard" class="doccard doccard--empty">
@@ -1238,6 +1239,71 @@ TEXT:
 
             renderButtons(); // 분석에 등장한 공항 버튼 자동 추가 + NOTAM 표시점 갱신
             refreshAnnotateBtn();
+            // Integrated Flight Ops Briefer(iframe 부모) 연동: 버튼 표시 + 요약 자동 전송
+            syncJointBriefingExport(notams.length > 0);
+        }
+
+        function isEmbedded(){
+            try { return window.self !== window.top; } catch(_){ return true; }
+        }
+        function isSameOriginParent(){
+            try { return isEmbedded() && window.parent.location.origin === location.origin; } catch(_){ return false; }
+        }
+        // Joint Briefing PDF용 평문 요약 (WARNING/CAUTION 위주)
+        function buildJointNotamSummary(d){
+            if (!d) return '';
+            const r = d.route || {};
+            const lines = [];
+            lines.push(`ROUTE: ${r.departure || '—'} → ${r.destination || '—'}${r.flight_time ? ' · FLT ' + r.flight_time : ''}${r.etd_utc ? ' · ETD ' + String(r.etd_utc).replace(/z\s*$/i,'') + 'Z' : ''}${r.eta_utc ? ' · ETA ' + String(r.eta_utc).replace(/z\s*$/i,'') + 'Z' : ''}`);
+            if (r.alternates && r.alternates.length) lines.push('ALTN: ' + r.alternates.join(', '));
+            if (r.summary) lines.push(String(r.summary));
+            lines.push('');
+            const notams = Array.isArray(d.notams) ? d.notams : [];
+            const phaseOrder = ['DEPARTURE','ENROUTE','DESTINATION','ALTERNATE','OTHER'];
+            const phaseKo = { DEPARTURE:'출발', ENROUTE:'항로', DESTINATION:'도착', ALTERNATE:'교체', OTHER:'기타' };
+            const rank = { warning:0, caution:1, advisory:2 };
+            const byPhase = {};
+            notams.forEach(n => {
+                const ph = n._phase || normPhase(n.phase) || 'OTHER';
+                (byPhase[ph] = byPhase[ph] || []).push(n);
+            });
+            phaseOrder.forEach(ph => {
+                const items = (byPhase[ph] || []).slice().sort((a,b) => (rank[a.severity] ?? 9) - (rank[b.severity] ?? 9));
+                let pick = items.filter(n => n.severity === 'warning' || n.severity === 'caution');
+                if (!pick.length) pick = items.filter(n => n.relevant !== false).slice(0, 6);
+                if (!pick.length) return;
+                const icao = pick.find(n => n.icao && n.icao !== 'ENROUTE')?.icao || '';
+                lines.push(`[${phaseKo[ph] || ph}${icao ? ' / ' + icao : ''}]`);
+                pick.forEach(n => {
+                    const tag = String(n.severity || 'advisory').toUpperCase();
+                    const id = n.notam_id ? ` ${n.notam_id}` : '';
+                    const feat = n.feature ? ` · ${n.feature}` : '';
+                    const valid = n.valid ? ` (${n.valid})` : '';
+                    lines.push(`• [${tag}]${id}${feat}${valid}`);
+                    if (n.detail) lines.push('  ' + String(n.detail));
+                    if (n.reason) lines.push('  — ' + String(n.reason));
+                });
+                lines.push('');
+            });
+            return lines.join('\n').trim();
+        }
+        function syncJointBriefingExport(hasNotams){
+            const btn = $('btnSendJoint');
+            if (btn) btn.classList.toggle('hidden', !(isEmbedded() && hasNotams));
+            if (isEmbedded() && hasNotams && analysisData){
+                try {
+                    window.parent.postMessage({ type:'IFOB_NOTAM_SUMMARY', text: buildJointNotamSummary(analysisData), source:'pilot-ops', auto:true }, '*');
+                } catch(_){}
+            }
+        }
+        function sendToJointBriefing(){
+            const text = buildJointNotamSummary(analysisData);
+            if (!text){ alert('보낼 분석 결과가 없습니다. 먼저 ANALYZE를 실행하세요.'); return; }
+            try {
+                window.parent.postMessage({ type:'IFOB_NOTAM_SUMMARY', text, source:'pilot-ops', auto:false }, '*');
+                const btn = $('btnSendJoint');
+                if (btn){ const t = btn.textContent; btn.textContent = '✓ 전송됨'; setTimeout(() => { btn.textContent = t; }, 1600); }
+            } catch(e){ alert('부모 창으로 전송 실패: ' + e.message); }
         }
 
         function phaseSection([ph, ko, icon, collapse], items){
@@ -2080,14 +2146,32 @@ Features to locate: ${JSON.stringify(features)}`;
             updateKeyUI();
             try { const mdl = localStorage.getItem('geminiModel'); if (mdl){ GEMINI_MODEL = mdl; const sel = $('modelSel'); if (sel) sel.value = mdl; } } catch(e){}
             const inFrame = (function(){ try { return window.self !== window.top; } catch(_){ return true; } })();
-            if (location.protocol === 'file:' || inFrame){
+            let sameOriginParent = false;
+            try { sameOriginParent = inFrame && window.parent.location.origin === location.origin; } catch(_){ sameOriginParent = false; }
+            if (location.protocol === 'file:' || (inFrame && !sameOriginParent && location.protocol !== 'https:')){
                 const n = $('envNotice');
                 if (n){ n.classList.remove('hidden');
                     n.innerHTML = inFrame
                         ? `⚠ <b>iframe 미리보기 안에서 실행 중</b> — 샌드박스라 Gemini API 호출이 <b>차단</b>될 수 있습니다("Load failed"). 배포한 <b>https 주소(GitHub Pages)</b> 또는 <b>홈 화면 앱</b>에서 열어야 분석이 됩니다. <button class="linkbtn" onclick="this.closest('.env-notice').classList.add('hidden')">닫기</button>`
                         : `⚠ <b>로컬 파일(file://)로 실행 중</b> — iPhone·iPad(Safari)에서는 API 호출이 차단됩니다. <b>https로 호스팅</b>(GitHub Pages 등) 후 홈 화면에 추가해 사용하세요. <button class="linkbtn" onclick="this.closest('.env-notice').classList.add('hidden')">닫기</button>`;
                 }
+            } else if (sameOriginParent){
+                const n = $('envNotice');
+                if (n){ n.classList.remove('hidden');
+                    n.innerHTML = `↗ <b>Integrated Flight Ops Briefer</b> 안에서 실행 중 — ANALYZE 후 결과가 부모 창의 NOTAM 요약으로 자동 전송됩니다. <button class="btn btn--amber btn--sm" onclick="sendToJointBriefing()">↗ 지금 보내기</button> <button class="linkbtn" onclick="this.closest('.env-notice').classList.add('hidden')">닫기</button>`;
+                }
             }
+            // 부모(IntegratedFlightBriefer) ↔ 연동
+            window.addEventListener('message', (ev) => {
+                const msg = ev.data;
+                if (!msg || typeof msg !== 'object') return;
+                if (msg.type === 'IFOB_REQUEST_SUMMARY') sendToJointBriefing();
+                if (msg.type === 'IFOB_SET_API_KEY' && typeof msg.key === 'string' && msg.key.trim()){
+                    const inp = $('apiKey');
+                    if (inp && !inp.value.trim()){ inp.value = msg.key.trim(); updateKeyUI(); }
+                }
+            });
+            try { if (isEmbedded()) window.parent.postMessage({ type:'IFOB_CHILD_READY', source:'pilot-ops' }, '*'); } catch(_){}
             $('apiKey').addEventListener('input', updateKeyUI); // 평문 자동저장은 하지 않음(보안)
             $('packageInput').addEventListener('input', (e) => { $('btnAnalyze').disabled = e.target.value.trim().length === 0; });
             const rt = loadRwyTwy();
