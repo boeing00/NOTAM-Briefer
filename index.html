@@ -918,23 +918,64 @@ EXCERPT:
                 route = {};
             }
             const chunks = splitChunks(notamText, 52000, 3000);
-            let all = [], failed = 0;
+            let all = []; const failedChunks = [];
             for (let i = 0; i < chunks.length; i++){
-                setLoad(`구간 분석 ${i + 1}/${chunks.length} · 누적 ${all.length}건${failed ? ` · 실패 ${failed}` : ''}`);
+                setLoad(`구간 분석 ${i + 1}/${chunks.length} · 누적 ${all.length}건${failedChunks.length ? ` · 실패 ${failedChunks.length}` : ''}`);
                 try {
                     const ns = await extractChunkNotams(key, chunks[i], route, (d) => setLoad(`구간 ${i + 1}/${chunks.length} · 한도 대기 ${Math.round(d/1000)}s`));
                     all = all.concat(ns);
                 } catch (e){
                     if (/^API (400|401|403)/.test(e.message || '')) throw e; // 키·권한 오류는 반복해도 실패 → 즉시 중단
-                    failed++; // 한 구간이 한도(429)·오류로 실패해도 나머지는 계속
+                    failedChunks.push(chunks[i]); // 실패한 구간 텍스트를 보관 → [실패 구간만 재시도] 가능
                 }
                 if (i < chunks.length - 1) await sleep(1200); // 분당 한도(RPM) 완화용 간격
             }
             const merged = mergeNotams(all);
-            const result = { route, notams: merged, _chunked: true, _chunkFailed: failed, _chunkTotal: chunks.length, _reduced: !!(meta && meta.reduced), _origLen: meta && meta.origLen, _usedLen: meta && meta.usedLen };
+            const result = { route, notams: merged, _chunked: true, _chunkFailed: failedChunks.length, _chunkTotal: chunks.length, _failedChunks: failedChunks, _reduced: !!(meta && meta.reduced), _origLen: meta && meta.origLen, _usedLen: meta && meta.usedLen };
             currentBriefingId = null;              // 새 분석 → 새 레코드
             renderAnalysis(result, { fresh: true });
             saveBriefing(result);                  // 오프라인 열람용 자동 저장
+        }
+
+        // 실패한 구간만 다시 분석 — 전체 ANALYZE를 재실행하지 않아 요청·토큰(무료 한도)을 절약
+        let _retryingChunks = false;
+        async function retryFailedChunks(){
+            const d = analysisData;
+            if (_retryingChunks || !d || !Array.isArray(d._failedChunks) || !d._failedChunks.length) return;
+            const key = $('apiKey').value.trim();
+            if (!key) return alert(hasVault() ? "헤더의 [🔓 잠금해제]로 PIN을 입력해 저장된 키를 먼저 불러오세요." : "API Key를 입력하세요.");
+            _retryingChunks = true;
+            const btn = $('btnAnalyze'); if (btn) btn.disabled = true;
+            const setLoad = (msg) => { $('criticalNotams').innerHTML = `<div class="load-block"><span class="loading-spinner"></span><p>${escapeHtml(msg)}</p></div>`; };
+            const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+            const chunks = d._failedChunks.slice();
+            const route = d.route || {};
+            let recovered = [], stillFailed = [], aborted = '';
+            try {
+                for (let i = 0; i < chunks.length; i++){
+                    setLoad(`실패 구간 재시도 ${i + 1}/${chunks.length} · 복구 ${recovered.length}건`);
+                    try {
+                        const ns = await extractChunkNotams(key, chunks[i], route, (dl) => setLoad(`재시도 ${i + 1}/${chunks.length} · 한도 대기 ${Math.round(dl/1000)}s`));
+                        recovered = recovered.concat(ns);
+                    } catch (e){
+                        // 키·권한 오류·네트워크 차단은 나머지 구간도 실패 → 남은 구간을 보존하고 중단
+                        if ((e instanceof TypeError) || /^API (400|401|403)/.test(e.message || '')){ stillFailed = stillFailed.concat(chunks.slice(i)); aborted = e.message; break; }
+                        stillFailed.push(chunks[i]);
+                    }
+                    if (i < chunks.length - 1) await sleep(1200);
+                }
+            } finally {
+                // 복구분 병합(기존 항목·수동 분류 유지, 겹침 중복 제거) 후 실패 목록 갱신
+                recovered.forEach(n => { if (n._ai === undefined) n._ai = n.severity; });
+                d.notams = mergeNotams((Array.isArray(d.notams) ? d.notams : []).concat(recovered));
+                d._failedChunks = stillFailed;
+                d._chunkFailed = stillFailed.length;
+                renderAnalysis(d);
+                saveBriefing(d);   // 오프라인 저장본에도 반영
+                if (btn) btn.disabled = false;
+                _retryingChunks = false;
+                if (aborted) alert("실패 구간 재시도 중단: " + aborted + "\n\n지금까지 복구된 항목은 반영했습니다.");
+            }
         }
 
         async function runAnalysis(){
@@ -1146,7 +1187,7 @@ TEXT:
                 : "";
             const banner = d._truncated
                 ? `<div class="alert alert--caut" style="margin-bottom:.6rem"><div class="alert__head"><span class="chip chip--caut">PARTIAL</span><span class="alert__title">응답이 잘려 일부만 표시됨</span></div><p class="alert__body">NOTAM이 많아 출력 길이 제한에 걸렸습니다. 복구된 항목만 표시했습니다. 다시 실행하거나, 원문을 구간별로 나눠 분석해 보세요.</p></div>`
-                : (d._chunked ? `<div class="restore-note" style="color:var(--cyan);border-color:rgba(51,207,230,.35);background:rgba(51,207,230,.06)">⣿ <b style="color:var(--cyan)">구간 분할 분석</b> · 총 ${notams.length}건${d._chunkFailed ? ` <b style="color:var(--amber)">· ${d._chunkFailed}/${d._chunkTotal} 구간 실패(다시 ANALYZE 또는 Flash-Lite)</b>` : ''}</div>` : "");
+                : (d._chunked ? `<div class="restore-note" style="color:var(--cyan);border-color:rgba(51,207,230,.35);background:rgba(51,207,230,.06)">⣿ <b style="color:var(--cyan)">구간 분할 분석</b> · 총 ${notams.length}건${d._chunkFailed ? ` <b style="color:var(--amber)">· ${d._chunkFailed}/${d._chunkTotal} 구간 실패</b>${(Array.isArray(d._failedChunks) && d._failedChunks.length) ? ` <button class="linkbtn" onclick="retryFailedChunks()">↻ 실패 구간만 재시도</button>` : ' (다시 ANALYZE 또는 Flash-Lite)'}` : ''}</div>` : "");
             const scopeNote = d._reduced
                 ? `<div class="restore-note" style="color:var(--green);border-color:rgba(47,208,138,.35);background:rgba(47,208,138,.06)">◎ <b style="color:var(--green)">대상 공항만 분석</b> · 원문 ${(d._origLen||0).toLocaleString()}→${(d._usedLen||0).toLocaleString()}자로 축소해 요청·토큰을 절약했습니다.</div>`
                 : "";
