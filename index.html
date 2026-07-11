@@ -381,7 +381,7 @@
                     <span class="lg-item"><i class="dot dot--warn"></i>WARNING · 내 비행에 적용</span>
                     <span class="lg-item"><i class="dot dot--caut"></i>CAUTION · 관련·중간</span>
                     <span class="lg-item"><i class="dot dot--adv"></i>ADVISORY · 해당 없음/참고</span>
-                    <label class="legend__toggle" title="내 FPL 항로/사용 활주로에 직접 관련된 것만 WARNING(RED). 나머지는 ADVISORY로 낮춤."><input type="checkbox" id="directRed" onchange="toggleDirectRed()"> 직접 관련만 RED</label>
+                    <label class="legend__toggle" title="내 FPL 항로·사용 RWY/TWY·NAV/APP에 직접 관련된 것만 WARNING/CAUTION으로 유지. 나머지는 ADVISORY로 낮춤."><input type="checkbox" id="directRed" onchange="toggleDirectRed()"> 직접 관련만 RED</label>
                     <button class="linkbtn" onclick="resetOverrides()">분류 초기화</button>
                 </div>
                 <div id="rwyFilter" class="rwyfilter hidden">
@@ -515,7 +515,7 @@
                 const r = analysisData.route || {};
                 [r.departure, r.destination].forEach(a => { if (a) set.add(String(a).toUpperCase()); });
                 (r.alternates || []).forEach(a => { if (a) set.add(String(a).toUpperCase()); });
-                (analysisData.notams || []).forEach(n => { const i = (n.icao || '').toUpperCase(); if (/^[A-Z]{4}$/.test(i) && i !== 'ENRO') set.add(i); });
+                (analysisData.notams || []).forEach(n => { const i = (n.icao || '').toUpperCase(); if (/^[A-Z]{4}$/.test(i) && i !== 'ENROUTE') set.add(i); });
             }
             return [...set].filter(a => /^[A-Z]{4}$/.test(a));
         }
@@ -539,7 +539,7 @@
             loadMaps();
         }
         function updateAirportDots(){
-            const withNotam = new Set((analysisData?.notams || []).map(n => n.icao).filter(x => x && x !== 'ENROUTE'));
+            const withNotam = new Set((analysisData?.notams || []).map(n => String(n.icao || '').toUpperCase()).filter(x => x && x !== 'ENROUTE'));
             airports.forEach(a => {
                 const btn = $(`btn-${a}`); if (!btn) return;
                 let dot = btn.querySelector('.apt-btn__dot');
@@ -560,19 +560,26 @@
 
         // ============ 지도 업로드/조회/삭제 ============
         async function handleMaps(input){
-            if (!db || !input.files.length) return;
+            if (!input.files.length) return;
+            if (!db){ alert("저장소 준비 중… 잠시 후 다시 시도하세요."); input.value = ""; return; }
             $('selectedIcao').innerHTML = `<span class="loading-spinner"></span> SAVING…`;
-            const results = await Promise.all(Array.from(input.files).map(file => new Promise((res, rej) => {
-                const r = new FileReader();
-                r.onload = (e) => res({ icao: currentAirport, name: file.name.replace(/\.[^.]+$/, ""), data: e.target.result });
-                r.onerror = rej;
-                r.readAsDataURL(file);
-            })));
-            const tx = db.transaction("maps", "readwrite");
-            results.forEach(item => tx.objectStore("maps").add(item));
-            tx.oncomplete = () => { $('selectedIcao').innerText = currentAirport; loadMaps(); };
-            tx.onerror = () => { $('selectedIcao').innerText = currentAirport; alert("지도 저장 중 오류가 발생했습니다."); };
-            input.value = "";
+            try {
+                const results = await Promise.all(Array.from(input.files).map(file => new Promise((res, rej) => {
+                    const r = new FileReader();
+                    r.onload = (e) => res({ icao: currentAirport, name: file.name.replace(/\.[^.]+$/, ""), data: e.target.result });
+                    r.onerror = rej;
+                    r.readAsDataURL(file);
+                })));
+                const tx = db.transaction("maps", "readwrite");
+                results.forEach(item => tx.objectStore("maps").add(item));
+                tx.oncomplete = () => { $('selectedIcao').innerText = currentAirport; loadMaps(); };
+                tx.onerror = () => { $('selectedIcao').innerText = currentAirport; alert("지도 저장 중 오류가 발생했습니다."); };
+            } catch (_){
+                $('selectedIcao').innerText = currentAirport;
+                alert("파일을 읽는 중 오류가 발생했습니다. 다시 시도하세요.");
+            } finally {
+                input.value = "";
+            }
         }
 
         function loadMaps(){
@@ -601,7 +608,9 @@
                     if (Array.isArray(m.markers) && m.markers.length && !annotationsByChartId[m.id]) annotationsByChartId[m.id] = m.markers; // 저장된 마킹 복원
                     if ((annotationsByChartId[m.id] || []).length) markTab(m.id, true);
                 });
-                showMap(0);
+                // 보고 있던 차트가 남아 있으면 유지(업로드/다른 차트 삭제 후 1번으로 튀지 않게)
+                const keep = currentMaps.findIndex(m => m.id === currentChartId);
+                showMap(keep >= 0 ? keep : 0);
                 refreshAnnotateBtn();
             };
             req.onerror = () => { $('mapTabs').innerHTML = "<p class='no-map' style='color:var(--red)'>조회 실패</p>"; };
@@ -614,8 +623,12 @@
             $('mapStage').classList.remove('hidden');
             $('mapOverlay').innerHTML = "";
             const img = $('mainMap');
-            img.onload = () => renderMarkers(annotationsByChartId[m.id] || []);
+            const markers = annotationsByChartId[m.id] || [];
+            // 같은 data URL로 재선택하면 onload가 안 뜨므로 complete도 처리
+            img.onload = () => renderMarkers(markers);
+            img.onerror = () => { $('mapOverlay').innerHTML = ""; $('mapLabel').innerText = (m.name || '') + ' · 로드 실패'; };
             img.src = m.data;
+            if (img.complete && img.naturalWidth) renderMarkers(markers);
             $('mapLabel').innerText = m.name;
             document.querySelectorAll('#mapTabs .map-tab').forEach(b => b.classList.remove('map-tab-active'));
             const active = document.querySelector(`#mapTabs .map-tab[data-index="${index}"]`);
@@ -647,6 +660,7 @@
             const clone = JSON.parse(JSON.stringify(d, (k, v) => (k === '_i' ? undefined : v)));
             return clone;
         }
+        let _pendingBriefingSave = false;
         function saveBriefing(d, done){
             if (!db || !d) return;
             const r = d.route || {};
@@ -658,14 +672,23 @@
                 src: src.slice(0, 400000) // 원문 보기(오프라인) 재구성용
             };
             const tx = db.transaction("briefings", "readwrite");
+            tx.onerror = () => { alert("브리핑 저장 실패" + (tx.error && tx.error.name === 'QuotaExceededError' ? " (저장 공간 부족)" : "") + ". 차트·브리핑을 일부 삭제한 뒤 다시 시도하세요."); };
             if (currentBriefingId != null){ rec.id = currentBriefingId; tx.objectStore("briefings").put(rec); }
             else {
                 const req = tx.objectStore("briefings").add(rec);
-                req.onsuccess = () => { currentBriefingId = req.result; };
+                req.onsuccess = () => {
+                    currentBriefingId = req.result;
+                    // ANALYZE 직후 id 부여 전에 발생한 편집을 한 번 더 저장
+                    if (_pendingBriefingSave && analysisData){ _pendingBriefingSave = false; saveBriefing(analysisData); }
+                };
             }
             tx.oncomplete = () => { refreshBriefingList(); if (done) done(); };
         }
-        function persistCurrentBriefing(){ if (analysisData && currentBriefingId != null) saveBriefing(analysisData); }
+        function persistCurrentBriefing(){
+            if (!analysisData) return;
+            if (currentBriefingId != null) saveBriefing(analysisData);
+            else _pendingBriefingSave = true; // id 할당 전이면 큐잉
+        }
         function refreshBriefingList(){
             if (!db) return;
             const tx = db.transaction("briefings", "readonly");
@@ -702,12 +725,28 @@
                 const panel = $('analysisResult'); if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
             };
         }
+        function clearAnalysisView(){
+            analysisData = null;
+            positionalByIcao = {};
+            $('flightTimeBadge').innerHTML = "";
+            $('routeCheck').innerHTML = "";
+            $('criticalNotams').innerHTML = `<p class="empty-note">브리핑이 삭제되었습니다</p>`;
+            $('minorNotams').innerHTML = "";
+            $('legend').classList.add('hidden');
+            $('rwyFilter').classList.add('hidden');
+            const xout = $('xcheckOut'); if (xout) xout.innerHTML = "";
+            renderButtons();
+            refreshAnnotateBtn();
+        }
         function deleteBriefing(id){
             if (!db) return;
             if (!confirm("이 브리핑을 삭제할까요?")) return;
             const tx = db.transaction("briefings", "readwrite");
             tx.objectStore("briefings").delete(id);
-            tx.oncomplete = () => { if (currentBriefingId === id) currentBriefingId = null; refreshBriefingList(); };
+            tx.oncomplete = () => {
+                if (currentBriefingId === id){ currentBriefingId = null; clearAnalysisView(); }
+                refreshBriefingList();
+            };
         }
 
         // ============ PDF 처리 (원문은 화면에 표시하지 않음) ============
@@ -861,7 +900,8 @@ EXCERPT:
         function currentScope(){
             return {
                 mode: ($('scopeMode') && $('scopeMode').value) || 'full',
-                codes: parseTokens(($('scopeAirports') && $('scopeAirports').value) || ''),
+                // RKSI-KLAX / ICN-LAX 형태도 두 공항으로 분리
+                codes: parseAirportTokens(($('scopeAirports') && $('scopeAirports').value) || ''),
                 enroute: !!($('scopeEnroute') && $('scopeEnroute').checked)
             };
         }
@@ -876,12 +916,13 @@ EXCERPT:
                 if ($('scopeEnroute')) $('scopeEnroute').checked = !!c.enr;
             } catch(_){}
         }
-        // 축소된 NOTAM 텍스트 반환, 축소 불가/미설정이면 null
+        // 축소된 NOTAM 텍스트 반환. 미설정이면 null.
+        // 대상 공항 모드인데 매칭 0건이면 { empty:true } — 전체 문서로 조용히 폴백하지 않음.
         function buildScopedNotams(full){
             const sc = currentScope();
             if (sc.mode !== 'airports' || !sc.codes.length) return null;
             const entries = parseNotamEntries(full);
-            if (!entries.length) return null;
+            if (!entries.length) return { empty: true, reason: 'NOTAM 번호(A1234/25 형식)를 찾지 못했습니다. 원문을 확인하거나 범위를 「전체」로 바꾸세요.' };
             const codes = expandCodes(sc.codes);
             const codeRes = codes.map(c => new RegExp('(^|[^A-Z0-9])' + c + '([^A-Z0-9]|$)'));
             const firRe = /\bFIR\b|ENROUTE|ENR |UIR\b|OCEANIC|\bNAT\b|\bTRACK\b|AIRWAY/;
@@ -891,7 +932,7 @@ EXCERPT:
                 if (sc.enroute && firRe.test(U)) return true;
                 return false;
             });
-            if (!kept.length) return null;
+            if (!kept.length) return { empty: true, reason: `대상 공항(${sc.codes.join(', ')})에 해당하는 NOTAM이 없습니다. 공항 코드를 확인하거나 「항로 포함」/「전체」를 사용하세요.` };
             return kept.join('\n\n');
         }
 
@@ -899,25 +940,75 @@ EXCERPT:
             const setLoad = (msg) => { $('criticalNotams').innerHTML = `<div class="load-block"><span class="loading-spinner"></span><p>${escapeHtml(msg)}</p></div>`; };
             const sleep = (ms) => new Promise(r => setTimeout(r, ms));
             setLoad('경로·시간 추출 중…');
-            const route = await extractRouteOnly(key, routeText, (d) => setLoad(`요청 한도 대기 ${Math.round(d/1000)}s…`));
+            let route = {};
+            try {
+                const r = await extractRouteOnly(key, routeText, (d) => setLoad(`요청 한도 대기 ${Math.round(d/1000)}s…`));
+                if (r && typeof r === 'object') route = r;
+            } catch (e){
+                // 키·권한 오류나 네트워크 차단은 구간 분석도 똑같이 실패 → 즉시 중단.
+                // 그 외(일시 오류·한도 소진)는 경로 미상인 채로 NOTAM 구간 분석을 계속한다.
+                if ((e instanceof TypeError) || /^API (400|401|403)/.test(e.message || '')) throw e;
+                route = {};
+            }
             const chunks = splitChunks(notamText, 52000, 3000);
-            let all = [], failed = 0;
+            let all = []; const failedChunks = [];
             for (let i = 0; i < chunks.length; i++){
-                setLoad(`구간 분석 ${i + 1}/${chunks.length} · 누적 ${all.length}건${failed ? ` · 실패 ${failed}` : ''}`);
+                setLoad(`구간 분석 ${i + 1}/${chunks.length} · 누적 ${all.length}건${failedChunks.length ? ` · 실패 ${failedChunks.length}` : ''}`);
                 try {
                     const ns = await extractChunkNotams(key, chunks[i], route, (d) => setLoad(`구간 ${i + 1}/${chunks.length} · 한도 대기 ${Math.round(d/1000)}s`));
                     all = all.concat(ns);
                 } catch (e){
                     if (/^API (400|401|403)/.test(e.message || '')) throw e; // 키·권한 오류는 반복해도 실패 → 즉시 중단
-                    failed++; // 한 구간이 한도(429)·오류로 실패해도 나머지는 계속
+                    failedChunks.push(chunks[i]); // 실패한 구간 텍스트를 보관 → [실패 구간만 재시도] 가능
                 }
                 if (i < chunks.length - 1) await sleep(1200); // 분당 한도(RPM) 완화용 간격
             }
             const merged = mergeNotams(all);
-            const result = { route, notams: merged, _chunked: true, _chunkFailed: failed, _chunkTotal: chunks.length, _reduced: !!(meta && meta.reduced), _origLen: meta && meta.origLen, _usedLen: meta && meta.usedLen };
+            const result = { route, notams: merged, _chunked: true, _chunkFailed: failedChunks.length, _chunkTotal: chunks.length, _failedChunks: failedChunks, _reduced: !!(meta && meta.reduced), _origLen: meta && meta.origLen, _usedLen: meta && meta.usedLen };
             currentBriefingId = null;              // 새 분석 → 새 레코드
             renderAnalysis(result, { fresh: true });
             saveBriefing(result);                  // 오프라인 열람용 자동 저장
+        }
+
+        // 실패한 구간만 다시 분석 — 전체 ANALYZE를 재실행하지 않아 요청·토큰(무료 한도)을 절약
+        let _retryingChunks = false;
+        async function retryFailedChunks(){
+            const d = analysisData;
+            if (_retryingChunks || !d || !Array.isArray(d._failedChunks) || !d._failedChunks.length) return;
+            const key = $('apiKey').value.trim();
+            if (!key) return alert(hasVault() ? "헤더의 [🔓 잠금해제]로 PIN을 입력해 저장된 키를 먼저 불러오세요." : "API Key를 입력하세요.");
+            _retryingChunks = true;
+            const btn = $('btnAnalyze'); if (btn) btn.disabled = true;
+            const setLoad = (msg) => { $('criticalNotams').innerHTML = `<div class="load-block"><span class="loading-spinner"></span><p>${escapeHtml(msg)}</p></div>`; };
+            const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+            const chunks = d._failedChunks.slice();
+            const route = d.route || {};
+            let recovered = [], stillFailed = [], aborted = '';
+            try {
+                for (let i = 0; i < chunks.length; i++){
+                    setLoad(`실패 구간 재시도 ${i + 1}/${chunks.length} · 복구 ${recovered.length}건`);
+                    try {
+                        const ns = await extractChunkNotams(key, chunks[i], route, (dl) => setLoad(`재시도 ${i + 1}/${chunks.length} · 한도 대기 ${Math.round(dl/1000)}s`));
+                        recovered = recovered.concat(ns);
+                    } catch (e){
+                        // 키·권한 오류·네트워크 차단은 나머지 구간도 실패 → 남은 구간을 보존하고 중단
+                        if ((e instanceof TypeError) || /^API (400|401|403)/.test(e.message || '')){ stillFailed = stillFailed.concat(chunks.slice(i)); aborted = e.message; break; }
+                        stillFailed.push(chunks[i]);
+                    }
+                    if (i < chunks.length - 1) await sleep(1200);
+                }
+            } finally {
+                // 복구분 병합(기존 항목·수동 분류 유지, 겹침 중복 제거) 후 실패 목록 갱신
+                recovered.forEach(n => { if (n._ai === undefined) n._ai = n.severity; });
+                d.notams = mergeNotams((Array.isArray(d.notams) ? d.notams : []).concat(recovered));
+                d._failedChunks = stillFailed;
+                d._chunkFailed = stillFailed.length;
+                renderAnalysis(d);
+                saveBriefing(d);   // 오프라인 저장본에도 반영
+                if (btn) btn.disabled = false;
+                _retryingChunks = false;
+                if (aborted) alert("실패 구간 재시도 중단: " + aborted + "\n\n지금까지 복구된 항목은 반영했습니다.");
+            }
         }
 
         async function runAnalysis(){
@@ -928,13 +1019,17 @@ EXCERPT:
 
             // 범위: '대상 공항만'이면 NOTAM 항목만 추려 대폭 축소 (무료 등급 절약)
             const scoped = buildScopedNotams(fullText);
-            const reduced = !!scoped;
-            const notamText = scoped || fullText;
+            if (scoped && typeof scoped === 'object' && scoped.empty){
+                return alert("대상 공항 범위 분석 실패\n\n" + scoped.reason);
+            }
+            const reduced = typeof scoped === 'string';
+            const notamText = reduced ? scoped : fullText;
             const meta = { reduced, origLen: fullText.length, usedLen: notamText.length };
             const promptText = reduced ? (fullText.slice(0, 8000) + "\n\n=== NOTAM BRIEFING (scope-filtered) ===\n" + notamText) : fullText;
 
             const btn = $('btnAnalyze'); btn.disabled = true;
             $('minorNotams').innerHTML = ""; $('flightTimeBadge').innerHTML = "";
+            $('routeCheck').innerHTML = ""; // 이전 분석의 항로대조 배너 제거(새 문서 기준으로 다시 계산됨)
             $('criticalNotams').innerHTML = `<div class="load-block"><span class="loading-spinner"></span><p>AI ANALYZING · ${reduced ? '대상 공항만' : '전체 비행'} 분석 중${reduced ? ` (범위 ${fullText.length.toLocaleString()}→${notamText.length.toLocaleString()}자)` : ''}</p></div>`;
 
             // 문서가 크면 구간 분할 (iOS 타임아웃/한 요청 과부하 방지)
@@ -1018,7 +1113,10 @@ TEXT:
             analysisData = d;
             const srcText = ($('packageInput') && $('packageInput').value) || '';
             const notams = Array.isArray(d.notams) ? d.notams : [];
-            notams.forEach((n, i) => { n._i = i; }); // 수동 중요도 변경용 안정 인덱스
+            notams.forEach((n, i) => {
+                n._i = i; // 수동 중요도 변경용 안정 인덱스
+                if (n.icao) n.icao = String(n.icao).toUpperCase().trim(); // 소문자 ICAO로 인한 점 표시·차트 매칭·단계 분류 누락 방지
+            });
             if (fresh) notams.forEach(n => { if (n._ai === undefined) n._ai = n.severity; }); // AI 원본 보관
             const restored = applyStoredOverrides(notams); // 이전에 내가 지정한 분류 복원
             const r = (d.route = d.route || {});
@@ -1074,7 +1172,7 @@ TEXT:
                 if (!directMode){ if (n._ai !== undefined) n.severity = n._ai; n._direct = ''; return; }
                 const dd = deriveDirectSeverity(n, n._phase, routeTokset);
                 n.severity = dd.sev; n._direct = dd.why;
-                if (dd.sev === 'warning') directWarnN++;
+                if (dd.why) directWarnN++;
             });
 
             const buckets = { DEPARTURE:[], ENROUTE:[], DESTINATION:[], ALTERNATE:[], OTHER:[] };
@@ -1125,12 +1223,12 @@ TEXT:
                 : "";
             const banner = d._truncated
                 ? `<div class="alert alert--caut" style="margin-bottom:.6rem"><div class="alert__head"><span class="chip chip--caut">PARTIAL</span><span class="alert__title">응답이 잘려 일부만 표시됨</span></div><p class="alert__body">NOTAM이 많아 출력 길이 제한에 걸렸습니다. 복구된 항목만 표시했습니다. 다시 실행하거나, 원문을 구간별로 나눠 분석해 보세요.</p></div>`
-                : (d._chunked ? `<div class="restore-note" style="color:var(--cyan);border-color:rgba(51,207,230,.35);background:rgba(51,207,230,.06)">⣿ <b style="color:var(--cyan)">구간 분할 분석</b> · 총 ${notams.length}건${d._chunkFailed ? ` <b style="color:var(--amber)">· ${d._chunkFailed}/${d._chunkTotal} 구간 실패(다시 ANALYZE 또는 Flash-Lite)</b>` : ''}</div>` : "");
+                : (d._chunked ? `<div class="restore-note" style="color:var(--cyan);border-color:rgba(51,207,230,.35);background:rgba(51,207,230,.06)">⣿ <b style="color:var(--cyan)">구간 분할 분석</b> · 총 ${notams.length}건${d._chunkFailed ? ` <b style="color:var(--amber)">· ${d._chunkFailed}/${d._chunkTotal} 구간 실패</b>${(Array.isArray(d._failedChunks) && d._failedChunks.length) ? ` <button class="linkbtn" onclick="retryFailedChunks()">↻ 실패 구간만 재시도</button>` : ' (다시 ANALYZE 또는 Flash-Lite)'}` : ''}</div>` : "");
             const scopeNote = d._reduced
                 ? `<div class="restore-note" style="color:var(--green);border-color:rgba(47,208,138,.35);background:rgba(47,208,138,.06)">◎ <b style="color:var(--green)">대상 공항만 분석</b> · 원문 ${(d._origLen||0).toLocaleString()}→${(d._usedLen||0).toLocaleString()}자로 축소해 요청·토큰을 절약했습니다.</div>`
                 : "";
             const directNote = (directMode && notams.length)
-                ? `<div class="restore-note" style="color:#ff9a94;border-color:rgba(240,85,79,.35);background:rgba(240,85,79,.06)">⤳ <b style="color:#ff9a94">직접 관련만 RED</b> · 내 FPL 항로/사용 활주로에 직접 적용되는 <b>${directWarnN}건</b>만 WARNING, 나머지는 ADVISORY로 낮췄습니다. <button class="linkbtn" onclick="disableDirectRed()">전체 표시</button></div>`
+                ? `<div class="restore-note" style="color:#ff9a94;border-color:rgba(240,85,79,.35);background:rgba(240,85,79,.06)">⤳ <b style="color:#ff9a94">직접 관련만 RED</b> · 내 FPL 항로·사용 RWY/TWY·NAV/APP에 직접 적용되는 <b>${directWarnN}건</b>만 WARNING/CAUTION, 나머지는 ADVISORY로 낮췄습니다. <button class="linkbtn" onclick="disableDirectRed()">전체 표시</button></div>`
                 : "";
             const rwyOnlyNote = rwyOnlyActive
                 ? `<div class="restore-note" style="color:var(--cyan);border-color:rgba(51,207,230,.35);background:rgba(51,207,230,.06)">🚩 <b style="color:var(--cyan)">관련만 보기</b> · 공항 NOTAM 중 내 RWY/TWY/택시루트 관련만 표시${rwyHiddenN?` (비관련 <b>${rwyHiddenN}건</b> 숨김)`:''}. <button class="linkbtn" onclick="disableRwyOnly()">전체 보기</button></div>`
@@ -1209,18 +1307,26 @@ TEXT:
         }
 
         // NOTAM 원문: 모델의 raw를 우선, 없으면 원문 텍스트에서 번호로 추출
+        // (렌더마다 NOTAM당 여러 번 호출되고 원문이 수백 KB일 수 있어 결과를 캐시)
+        const _rawCache = new WeakMap();
         function rawFromSource(n){
             if (n.raw && String(n.raw).trim()) return String(n.raw).trim();
             const id = (n.notam_id || '').trim();
             if (!id) return '';
             const src = ($('packageInput') && $('packageInput').value) || '';
+            const hit = _rawCache.get(n);
+            if (hit && hit.src === src) return hit.val;
+            let val = '';
             const idx = src.indexOf(id);
-            if (idx < 0) return '';
-            const seg = src.slice(idx, idx + 900);
-            const re = /[A-Z]\d{4}\/\d{2}/g;
-            let mm, cut = seg.length, first = true;
-            while ((mm = re.exec(seg))){ if (first){ first = false; continue; } cut = mm.index; break; }
-            return seg.slice(0, cut).trim();
+            if (idx >= 0){
+                const seg = src.slice(idx, idx + 900);
+                const re = /[A-Z]\d{4}\/\d{2}/g;
+                let mm, cut = seg.length, first = true;
+                while ((mm = re.exec(seg))){ if (first){ first = false; continue; } cut = mm.index; break; }
+                val = seg.slice(0, cut).trim();
+            }
+            _rawCache.set(n, { src, val });
+            return val;
         }
 
         // 사용자가 NOTAM 중요도를 직접 변경
@@ -1303,6 +1409,12 @@ TEXT:
 
         // --- 사용 RWY / 예상 TWY 로 관련 NOTAM 플래그 ---
         function parseTokens(s){ return String(s || '').toUpperCase().split(/[\s,/]+/).map(t => t.trim()).filter(Boolean); }
+        // 공항 범위용: RKSI-KLAX / ICN-LAX처럼 하이픈 쌍도 분리 (RWY 토큰과 분리)
+        function parseAirportTokens(s){
+            return String(s || '').toUpperCase().split(/[\s,/]+/)
+                .flatMap(t => t.split('-'))
+                .map(t => t.trim()).filter(Boolean);
+        }
         function loadRwyTwy(){ try { return JSON.parse(localStorage.getItem('rwyTwy') || '{}'); } catch(_){ return {}; } }
         function applyRwyTwy(){
             useRwy = parseTokens($('inRwy').value);
@@ -1473,14 +1585,15 @@ TEXT:
                 end = fRe.lastIndex; cnt++;
                 if (fpl && (tk === fpl.ades || tk === ICAO2IATA[fpl.ades])) break;
             }
-            // 앞으로 확장(SID/출발공항 흡수)
+            // 앞으로 확장(SID/출발공항 흡수) — 토큰 앞 경계까지 확인해 창 경계에서 토큰이 잘려 들어가지 않게 함
             let start = seedS, guard = 0;
             while (guard++ < 60){
-                const pre = U.slice(Math.max(0,start-18), start);
-                const pm = /([A-Z0-9]{1,11})\s*(?:\.\.|\s)\s*$/.exec(pre);
-                if (pm && looksRouteTok(pm[1])){
-                    start = Math.max(0,start-18) + pm.index;
-                    if (fpl && (pm[1] === fpl.adep || pm[1] === ICAO2IATA[fpl.adep])) break;
+                const wStart = Math.max(0, start - 24);
+                const pre = U.slice(wStart, start);
+                const pm = /(^|[^A-Z0-9])([A-Z0-9]{1,11})\s*(?:\.\.|\s)\s*$/.exec(pre);
+                if (pm && looksRouteTok(pm[2]) && (pm[1] !== '' || wStart === 0)){
+                    start = wStart + pm.index + pm[1].length;
+                    if (fpl && (pm[2] === fpl.adep || pm[2] === ICAO2IATA[fpl.adep])) break;
                 } else break;
             }
             return s.slice(start, end).replace(/\s+/g,' ').trim();
@@ -1520,8 +1633,15 @@ TEXT:
         }
         function prefillXcheck(chk, fresh){
             const A = $('xcheckA'), B = $('xcheckB'); if (!A || !B) return;
-            const setIf = (el, val) => { if (val && (el.dataset.auto !== '0' || !el.value.trim())){ el.value = val; el.dataset.auto = '1'; } };
-            setIf(A, chk.aStr); setIf(B, chk.bStr);
+            if (fresh){
+                // 새 분석 → 이전 비행에서 남은 수동 입력·대조 결과를 버리고 새 문서의 자동값으로 교체
+                A.value = chk.aStr || ''; A.dataset.auto = '1';
+                B.value = chk.bStr || ''; B.dataset.auto = '1';
+                const out = $('xcheckOut'); if (out) out.innerHTML = '';
+            } else {
+                const setIf = (el, val) => { if (val && (el.dataset.auto !== '0' || !el.value.trim())){ el.value = val; el.dataset.auto = '1'; } };
+                setIf(A, chk.aStr); setIf(B, chk.bStr);
+            }
             const labA = $('xcheckAlab'); if (labA) labA.textContent = '① FPL Field 15' + (chk.fpl ? ' (자동추출됨)' : ' (미검출 — 직접 붙여넣기)');
             const labB = $('xcheckBlab'); if (labB) labB.textContent = '② ' + (chk.bLabel || 'Page 2 항로내용') + ' (자동추출·직접 붙여넣기)';
         }
@@ -1573,29 +1693,55 @@ TEXT:
             if ((n.category||'').toUpperCase() === 'RWY') return true;
             return /\bRWY\b|\bRWYS\b|\bRUNWAY\b|\bR\/W\b|\bRWY\s?\d/.test(notamText(n));
         }
+        function isTwyRelated(n){
+            if ((n.category||'').toUpperCase() === 'TWY') return true;
+            return /\bTWYS?\b|\bTAXIWAYS?\b|TAXI\s*-?\s*WAY|\bTXWYS?\b|T\/W/.test(notamText(n));
+        }
+        function isNavAppRelated(n){
+            const cat = (n.category||'').toUpperCase();
+            if (cat === 'NAV' || cat === 'APP') return true;
+            return /\bILS\b|\bVOR\b|\bDME\b|\bLOC\b|\bGLIDE\b|\bGP\b|\bAPPROACH\b|\bRNAV\b|\bRNP\b|\bNDB\b/.test(notamText(n));
+        }
         function directWordRe(tok){
             const esc = String(tok).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
             try { return new RegExp('(^|[^A-Z0-9])' + esc + '([^A-Z0-9]|$)'); } catch(_){ return null; }
         }
-        // 직접-관련이면 사유 문자열 반환('항로 XXX' | '출발 RWY' | '도착 RWY'), 아니면 ''
+        // 공항 단계(출발/도착/교체)에서 직접 관련 사유
+        function airportDirectReason(n, lbl){
+            const hasSurf = useRwy.length || useTwy.length || useTaxi.length;
+            if (hasSurf){
+                const fk = flagKind(n);
+                return fk ? lbl + ' ' + fk + '(내입력)' : '';
+            }
+            if (isRunwayRelated(n)) return lbl + ' RWY';
+            if (isTwyRelated(n)) return lbl + ' TWY';
+            if (isNavAppRelated(n)) return lbl + ' NAV/APP';
+            return '';
+        }
+        // 직접-관련이면 사유 문자열 반환, 아니면 ''
         function directRedReason(n, phase, tokset){
             if (phase === 'DEPARTURE' || phase === 'DESTINATION'){
-                if (!isRunwayRelated(n)) return '';
-                const lbl = (phase === 'DEPARTURE' ? '출발' : '도착') + ' RWY';
-                if (useRwy.length) return (flagKind(n)||'').indexOf('RWY') >= 0 ? lbl + '(내RWY)' : '';
-                return lbl;
+                return airportDirectReason(n, phase === 'DEPARTURE' ? '출발' : '도착');
+            }
+            if (phase === 'ALTERNATE'){
+                return airportDirectReason(n, '교체');
             }
             if (phase === 'ENROUTE'){
                 const t = notamText(n);
                 for (const tok of tokset){ const re = directWordRe(tok); if (re && re.test(t)) return '항로 ' + tok; }
                 return '';
             }
-            return ''; // ALTERNATE / OTHER → advisory
+            return '';
         }
         function deriveDirectSeverity(n, phase, tokset){
             const inWindow = n.relevant !== false;           // AI 시간창 게이트(명시적 false만 제외)
             const why = directRedReason(n, phase, tokset);
-            return (why && inWindow) ? { sev:'warning', why } : { sev:'advisory', why:'' };
+            if (why && inWindow){
+                // 직접 관련: WARNING 강조. AI가 caution이면 caution 유지(과대 승격 방지)
+                const ai = String(n._ai || n.severity || '').toLowerCase();
+                return { sev: (ai === 'caution' ? 'caution' : 'warning'), why };
+            }
+            return { sev:'advisory', why:'' };
         }
         function getDirectRed(){ try { const v = localStorage.getItem('directRedMode'); return v === null ? true : v === '1'; } catch(_){ return true; } }
         function toggleDirectRed(){ try { localStorage.setItem('directRedMode', $('directRed').checked ? '1' : '0'); } catch(_){} if (analysisData) renderAnalysis(analysisData); }
@@ -1733,22 +1879,45 @@ Features to locate: ${JSON.stringify(features)}`;
             if (!res.ok){ const t = await res.text(); throw new Error(apiErrText(res.status, t)); }
             const data = await res.json();
             const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-            const parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
+            let parsed;
+            try { parsed = JSON.parse(raw.replace(/```json|```/g, "").trim()); }
+            catch(_){ return []; } // 잘린/비정상 JSON → 이 차트는 빈 결과로 계속
             const clamp = v => Math.max(0, Math.min(100, v));
+            const featLower = (s) => String(s || '').toLowerCase().trim();
             return (parsed.detections || [])
                 .filter(d => Array.isArray(d.box_2d) && d.box_2d.length === 4 && d.box_2d.every(v => isFinite(v)))
                 .map(d => {
                     const [ymin, xmin, ymax, xmax] = d.box_2d.map(Number);
-                    const src = list.find(n => (n.feature || '').toLowerCase() === String(d.label || '').toLowerCase()) || list[0] || {};
+                    const label = String(d.label || '');
+                    // 라벨이 feature 목록과 일치할 때만 매칭 — list[0] 폴백 금지(잘못된 심각도/출처 방지)
+                    const src = list.find(n => featLower(n.feature) === featLower(label));
+                    if (!src && features.length){
+                        // 부분 일치(모델이 접두/접미를 붙인 경우) 허용
+                        const fuzzy = list.find(n => {
+                            const f = featLower(n.feature); const L = featLower(label);
+                            return f && L && (L.includes(f) || f.includes(L));
+                        });
+                        if (!fuzzy) return null;
+                        return {
+                            label: label || fuzzy.feature || '',
+                            severity: fuzzy.severity || 'warning',
+                            left:   clamp(Math.min(xmin, xmax) / 10),
+                            top:    clamp(Math.min(ymin, ymax) / 10),
+                            width:  Math.max(1.5, clamp(Math.abs(xmax - xmin) / 10)),
+                            height: Math.max(1.5, clamp(Math.abs(ymax - ymin) / 10))
+                        };
+                    }
+                    if (!src) return null;
                     return {
-                        label: d.label || src.feature || '',
+                        label: label || src.feature || '',
                         severity: src.severity || 'warning',
                         left:   clamp(Math.min(xmin, xmax) / 10),
                         top:    clamp(Math.min(ymin, ymax) / 10),
                         width:  Math.max(1.5, clamp(Math.abs(xmax - xmin) / 10)),
                         height: Math.max(1.5, clamp(Math.abs(ymax - ymin) / 10))
                     };
-                });
+                })
+                .filter(Boolean);
         }
 
         // AI가 공항의 모든 차트를 스캔 → 표시 대상이 있는 차트만 하이라이트
@@ -1762,7 +1931,7 @@ Features to locate: ${JSON.stringify(features)}`;
             const features = [...new Set(list.map(n => n.feature).filter(Boolean))];
             const b = $('btnAnnotate'); const label = b.textContent;
             b.disabled = true;
-            let hit = 0, reused = 0, stopped = false;
+            let hit = 0, reused = 0, failed = 0, stopped = false;
             try {
                 for (let idx = 0; idx < currentMaps.length; idx++){
                     const m = currentMaps[idx];
@@ -1781,7 +1950,10 @@ Features to locate: ${JSON.stringify(features)}`;
                             (d) => { b.innerHTML = `<span class="loading-spinner"></span> 한도 대기 ${Math.round(d/1000)}s`; });
                     } catch (e){
                         if (/429|요청 한도 초과/.test(e.message)){ alert(e.message + "\n\n지금까지 스캔한 결과는 유지됩니다."); stopped = true; break; }
-                        throw e;
+                        // 네트워크 차단이면 이후 요청도 모두 실패 → 중단. 그 외(응답 파싱 실패 등)는 이 차트만 건너뛰고 계속
+                        if ((e instanceof TypeError) || /failed to fetch|networkerror/i.test(e.message)) throw e;
+                        failed++;
+                        continue;
                     }
                     annotationsByChartId[m.id] = found;   // 결과 저장(빈 배열이면 하이라이트 해제)
                     saveChartMarkers(m.id, found);        // 브라우저에 저장 → 다음에도 재사용
@@ -1789,7 +1961,7 @@ Features to locate: ${JSON.stringify(features)}`;
                     if (found.length) hit++;
                     if (m.id === currentChartId) renderMarkers(found);
                 }
-                if (!stopped) alert(`차트 자동분석 완료 · ${currentMaps.length}개 중 ${hit}개 차트에 표시 대상${reused ? ` (기존 마킹 ${reused}개 재사용)` : ''}.\n표시가 틀리면 마커를 드래그해 옮기세요. 다시 감지하려면 [마킹 초기화].`);
+                if (!stopped) alert(`차트 자동분석 완료 · ${currentMaps.length}개 중 ${hit}개 차트에 표시 대상${reused ? ` (기존 마킹 ${reused}개 재사용)` : ''}${failed ? ` · ${failed}개 차트 분석 실패(다시 시도 가능)` : ''}.\n표시가 틀리면 마커를 드래그해 옮기세요. 다시 감지하려면 [마킹 초기화].`);
             } catch (err){
                 const isNet = (err instanceof TypeError) || /failed to fetch|networkerror/i.test(err.message);
                 alert(isNet ? "연결 실패: 요청이 차단되었습니다 (차단기·API Key 제한·네트워크 확인)." : "차트 스캔 실패\n" + err.message);
@@ -1929,7 +2101,7 @@ Features to locate: ${JSON.stringify(features)}`;
             ['xcheckA','xcheckB'].forEach(id => { const e = $(id); if (e) e.addEventListener('input', () => { e.dataset.auto = '0'; }); });
 
             // 오프라인 지원: 앱 셸 캐시(sw.js가 함께 배포된 경우) + 저장소 영속화 요청
-            if ('serviceWorker' in navigator && location.protocol === 'https:'){
+            if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')){
                 navigator.serviceWorker.register('./sw.js').catch(() => {}); // sw.js 없으면 조용히 무시
             }
             if (navigator.storage && navigator.storage.persist){
