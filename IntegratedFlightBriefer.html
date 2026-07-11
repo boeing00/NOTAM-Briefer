@@ -22,10 +22,14 @@ body{min-height:100vh;font-family:system-ui,"Segoe UI",sans-serif;color:var(--te
   border:1px solid var(--line);border-radius:14px}
 .hdr h1{font-size:1.15rem;letter-spacing:.05em;margin:0}
 .hdr p{margin:.2rem 0 0;font-size:.72rem;color:var(--cyan);letter-spacing:.08em}
-.tabs{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
-.tab{font-weight:600;font-size:.8rem;letter-spacing:.04em;padding:.6rem 1rem;border-radius:9px;
+.tabs{display:flex;gap:.5rem;margin-bottom:.45rem;flex-wrap:wrap;position:sticky;top:0;z-index:20;
+  padding:.55rem 0 .55rem;background:linear-gradient(180deg,rgba(8,11,18,.97) 60%,rgba(8,11,18,.85));
+  backdrop-filter:blur(8px)}
+.tab{font-weight:700;font-size:.82rem;letter-spacing:.04em;padding:.7rem 1.05rem;border-radius:9px;
   border:1px solid var(--line);background:#101823;color:var(--muted);cursor:pointer}
-.tab.active{background:linear-gradient(180deg,var(--cyan),#1c9fb4);color:#04121a;border-color:#3fdcf0}
+.tab.active{background:linear-gradient(180deg,var(--cyan),#1c9fb4);color:#04121a;border-color:#3fdcf0;
+  box-shadow:0 0 14px rgba(51,207,230,.25)}
+.tab-hint{font-size:.7rem;color:var(--muted);margin:0 0 .9rem;line-height:1.5}
 .panel{background:linear-gradient(180deg,#111a27,#0d1420);border:1px solid var(--line);border-radius:14px;
   padding:1.1rem;box-shadow:0 10px 30px rgba(0,0,0,.4);margin-bottom:1rem}
 .panel h2{font-size:.95rem;margin:0 0 .6rem;color:var(--cyan);letter-spacing:.04em}
@@ -50,7 +54,7 @@ textarea{resize:vertical;font-family:ui-monospace,Consolas,monospace;font-size:.
 .btn.ghost{border-color:var(--line);color:var(--muted)}
 .status{font-size:.72rem;color:var(--cyan);min-height:1.2rem;margin-top:.4rem}
 .status.err{color:var(--red)}
-iframe.notam-frame{width:100%;height:78vh;border:1px solid var(--line);border-radius:12px;background:#000}
+iframe.notam-frame{width:100%;height:62vh;min-height:420px;border:1px solid var(--line);border-radius:12px;background:#000}
 .alertbtns{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.4rem}
 .albtn{flex:1;min-width:70px;text-align:center;padding:.55rem .3rem;border-radius:8px;font-weight:700;
   font-size:.72rem;cursor:pointer;border:2px solid transparent;opacity:.5}
@@ -96,9 +100,13 @@ hr{border:none;border-top:1px solid var(--line);margin:1rem 0}
 
   <div class="tabs">
     <button class="tab active" data-tab="notam" onclick="switchTab('notam')">① NOTAM 브리핑</button>
-    <button class="tab" data-tab="joint" onclick="switchTab('joint')">② Joint Briefing 데이터</button>
-    <button class="tab" data-tab="combine" onclick="switchTab('combine')">③ 스크립트 생성</button>
+    <button class="tab" data-tab="joint" onclick="switchTab('joint')">② Joint Briefing Briefer</button>
+    <button class="tab" data-tab="combine" onclick="switchTab('combine')">③ PDF 스크립트 생성</button>
   </div>
+  <p class="tab-hint">
+    Joint Briefing은 <b>②번 탭</b>입니다. (사이트 루트 <code>index.html</code>은 NOTAM 전용 ·
+    통합본 URL: <code>…/IntegratedFlightBriefer.html</code>)
+  </p>
 
   <!-- ============ TAB 1: NOTAM ============ -->
   <div class="tabpage" id="page-notam">
@@ -129,11 +137,11 @@ ROUTE: RKSI → KLAX · FLT 11H20M
     </div>
   </div>
 
-  <!-- ============ TAB 2: JOINT BRIEFING DATA ============ -->
+  <!-- ============ TAB 2: JOINT BRIEFING BRIEFER ============ -->
   <div class="tabpage" id="page-joint" style="display:none">
 
     <div class="panel">
-      <h2>1 · FPL / OFP 업로드 &amp; AI 추출 (선택)</h2>
+      <h2>Joint Briefing Briefer · FPL / OFP 업로드 &amp; AI 추출</h2>
       <div class="row">
         <input type="password" id="geminiKey" placeholder="GEMINI API KEY" style="max-width:20rem">
         <button class="btn ghost" onclick="saveKey()">키 저장</button>
@@ -251,8 +259,10 @@ ROUTE: RKSI → KLAX · FLT 11H20M
 function switchTab(name){
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
   document.querySelectorAll('.tabpage').forEach(p=>p.style.display='none');
-  document.getElementById('page-'+name).style.display='block';
+  const page = document.getElementById('page-'+name);
+  if (page) page.style.display='block';
   if(name==='combine') updateCombinePreview();
+  try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(_){ window.scrollTo(0,0); }
 }
 
 function escapeHtml(s){
