@@ -1,0 +1,2207 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0b0f17">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Pilot Ops">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <link rel="apple-touch-icon" href="data:image/png;base64,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">
+    <link rel="icon" type="image/png" href="data:image/png;base64,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">
+    <link rel="manifest" href="data:application/manifest+json,{%22name%22:%20%22Pilot%20Ops%20Center%22,%20%22short_name%22:%20%22Pilot%20Ops%22,%20%22display%22:%20%22standalone%22,%20%22orientation%22:%20%22any%22,%20%22background_color%22:%20%22%23080b12%22,%20%22theme_color%22:%20%22%230b0f17%22,%20%22icons%22:%20[{%22src%22:%20%22data:image/png;base64,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%22,%20%22sizes%22:%20%22180x180%22,%20%22type%22:%20%22image/png%22,%20%22purpose%22:%20%22any%22}]}">
+    <title>Pilot Ops Center · EFB</title>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root{
+            --panel:#080b12; --surface:#131c29; --raised:#16202f;
+            --line:#243349; --cyan:#33cfe6; --cyan-dim:#1c6e7d;
+            --green:#2fd08a; --amber:#f2a93b; --red:#f0554f;
+            --text:#dfe8f2; --muted:#6d7f97; --dim:#47576d;
+        }
+        *{box-sizing:border-box}
+        .hidden{display:none!important}
+        html,body{margin:0}
+        body{min-height:100vh;font-family:"IBM Plex Sans KR",system-ui,sans-serif;color:var(--text);
+            background:radial-gradient(1200px 620px at 50% -12%,#101a2b 0%,var(--panel) 62%),var(--panel)}
+        body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+            background-image:linear-gradient(rgba(51,207,230,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(51,207,230,.035) 1px,transparent 1px);
+            background-size:46px 46px;
+            -webkit-mask-image:radial-gradient(1000px 720px at 50% 0%,#000,transparent 82%);
+            mask-image:radial-gradient(1000px 720px at 50% 0%,#000,transparent 82%)}
+        .wrap{max-width:80rem;margin:0 auto;padding:1.25rem;position:relative;z-index:1}
+        .stack>*+*{margin-top:1rem}
+
+        .bezel{background:linear-gradient(180deg,#141f2e,#0c141e);border:1px solid var(--line);border-radius:16px;box-shadow:inset 0 1px 0 rgba(90,120,160,.18),0 14px 40px rgba(0,0,0,.55)}
+        .hdr{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;padding:1rem 1.25rem;margin-bottom:1.25rem}
+        .hdr__brand{display:flex;align-items:center;gap:.85rem}
+        .hdr__logo{width:42px;height:42px;display:grid;place-items:center;border-radius:11px;font-size:20px;color:#04121a;background:linear-gradient(180deg,var(--cyan),#1893a6);box-shadow:0 0 18px rgba(51,207,230,.4)}
+        .hdr__title{font-family:"Chakra Petch";font-weight:700;font-size:1.25rem;letter-spacing:.16em;margin:0}
+        .hdr__sub{font-family:"Chakra Petch";font-size:.58rem;letter-spacing:.28em;color:var(--cyan);margin:.15rem 0 0;opacity:.85}
+        .hdr__right{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap}
+        .clock{display:flex;align-items:center;gap:.5rem;font-family:"IBM Plex Mono";background:#0a121c;border:1px solid var(--line);border-radius:9px;padding:.5rem .7rem}
+        .clock__dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:blink 2s infinite}
+        .clock__lbl{font-size:.58rem;letter-spacing:.15em;color:var(--muted)}
+        .clock__val{font-size:.85rem;font-weight:600;color:var(--cyan);letter-spacing:.05em}
+        .keyin{font-family:"IBM Plex Mono";font-size:.72rem;letter-spacing:.08em;background:#0a121c;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:.55rem .75rem;width:14rem;outline:none}
+        .keyin::placeholder{color:var(--dim)}
+        .keyin:focus{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan),0 0 14px rgba(51,207,230,.25)}
+        .keybox{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
+        .keystat{font-family:"IBM Plex Mono";font-size:.58rem;letter-spacing:.04em;color:var(--muted)}
+        .keystat--lock{color:var(--green)}
+        .keystat--open{color:var(--amber)}
+        .modelsel{font-family:"IBM Plex Mono";font-size:.62rem;letter-spacing:.03em;background:#0a121c;color:var(--cyan);border:1px solid var(--line);border-radius:8px;padding:.4rem .5rem;outline:none}
+        .modelsel:focus{border-color:var(--cyan)}
+        .scope-row{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-top:.7rem}
+        .scope-lbl{font-family:"Chakra Petch";font-size:.62rem;font-weight:700;letter-spacing:.08em;color:var(--cyan)}
+        .scope-chk{display:flex;align-items:center;gap:.35rem;font-family:"IBM Plex Mono";font-size:.62rem;color:var(--muted);cursor:pointer}
+        .scope-chk input{accent-color:var(--cyan)}
+        .brief-hint{font-family:"IBM Plex Mono";font-size:.58rem;letter-spacing:.05em;color:var(--muted);font-weight:400}
+        .brief-list{display:flex;flex-direction:column;gap:.45rem;min-height:1.5rem}
+        .brief-item{display:flex;align-items:stretch;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#0d1622;transition:border-color .15s}
+        .brief-item--cur{border-color:var(--green);box-shadow:0 0 10px rgba(47,208,138,.2)}
+        .brief-item__open{flex:1;display:flex;justify-content:space-between;align-items:center;gap:.6rem;background:transparent;border:none;padding:.6rem .8rem;cursor:pointer;text-align:left}
+        .brief-item__open:hover{background:#131d2a}
+        .brief-item__title{font-family:"Chakra Petch";font-weight:700;font-size:.8rem;letter-spacing:.05em;color:var(--text)}
+        .brief-item--cur .brief-item__title{color:var(--green)}
+        .brief-item__meta{font-family:"IBM Plex Mono";font-size:.6rem;color:var(--muted)}
+        .brief-item__del{font-family:"IBM Plex Mono";font-size:.65rem;color:var(--dim);background:transparent;border:none;border-left:1px solid var(--line);padding:0 .7rem;cursor:pointer}
+        .brief-item__del:hover{color:var(--red);background:rgba(240,85,79,.1)}
+        .env-notice{font-family:"IBM Plex Sans KR",sans-serif;font-size:.72rem;line-height:1.6;color:#ffe6b0;background:rgba(242,169,59,.1);border:1px solid rgba(242,169,59,.5);border-radius:12px;padding:.7rem .9rem;margin-bottom:1.25rem}
+        .env-notice b{color:var(--amber)}
+
+        .panel{background:linear-gradient(180deg,#111a27,#0d1420);border:1px solid var(--line);border-radius:14px;padding:1.1rem;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+        .panel__head{display:flex;justify-content:space-between;align-items:center;gap:.75rem;margin-bottom:.9rem;flex-wrap:wrap}
+        .panel__title{font-family:"Chakra Petch";font-weight:600;font-size:.85rem;letter-spacing:.14em;margin:0}
+        .icao{color:var(--cyan);text-shadow:0 0 12px rgba(51,207,230,.5)}
+        .eyebrow{font-family:"Chakra Petch";font-size:.6rem;font-weight:600;letter-spacing:.26em;color:var(--muted);margin:0 0 .8rem;display:flex;align-items:center;gap:.5rem}
+        .eyebrow::before{content:"";width:14px;height:2px;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+        .eyebrow--alert::before{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+        .btnrow{display:flex;gap:.5rem;flex-wrap:wrap}
+
+        .btn{font-family:"Chakra Petch";font-weight:600;font-size:.72rem;letter-spacing:.1em;padding:.5rem .85rem;border-radius:9px;border:1px solid transparent;cursor:pointer;transition:all .15s;color:var(--text);background:#16202f}
+        .btn:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+        .btn--ghost{background:transparent;border-color:var(--red);color:#ff8f8a}
+        .btn--ghost:hover{background:rgba(240,85,79,.12)}
+        .btn--cyan{background:transparent;border-color:var(--cyan-dim);color:var(--cyan)}
+        .btn--cyan:hover{background:rgba(51,207,230,.1);border-color:var(--cyan)}
+        .btn--amber{background:transparent;border-color:var(--amber);color:var(--amber)}
+        .btn--amber:hover:not(:disabled){background:rgba(242,169,59,.12)}
+        .btn--amber:disabled{opacity:.45;cursor:not-allowed}
+        .btn--go{background:linear-gradient(180deg,var(--cyan),#1c9fb4);color:#04121a;border-color:#3fdcf0;box-shadow:0 0 16px rgba(51,207,230,.3)}
+        .btn--go:hover:not(:disabled){filter:brightness(1.08)}
+        .btn--go:disabled{background:#1a2432;color:var(--dim);border-color:var(--line);box-shadow:none;cursor:not-allowed}
+
+        /* 공항 pushbuttons */
+        .apt-row{display:flex;gap:.6rem;overflow-x:auto;padding-bottom:.35rem}
+        .apt-btn{position:relative;flex:0 0 auto;font-family:"Chakra Petch";font-weight:700;font-size:.9rem;letter-spacing:.08em;color:var(--muted);background:linear-gradient(180deg,#17222f,#101825);border:1px solid var(--line);border-radius:10px;padding:.72rem 1.15rem .6rem;cursor:pointer;transition:all .15s}
+        .apt-btn::before{content:"";position:absolute;top:6px;left:50%;transform:translateX(-50%);width:20px;height:3px;border-radius:2px;background:#2b3a4f;transition:all .15s}
+        .apt-btn:hover{color:var(--text);border-color:var(--cyan-dim)}
+        .apt-btn.active-airport{color:#04120c!important;background:linear-gradient(180deg,var(--green),#1aa774)!important;border-color:#43e6a6!important;box-shadow:0 0 0 1px rgba(47,208,138,.5),0 0 20px rgba(47,208,138,.4)!important}
+        .apt-btn.active-airport::before{background:#daffee;box-shadow:0 0 10px #7fffd0}
+        .apt-btn__dot{position:absolute;top:5px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber)}
+
+        /* 문서 로드 카드 (원문 숨김) */
+        .doccard{display:flex;align-items:center;gap:.75rem;padding:.8rem .9rem;background:#0a121c;border:1px solid var(--line);border-radius:10px}
+        .doccard--empty{opacity:.65}
+        .doccard__icon{font-size:1.2rem}
+        .doccard__title{font-family:"Chakra Petch";font-weight:600;font-size:.8rem;margin:0;color:var(--text);word-break:break-all}
+        .doccard__meta{font-family:"IBM Plex Mono";font-size:.62rem;color:var(--muted);margin:.15rem 0 0}
+        .doc-actions{margin-top:.5rem}
+        .linkbtn{font-family:"IBM Plex Mono";font-size:.62rem;color:var(--cyan);background:none;border:none;cursor:pointer;padding:.15rem 0;letter-spacing:.04em}
+        .linkbtn:hover{text-decoration:underline}
+        .cdu{width:100%;margin-top:.5rem;font-family:"IBM Plex Mono";font-size:.66rem;line-height:1.55;color:#bfe9f2;background:#080e16;border:1px solid var(--line);border-radius:10px;padding:.8rem;resize:vertical;outline:none;box-shadow:inset 0 0 30px rgba(0,0,0,.6)}
+        .cdu:focus{border-color:var(--cyan)}
+        .cdu::placeholder{color:var(--dim)}
+        .statusline{font-family:"IBM Plex Mono";font-size:.62rem;font-weight:500;color:var(--cyan);margin-top:.5rem;min-height:1rem;letter-spacing:.04em}
+
+        /* 결과 */
+        .summary-wrap{margin-bottom:.9rem;min-height:.1rem}
+        .summary{display:inline-flex;align-items:center;gap:.5rem;font-family:"IBM Plex Mono";font-size:.72rem;color:var(--cyan);background:#0a141d;border:1px solid var(--cyan-dim);border-radius:8px;padding:.45rem .7rem}
+        .route{display:flex;align-items:center;gap:.5rem;font-family:"Chakra Petch";font-weight:700;font-size:1rem;letter-spacing:.06em}
+        .route .arrow{color:var(--cyan);text-shadow:0 0 10px var(--cyan)}
+        .route__sub{font-family:"IBM Plex Mono";font-size:.62rem;color:var(--muted);letter-spacing:.03em;margin:.15rem 0 0}
+        .phase{margin-top:1rem}
+        .phase:first-child{margin-top:0}
+        .phase__hd{font-family:"Chakra Petch";font-size:.6rem;font-weight:600;letter-spacing:.2em;color:var(--muted);display:flex;align-items:center;gap:.5rem;margin:0 0 .55rem}
+        .phase__hd::before{content:"";width:12px;height:2px;background:var(--cyan)}
+        .phase__hd .cnt{font-family:"IBM Plex Mono";color:var(--cyan)}
+        .alert{position:relative;border-left:3px solid var(--line);border-radius:8px;padding:.7rem .85rem;background:var(--surface);animation:rise .3s ease both;margin-bottom:.55rem}
+        .alert--warn{border-left-color:var(--red);background:linear-gradient(90deg,rgba(240,85,79,.14),rgba(240,85,79,.02))}
+        .alert--caut{border-left-color:var(--amber);background:linear-gradient(90deg,rgba(242,169,59,.12),rgba(242,169,59,.02))}
+        .alert--adv{border-left-color:var(--cyan);background:linear-gradient(90deg,rgba(51,207,230,.10),rgba(51,207,230,.02))}
+        .alert__head{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;margin-bottom:.4rem}
+        .alert__title{font-family:"Chakra Petch";font-weight:600;font-size:.78rem;letter-spacing:.02em}
+        .alert__body{font-size:.75rem;line-height:1.55;color:#c2cede;margin:0}
+        .chip{font-family:"Chakra Petch";font-weight:700;font-size:.56rem;letter-spacing:.12em;padding:2px 7px;border-radius:4px;white-space:nowrap}
+        .chip--warn{background:var(--red);color:#1a0605}
+        .chip--caut{background:var(--amber);color:#241601}
+        .chip--adv{background:var(--cyan);color:#04121a}
+        .chip--cat{background:#1c2a3c;color:var(--cyan);border:1px solid var(--cyan-dim)}
+        .chip--feat{background:#241601;color:var(--amber);border:1px solid var(--amber)}
+        .empty-note{font-family:"IBM Plex Mono";font-size:.68rem;letter-spacing:.08em;color:var(--dim);text-align:center;padding:2.5rem 0;margin:0}
+
+        /* MFD */
+        .chart-hint{font-family:"IBM Plex Mono";font-size:.58rem;color:var(--amber);letter-spacing:.03em;margin:-.4rem 0 .7rem}
+        .chart-keys{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.9rem;min-height:1.9rem}
+        .chart-key{display:inline-flex;align-items:stretch;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#131d2a;transition:box-shadow .15s}
+        .chart-key__name{font-family:"IBM Plex Mono";font-size:.64rem;font-weight:500;letter-spacing:.03em;color:var(--muted);background:transparent;border:none;padding:.36rem .6rem;cursor:pointer;transition:all .12s}
+        .chart-key__name:hover{color:var(--text)}
+        .chart-key__name.map-tab-active{background:linear-gradient(180deg,var(--cyan),#1893a6)!important;color:#04121a!important}
+        .chart-key__del{font-family:"IBM Plex Mono";font-size:.6rem;color:var(--dim);background:transparent;border:none;border-left:1px solid var(--line);padding:0 .45rem;cursor:pointer}
+        .chart-key__del:hover{color:var(--red);background:rgba(240,85,79,.12)}
+        .chart-key--marked{box-shadow:0 0 0 1px var(--amber),0 0 12px rgba(242,169,59,.45)}
+        .chart-key--marked .chart-key__name::after{content:" ⌖";color:var(--amber)}
+        .no-map{font-family:"IBM Plex Mono";font-size:.64rem;color:var(--dim);letter-spacing:.06em}
+        .mfd{position:relative;background:radial-gradient(620px 420px at 50% 28%,#0a1119,#04070c);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:500px;box-shadow:inset 0 0 60px rgba(0,0,0,.7)}
+        .mfd__stage{position:relative;display:inline-block;line-height:0;max-width:100%}
+        .mfd__img{max-width:100%;height:auto;display:block}
+        .mfd__overlay{position:absolute;inset:0;pointer-events:none}
+        .mfd-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:"Chakra Petch";font-size:.85rem;letter-spacing:.2em;color:var(--dim)}
+        .mfd__label{position:absolute;top:.6rem;left:.6rem;font-family:"IBM Plex Mono";font-size:.62rem;letter-spacing:.05em;color:var(--cyan);background:rgba(4,10,16,.75);border:1px solid var(--cyan-dim);padding:.2rem .5rem;border-radius:5px;z-index:3}
+
+        /* NOTAM 위치 마커 */
+        .marker{position:absolute;pointer-events:auto;z-index:2;min-width:6px;min-height:6px;border:2px solid var(--red);border-radius:4px;background:rgba(240,85,79,.12);box-shadow:0 0 12px rgba(240,85,79,.55),inset 0 0 12px rgba(240,85,79,.2);animation:mkpulse 2s infinite;cursor:move;touch-action:none}
+        .marker--drag{animation:none;opacity:.95;box-shadow:0 0 0 2px #fff,0 0 18px rgba(255,255,255,.6)!important;z-index:6}
+        .marker__grip{position:absolute;right:-4px;bottom:-4px;width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--red);opacity:.9}
+        .marker--caut .marker__grip{border-color:var(--amber)}
+        .marker--caut{border-color:var(--amber);background:rgba(242,169,59,.12);box-shadow:0 0 12px rgba(242,169,59,.55),inset 0 0 12px rgba(242,169,59,.2)}
+        .marker__tag{position:absolute;left:-2px;top:-1.3rem;display:inline-flex;align-items:center;gap:.15rem;font-family:"IBM Plex Mono";font-size:.58rem;line-height:1.3;color:#04121a;background:var(--red);padding:.08rem .3rem;border-radius:3px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.5);pointer-events:auto}
+        .marker--caut .marker__tag{background:var(--amber)}
+        .marker--flip .marker__tag{top:auto;bottom:-1.3rem}
+        .marker__act{font-family:"IBM Plex Mono";font-size:.6rem;line-height:1;color:#04121a;background:rgba(255,255,255,.35);border:none;border-radius:2px;padding:.1rem .25rem;cursor:pointer;touch-action:manipulation}
+        .marker__act:hover{background:rgba(255,255,255,.65)}
+        .marker__act--del:hover{background:#fff;color:var(--red)}
+
+        .loading-spinner{border:2px solid rgba(51,207,230,.15);border-top:2px solid var(--cyan);border-radius:50%;width:14px;height:14px;animation:spin 1s linear infinite;display:inline-block;vertical-align:middle}
+        .load-block{text-align:center;padding:2.5rem 0}
+        .load-block p{font-family:"IBM Plex Mono";font-size:.66rem;color:var(--cyan);margin-top:.6rem;letter-spacing:.08em}
+
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+        @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+        @keyframes mkpulse{0%,100%{opacity:1}50%{opacity:.55}}
+        @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+        /* --- 비행 요약/시간 배너 --- */
+        .route__time{font-family:"IBM Plex Mono";font-size:.72rem;font-weight:500;color:var(--amber);letter-spacing:.03em;margin-left:.5rem;padding:.15rem .5rem;border:1px solid rgba(242,169,59,.4);border-radius:6px}
+        .route__edit{margin-left:.6rem;font-size:.6rem;vertical-align:middle}
+        .route__fixed{font-family:"IBM Plex Mono";font-size:.6rem;color:var(--amber);margin-left:.4rem;padding:.05rem .4rem;border:1px solid rgba(242,169,59,.4);border-radius:5px}
+
+        /* --- 범례 --- */
+        .legend{display:flex;flex-wrap:wrap;gap:.5rem 1.1rem;margin:0 0 1rem;padding:.6rem .8rem;background:#0a121c;border:1px solid var(--line);border-radius:9px}
+        .lg-item{display:flex;align-items:center;gap:.4rem;font-family:"IBM Plex Mono";font-size:.6rem;color:var(--muted);letter-spacing:.02em}
+        .dot{width:9px;height:9px;border-radius:2px;flex:0 0 auto}
+        .dot--warn{background:var(--red);box-shadow:0 0 8px rgba(240,85,79,.6)}
+        .dot--caut{background:var(--amber);box-shadow:0 0 8px rgba(242,169,59,.6)}
+        .dot--adv{background:var(--cyan);box-shadow:0 0 8px rgba(51,207,230,.5)}
+
+        /* --- 단계 섹션 (출발/항로/도착) --- */
+        .phase-sec{margin-bottom:1.1rem;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#0d1622}
+        .phase-sec__hd{display:flex;align-items:center;gap:.6rem;padding:.7rem .9rem;background:linear-gradient(180deg,#16202f,#101a27);border-bottom:1px solid var(--line)}
+        .phase-sec__icon{font-size:1rem}
+        .phase-sec__name{font-family:"Chakra Petch";font-weight:700;font-size:.85rem;letter-spacing:.1em;color:var(--text)}
+        .phase-sec__code{font-family:"IBM Plex Mono";font-size:.72rem;font-weight:600;color:#04121a;background:var(--cyan);padding:.1rem .45rem;border-radius:5px;letter-spacing:.04em}
+        .phase-sec__counts{margin-left:auto;display:flex;gap:.35rem;flex-wrap:wrap}
+        .cbadge{font-family:"Chakra Petch";font-weight:700;font-size:.6rem;letter-spacing:.06em;padding:.12rem .5rem;border-radius:20px}
+        .cbadge--warn{background:var(--red);color:#1a0605}
+        .cbadge--caut{background:var(--amber);color:#241601}
+        .cbadge--adv{background:#1c2a3c;color:var(--muted);border:1px solid var(--line)}
+        .phase-sec__body{padding:.8rem}
+        .phase-sec--drop>summary{list-style:none;cursor:pointer;user-select:none}
+        .phase-sec--drop>summary::-webkit-details-marker{display:none}
+        .phase-sec--drop .drop-caret{margin-left:.5rem;color:var(--muted);transition:transform .15s;flex:0 0 auto}
+        .phase-sec--drop[open] .drop-caret{transform:rotate(180deg)}
+        .phase-sec--drop:not([open])>summary{border-bottom:none}
+        .phase-sec--drop>summary:hover{background:linear-gradient(180deg,#1a2532,#131d29)}
+        .phase-empty{font-family:"IBM Plex Mono";font-size:.64rem;color:var(--dim);letter-spacing:.03em;text-align:center;padding:1rem 0;margin:0}
+
+        /* 관련성 태그 */
+        .chip--rel{background:var(--green);color:#04120c}
+        .chip--norel{background:transparent;color:var(--dim);border:1px solid var(--line)}
+
+        /* NOTAM 메타(유효기간/근거) */
+        .alert__meta{font-family:"IBM Plex Mono";font-size:.6rem;color:var(--muted);letter-spacing:.02em;margin:.4rem 0 0;line-height:1.5}
+        .edited{color:var(--amber)}
+        .alert__spacer{flex:1 1 auto}
+
+        /* 중요도 수동 선택 */
+        .sevsel{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;flex:0 0 auto}
+        .sevsel__b{font-family:"Chakra Petch";font-weight:700;font-size:.62rem;width:1.6rem;padding:.2rem 0;background:#0d1420;color:var(--dim);border:none;border-left:1px solid var(--line);cursor:pointer;transition:all .12s}
+        .sevsel__b:first-child{border-left:none}
+        .sevsel__b:hover{color:var(--text)}
+        .sevsel__b.on--warn{background:var(--red);color:#1a0605}
+        .sevsel__b.on--caut{background:var(--amber);color:#241601}
+        .sevsel__b.on--adv{background:var(--cyan);color:#04121a}
+
+        /* 참고(Advisory) 접기 */
+        .adv-toggle{margin-top:.5rem;border-top:1px dashed var(--line);padding-top:.55rem}
+        .adv-toggle>summary{font-family:"IBM Plex Mono";font-size:.62rem;color:var(--cyan);cursor:pointer;letter-spacing:.03em;list-style:none;padding:.2rem 0}
+        .adv-toggle>summary::-webkit-details-marker{display:none}
+        .adv-toggle>summary::before{content:"▸ ";color:var(--cyan)}
+        .adv-toggle[open]>summary::before{content:"▾ "}
+        .adv-list{margin-top:.5rem;opacity:.85}
+        .restore-note{font-family:"IBM Plex Mono";font-size:.64rem;color:var(--green);background:rgba(47,208,138,.08);border:1px solid rgba(47,208,138,.35);border-radius:8px;padding:.5rem .7rem;margin-bottom:.7rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+        .restore-note b{color:var(--green)}
+        .raw-toggle{margin-top:.45rem}
+        .raw-toggle>summary{font-family:"IBM Plex Mono";font-size:.6rem;color:var(--cyan);cursor:pointer;list-style:none;letter-spacing:.03em;padding:.15rem 0}
+        .raw-toggle>summary::-webkit-details-marker{display:none}
+        .raw-toggle>summary::before{content:"▸ "}
+        .raw-toggle[open]>summary::before{content:"▾ "}
+        .raw-pre{font-family:"IBM Plex Mono";font-size:.62rem;line-height:1.45;color:#bfe9f2;background:#080e16;border:1px solid var(--line);border-radius:6px;padding:.55rem .65rem;margin:.4rem 0 0;white-space:pre-wrap;word-break:break-word;max-height:220px;overflow:auto}
+
+        /* 사용 RWY/TWY 필터 */
+        .rwyfilter{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin:0 0 1rem;padding:.6rem .8rem;background:#0a121c;border:1px solid var(--line);border-radius:9px}
+        .rwyfilter__lbl{font-family:"Chakra Petch";font-weight:700;font-size:.62rem;letter-spacing:.08em;color:var(--amber)}
+        .fin-wrap{display:flex;align-items:center;gap:.35rem;font-family:"Chakra Petch";font-size:.62rem;letter-spacing:.06em;color:var(--muted)}
+        .fin{font-family:"IBM Plex Mono";font-size:.68rem;letter-spacing:.05em;background:#080e16;color:var(--text);border:1px solid var(--line);border-radius:7px;padding:.35rem .5rem;width:8.5rem;outline:none}
+        .fin:focus{border-color:var(--cyan)}
+        .fin::placeholder{color:var(--dim)}
+        .btn--sm{padding:.35rem .7rem;font-size:.66rem}
+        .chip--flag{background:var(--amber);color:#241601}
+        /* 플래그 요약 섹션 */
+        .flag-sec{margin-bottom:1.1rem;border:1px solid var(--amber);border-radius:12px;overflow:hidden;background:rgba(242,169,59,.06);box-shadow:0 0 16px rgba(242,169,59,.15)}
+        .flag-sec .phase-sec__hd{background:linear-gradient(180deg,rgba(242,169,59,.18),rgba(242,169,59,.05));border-bottom:1px solid rgba(242,169,59,.4)}
+        .flag-sec .phase-sec__name{color:var(--amber)}
+        .flag-note{font-family:"IBM Plex Mono";font-size:.6rem;color:var(--muted);margin:.1rem 0 0}
+        /* 직접-관련 RED 토글 · 항로 대조 */
+        .legend__toggle{display:flex;align-items:center;gap:.35rem;font-family:"IBM Plex Mono";font-size:.62rem;color:var(--amber);cursor:pointer;margin-left:auto;padding:.15rem .5rem;border:1px solid rgba(242,169,59,.4);border-radius:6px;white-space:nowrap}
+        .legend__toggle input{accent-color:var(--amber)}
+        .rwyonly-toggle{display:flex;align-items:center;gap:.35rem;font-family:"IBM Plex Mono";font-size:.62rem;color:var(--cyan);cursor:pointer;padding:.15rem .5rem;border:1px solid rgba(51,207,230,.4);border-radius:6px;white-space:nowrap}
+        .rwyonly-toggle input{accent-color:var(--cyan)}
+        .chip--onroute{background:rgba(240,85,79,.16);color:#ff9a94;border:1px solid rgba(240,85,79,.5)}
+        .rchk{font-family:"IBM Plex Mono";font-size:.66rem;letter-spacing:.02em;border-radius:8px;padding:.5rem .7rem;margin:.15rem 0 .6rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;line-height:1.5}
+        .rchk--ok{color:var(--green);background:rgba(47,208,138,.08);border:1px solid rgba(47,208,138,.4)}
+        .rchk--warn{color:var(--amber);background:rgba(242,169,59,.08);border:1px solid rgba(242,169,59,.4)}
+        .rchk--bad{color:var(--red);background:rgba(240,85,79,.08);border:1px solid rgba(240,85,79,.45)}
+        .rchk .linkbtn{margin-left:auto}
+        .xcheck{background:#0a121c;border:1px solid var(--line);border-radius:10px;padding:0;margin:.2rem 0 .9rem;overflow:hidden}
+        .xcheck>summary{font-family:"Chakra Petch";font-size:.66rem;font-weight:600;letter-spacing:.14em;color:var(--cyan);padding:.6rem .8rem;cursor:pointer;list-style:none;display:flex;align-items:center;gap:.5rem}
+        .xcheck>summary::-webkit-details-marker{display:none}
+        .xcheck>summary::before{content:"🧭"}
+        .xcheck__body{padding:0 .8rem .85rem}
+        .xcheck__lab{font-family:"IBM Plex Mono";font-size:.6rem;color:var(--muted);letter-spacing:.03em;margin:.55rem 0 .25rem;display:block}
+        .xcheck textarea{width:100%;box-sizing:border-box;background:#0d1622;border:1px solid var(--line);border-radius:8px;color:var(--text);font-family:"IBM Plex Mono";font-size:.66rem;line-height:1.5;padding:.5rem .6rem;resize:vertical}
+        .xcheck textarea:focus{border-color:var(--cyan);outline:none}
+        .xcheck__act{display:flex;gap:.6rem;align-items:center;margin-top:.6rem}
+        .xcheck__out{margin-top:.75rem}
+        .xtok{display:inline-block;font-family:"IBM Plex Mono";font-size:.62rem;padding:.12rem .38rem;margin:.12rem;border-radius:5px;border:1px solid var(--line);background:#111d2b;color:var(--muted)}
+        .xtok--ok{color:var(--green);border-color:rgba(47,208,138,.4)}
+        .xtok--bad{color:#04120c;background:var(--red);border-color:var(--red);font-weight:600}
+        .xrow{margin:.35rem 0;line-height:2}
+        .xrow__lab{font-family:"IBM Plex Mono";font-size:.58rem;color:var(--dim);letter-spacing:.05em;display:block;margin:.35rem 0 .1rem}
+        .xverdict{font-family:"Chakra Petch";font-size:.72rem;font-weight:600;letter-spacing:.04em;padding:.4rem .6rem;border-radius:7px;margin-bottom:.5rem;display:inline-block}
+        .site-footer{max-width:960px;margin:1.6rem auto 2.4rem;padding:1rem 1.2rem 0;border-top:1px solid var(--line);text-align:center;font-family:"IBM Plex Mono";font-size:.6rem;line-height:1.7;color:var(--muted);letter-spacing:.02em}
+        .site-footer a{color:var(--cyan);text-decoration:none}
+        .site-footer a:hover{text-decoration:underline}
+        .site-footer__copy{color:var(--dim)}
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <header class="bezel hdr">
+            <div class="hdr__brand">
+                <div class="hdr__logo">✈</div>
+                <div>
+                    <h1 class="hdr__title">PILOT OPS CENTER</h1>
+                    <p class="hdr__sub">ELECTRONIC FLIGHT BAG · NOTAM BRIEFING</p>
+                </div>
+            </div>
+            <div class="hdr__right">
+                <div class="clock"><span class="clock__dot"></span><span class="clock__lbl">UTC</span><span id="zulu" class="clock__val">--:--:--Z</span></div>
+                <div class="keybox" id="keybox">
+                    <input type="password" id="apiKey" class="keyin" placeholder="GEMINI API KEY">
+                    <button id="btnKey" class="btn btn--sm btn--cyan" onclick="keyLockAction()">🔒 PIN 저장</button>
+                    <button id="btnKeyDel" class="linkbtn hidden" onclick="deleteVault()">삭제</button>
+                    <button id="btnTest" class="btn btn--sm btn--ghost" onclick="testConnection()">🔌 연결 테스트</button>
+                    <select id="modelSel" class="modelsel" onchange="setModel(this.value)" title="모델 선택">
+                        <option value="gemini-2.5-flash">2.5 Flash</option>
+                        <option value="gemini-2.5-flash-lite">2.5 Flash-Lite · 한도↑</option>
+                    </select>
+                    <span id="keyStatus" class="keystat"></span>
+                    <span id="keyManagedByParent" class="keystat hidden" style="color:var(--cyan)">키: 상단(통합 앱)에서 관리</span>
+                </div>
+            </div>
+        </header>
+
+        <div id="envNotice" class="env-notice hidden"></div>
+
+        <div class="stack">
+            <!-- 1) Flight package -->
+            <section class="panel">
+                <div class="panel__head">
+                    <h2 class="panel__title">FLIGHT PACKAGE</h2>
+                    <div class="btnrow">
+                        <input type="file" id="pdfFile" class="hidden" accept="application/pdf" onchange="handlePDF(this)">
+                        <button onclick="document.getElementById('pdfFile').click()" class="btn btn--ghost">📕 OPEN PDF</button>
+                        <button onclick="runAnalysis()" id="btnAnalyze" class="btn btn--go" disabled>ANALYZE ▸</button>
+                        <button onclick="sendToJointBriefing()" id="btnSendJoint" class="btn btn--amber hidden" title="Integrated Flight Ops Briefer로 NOTAM 요약 전송">↗ 통합 브리핑으로</button>
+                    </div>
+                </div>
+                <div id="docCard" class="doccard doccard--empty">
+                    <span class="doccard__icon">▢</span>
+                    <div><p class="doccard__title">문서 없음</p><p class="doccard__meta">PDF를 열면 자동으로 텍스트를 추출합니다</p></div>
+                </div>
+                <div class="doc-actions"><button id="btnToggleSrc" class="linkbtn" onclick="toggleSource()">원문·직접입력 ▾</button></div>
+                <textarea id="packageInput" rows="8" class="cdu hidden" placeholder="추출된 원문 · 직접 붙여넣기 가능"></textarea>
+                <div class="scope-row">
+                    <span class="scope-lbl">분석 범위</span>
+                    <select id="scopeMode" class="modelsel" onchange="saveScope()">
+                        <option value="full">전체 문서</option>
+                        <option value="airports">대상 공항만 · 빠름·절약</option>
+                    </select>
+                    <input id="scopeAirports" class="fin" placeholder="대상 공항 ICAO 예: RKSI, KLAX" oninput="saveScope()">
+                    <label class="scope-chk"><input type="checkbox" id="scopeEnroute" onchange="saveScope()"> 항로(Enroute) 포함</label>
+                </div>
+                <div id="pdfStatus" class="statusline"></div>
+            </section>
+
+            <!-- 2) NOTAM 분석 (출발 → 항로 → 도착) -->
+            <section id="analysisResult" class="panel">
+                <div id="flightTimeBadge" class="summary-wrap"></div>
+                <div id="routeCheck"></div>
+                <details id="xcheck" class="xcheck">
+                    <summary>ROUTE CROSS-CHECK · 항로 대조</summary>
+                    <div class="xcheck__body">
+                        <label class="xcheck__lab" id="xcheckAlab">① FPL Field 15</label>
+                        <textarea id="xcheckA" rows="3" spellcheck="false" placeholder="(FPL...) 의 Field 15 항로가 자동으로 채워집니다"></textarea>
+                        <label class="xcheck__lab" id="xcheckBlab">② Page 2 항로내용 (자동추출·직접 붙여넣기)</label>
+                        <textarea id="xcheckB" rows="3" spellcheck="false" placeholder="Page 2 서술형 항로 붙여넣기 (예: KLAX SUMMR2 MCKEY..LIBBO.. ... GUKDO..RKSI)"></textarea>
+                        <div class="xcheck__act">
+                            <button class="btn btn--cyan btn--sm" onclick="runXcheck()">↔ 대조</button>
+                            <button class="linkbtn" onclick="resetXcheck()">자동값 복원</button>
+                        </div>
+                        <div id="xcheckOut" class="xcheck__out"></div>
+                    </div>
+                </details>
+                <div id="legend" class="legend hidden">
+                    <span class="lg-item"><i class="dot dot--warn"></i>WARNING · 내 비행에 적용</span>
+                    <span class="lg-item"><i class="dot dot--caut"></i>CAUTION · 관련·중간</span>
+                    <span class="lg-item"><i class="dot dot--adv"></i>ADVISORY · 해당 없음/참고</span>
+                    <label class="legend__toggle" title="내 FPL 항로·사용 RWY/TWY·NAV/APP에 직접 관련된 것만 WARNING/CAUTION으로 유지. 나머지는 ADVISORY로 낮춤."><input type="checkbox" id="directRed" onchange="toggleDirectRed()"> 직접 관련만 RED</label>
+                    <button class="linkbtn" onclick="resetOverrides()">분류 초기화</button>
+                </div>
+                <div id="rwyFilter" class="rwyfilter hidden">
+                    <span class="rwyfilter__lbl">🚩 내 사용</span>
+                    <label class="fin-wrap">RWY <input id="inRwy" class="fin" placeholder="예: 34R, 16L"></label>
+                    <label class="fin-wrap">TWY <input id="inTwy" class="fin" placeholder="예: G, B, P1"></label>
+                    <label class="fin-wrap">TAXI RTE <input id="inTaxi" class="fin" placeholder="예: G G1 P P1"></label>
+                    <button class="btn btn--cyan btn--sm" onclick="applyRwyTwy()">적용</button>
+                    <button class="linkbtn" onclick="clearRwyTwy()">지움</button>
+                    <label class="rwyonly-toggle" title="공항 NOTAM 중 입력한 RWY/TWY/택시루트에 관련된 것만 표시"><input type="checkbox" id="rwyOnly" onchange="toggleRwyOnly()"> 관련만 보기</label>
+                </div>
+                <div id="criticalNotams">
+                    <p class="empty-note">STANDBY · 분석 대기 중</p>
+                </div>
+                <div id="minorNotams"></div>
+            </section>
+
+            <!-- 2.5) 저장된 브리핑 (오프라인 열람·편집) -->
+            <section class="panel">
+                <div class="panel__head">
+                    <h2 class="panel__title">SAVED BRIEFINGS <span class="brief-hint">· 오프라인 열람 가능</span></h2>
+                </div>
+                <div id="briefList" class="brief-list"></div>
+            </section>
+
+            <!-- 3) Chart deck (하단) -->
+            <section class="panel">
+                <p class="eyebrow">SELECT AIRPORT · 차트 표시용</p>
+                <div id="airportSelector" class="apt-row" style="margin-bottom:1.1rem"></div>
+                <div class="panel__head">
+                    <h2 class="panel__title"><span id="selectedIcao" class="icao">RKSI</span> CHART DECK</h2>
+                    <div class="btnrow">
+                        <button onclick="scanAllCharts()" id="btnAnnotate" class="btn btn--amber hidden">⌖ 차트 자동분석</button>
+                        <button onclick="clearAirportMarks()" id="btnClearMarks" class="btn btn--ghost hidden">↺ 마킹 초기화</button>
+                        <input type="file" id="mapFiles" multiple class="hidden" accept="image/*" onchange="handleMaps(this)">
+                        <button onclick="document.getElementById('mapFiles').click()" class="btn btn--cyan">📂 BULK UPLOAD</button>
+                    </div>
+                </div>
+                <p id="chartHint" class="chart-hint hidden"></p>
+                <div id="mapTabs" class="chart-keys"></div>
+                <div class="mfd">
+                    <div id="mapStage" class="mfd__stage hidden">
+                        <img id="mainMap" class="mfd__img" alt="">
+                        <div id="mapOverlay" class="mfd__overlay"></div>
+                    </div>
+                    <div id="mapEmpty" class="mfd-empty">◎ NO CHART LOADED</div>
+                    <div id="mapLabel" class="mfd__label"></div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <p class="site-footer__copy">© 2026 Moon-Sik Yim. All rights reserved.</p>
+        <p>For inquiries or suggestions, please contact <a href="mailto:moonsikyim@gmail.com">moonsikyim@gmail.com</a>.</p>
+    </footer>
+
+    <script>
+        // ============ 설정/상태 ============
+        const baseAirports = ["RKSI", "KLAX", "KJFK", "YSSY", "VTBS", "RJAA", "RCTP"];
+        let airports = baseAirports.slice();   // 분석 결과·저장 차트의 공항이 자동 추가됨
+        let chartAirports = [];                // 차트가 저장돼 있는 ICAO 목록
+        let GEMINI_MODEL = "gemini-2.5-flash"; // UI에서 선택 가능. Flash-Lite는 무료 한도가 더 큼
+        function setModel(v){ if (v){ GEMINI_MODEL = v; try { localStorage.setItem('geminiModel', v); } catch(_){} } }
+        let currentAirport = "RKSI";
+        let db = null;
+        let currentMaps = [];
+        let currentChartId = null;
+        let analysisData = null;
+        let currentBriefingId = null;      // 현재 열려있는 저장 브리핑
+        let positionalByIcao = {};                 // { ICAO: [ {feature,severity,title,...} ] }
+        let useRwy = [], useTwy = [], useTaxi = [];  // 사용 활주로/유도로/택시루트 (플래그용)
+        const annotationsByChartId = {};           // { chartId: [ {x,y,label,severity} ] }
+
+        // ============ 유틸 ============
+        function $(id){ return document.getElementById(id); }
+        function escapeHtml(s){
+            return String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+        function splitDataUrl(u){
+            const m = /^data:([^;]+);base64,(.*)$/.exec(u) || [];
+            return { mime: m[1] || "image/png", b64: m[2] || "" };
+        }
+
+        function geminiUrl(model){ return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`; }
+
+        // 429(할당량)·503(과부하)은 지수 백오프로 자동 재시도. API 키는 URL이 아닌 헤더로 전송(로그·히스토리 유출 방지)
+        async function geminiFetch(url, key, body, onRetry){
+            const maxRetries = 3;
+            for (let attempt = 0; ; attempt++){
+                let res;
+                try {
+                    res = await fetch(url, { method:"POST", headers:{ "Content-Type":"application/json", "x-goog-api-key": key }, body: JSON.stringify(body) });
+                } catch (e){ throw e; } // 네트워크 오류는 상위에서 처리
+                if (res.ok) return res;
+                if ((res.status === 429 || res.status === 503) && attempt < maxRetries){
+                    const txt = await res.clone().text().catch(() => "");
+                    // 일일 한도(RPD)면 재시도해도 곧 회복 안 됨 → 즉시 반환
+                    if (res.status === 429 && /per\s*day|perday|requests_per_day|requestsperday|GenerateRequestsPerDay/i.test(txt)) return res;
+                    let delay = 0;
+                    const m = /"retryDelay"\s*:\s*"(\d+)(?:\.\d+)?s"/.exec(txt);
+                    if (m) delay = parseInt(m[1], 10) * 1000;
+                    const ra = res.headers.get('retry-after');
+                    if (!delay && ra && isFinite(+ra)) delay = (+ra) * 1000;
+                    if (!delay) delay = 2000 * Math.pow(2, attempt); // 2s, 4s, 8s
+                    delay = Math.min(delay, 60000);
+                    if (onRetry) onRetry(delay, attempt + 1, res.status);
+                    await new Promise(r => setTimeout(r, delay));
+                    continue;
+                }
+                return res; // 재시도 불가/소진 → 호출측에서 처리
+            }
+        }
+
+        // API 오류 메시지(429 할당량은 별도 안내)
+        function apiErrText(status, text){
+            if (status === 429){
+                const t = String(text || "");
+                const perDay = /per\s*day|perday|requests_per_day|requestsperday|GenerateRequestsPerDay/i.test(t);
+                if (perDay) return "요청 한도 초과 (429 · 일일 RPD): 오늘 무료 일일 요청 수를 모두 사용했습니다. 매일 08:00 UTC(한국 17:00)에 초기화됩니다. 그때까지 기다리거나, Google AI Studio에서 결제(Tier 1)를 켜세요. ※ 한도는 API 키가 아니라 프로젝트 단위라 새 키를 만들어도 동일합니다.";
+                return "요청 한도 초과 (429 · 분당 RPM/TPM): 30~60초 기다렸다 다시 시도하세요. 모델을 2.5 Flash-Lite로 바꾸면 분당 한도가 더 큽니다.";
+            }
+            return `API ${status}: ${String(text || "").slice(0, 180)}`;
+        }
+
+        // ============ 공항 버튼 ============
+        function collectAirports(){
+            const set = new Set(baseAirports);
+            chartAirports.forEach(a => set.add(a));
+            if (analysisData){
+                const r = analysisData.route || {};
+                [r.departure, r.destination].forEach(a => { if (a) set.add(String(a).toUpperCase()); });
+                (r.alternates || []).forEach(a => { if (a) set.add(String(a).toUpperCase()); });
+                (analysisData.notams || []).forEach(n => { const i = (n.icao || '').toUpperCase(); if (/^[A-Z]{4}$/.test(i) && i !== 'ENROUTE') set.add(i); });
+            }
+            return [...set].filter(a => /^[A-Z]{4}$/.test(a));
+        }
+        function renderButtons(){
+            airports = collectAirports();
+            if (!airports.includes(currentAirport)){
+                currentAirport = airports[0] || 'RKSI';
+                $('selectedIcao').innerText = currentAirport;
+                if (db) loadMaps();
+            }
+            const c = $('airportSelector');
+            c.innerHTML = airports.map(i => `<button onclick="changeAirport('${i}')" id="btn-${i}" class="apt-btn">${i}</button>`).join('');
+            const cur = $(`btn-${currentAirport}`); if (cur) cur.classList.add('active-airport');
+            updateAirportDots();
+        }
+        function changeAirport(icao){
+            currentAirport = icao;
+            $('selectedIcao').innerText = icao;
+            airports.forEach(a => $(`btn-${a}`).classList.remove('active-airport'));
+            $(`btn-${icao}`).classList.add('active-airport');
+            loadMaps();
+        }
+        function updateAirportDots(){
+            const withNotam = new Set((analysisData?.notams || []).map(n => String(n.icao || '').toUpperCase()).filter(x => x && x !== 'ENROUTE'));
+            airports.forEach(a => {
+                const btn = $(`btn-${a}`); if (!btn) return;
+                let dot = btn.querySelector('.apt-btn__dot');
+                if (withNotam.has(a)) { if (!dot){ dot = document.createElement('span'); dot.className='apt-btn__dot'; btn.appendChild(dot);} }
+                else if (dot) dot.remove();
+            });
+        }
+
+        // ============ IndexedDB ============
+        const dbReq = indexedDB.open("PilotOpsFinalDB", 2);
+        dbReq.onupgradeneeded = (e) => {
+            const d = e.target.result;
+            if (!d.objectStoreNames.contains("maps")) d.createObjectStore("maps", { keyPath: "id", autoIncrement: true });
+            if (!d.objectStoreNames.contains("briefings")) d.createObjectStore("briefings", { keyPath: "id", autoIncrement: true });
+        };
+        dbReq.onsuccess = (e) => { db = e.target.result; loadMaps(); refreshBriefingList(); };
+        dbReq.onerror = () => { $('mapTabs').innerHTML = "<p class='no-map' style='color:var(--red)'>DB 초기화 실패</p>"; };
+
+        // ============ 지도 업로드/조회/삭제 ============
+        async function handleMaps(input){
+            if (!input.files.length) return;
+            if (!db){ alert("저장소 준비 중… 잠시 후 다시 시도하세요."); input.value = ""; return; }
+            $('selectedIcao').innerHTML = `<span class="loading-spinner"></span> SAVING…`;
+            try {
+                const results = await Promise.all(Array.from(input.files).map(file => new Promise((res, rej) => {
+                    const r = new FileReader();
+                    r.onload = (e) => res({ icao: currentAirport, name: file.name.replace(/\.[^.]+$/, ""), data: e.target.result });
+                    r.onerror = rej;
+                    r.readAsDataURL(file);
+                })));
+                const tx = db.transaction("maps", "readwrite");
+                results.forEach(item => tx.objectStore("maps").add(item));
+                tx.oncomplete = () => { $('selectedIcao').innerText = currentAirport; loadMaps(); };
+                tx.onerror = () => { $('selectedIcao').innerText = currentAirport; alert("지도 저장 중 오류가 발생했습니다."); };
+            } catch (_){
+                $('selectedIcao').innerText = currentAirport;
+                alert("파일을 읽는 중 오류가 발생했습니다. 다시 시도하세요.");
+            } finally {
+                input.value = "";
+            }
+        }
+
+        function loadMaps(){
+            if (!db) return;
+            const tx = db.transaction("maps", "readonly");
+            const req = tx.objectStore("maps").getAll();
+            req.onsuccess = () => {
+                const prevChartAirports = chartAirports.join(',');
+                chartAirports = [...new Set(req.result.map(m => m.icao).filter(Boolean))];
+                if (chartAirports.join(',') !== prevChartAirports) renderButtons(); // 차트 있는 공항 버튼 자동 노출
+                currentMaps = req.result.filter(m => m.icao === currentAirport);
+                const c = $('mapTabs');
+                if (currentMaps.length === 0){
+                    c.innerHTML = "<p class='no-map'>NO CHARTS · 지도 없음</p>";
+                    $('mainMap').src = ""; $('mapLabel').innerText = ""; $('mapOverlay').innerHTML = "";
+                    $('mapStage').classList.add('hidden'); $('mapEmpty').style.display = "flex";
+                    currentChartId = null; refreshAnnotateBtn();
+                    return;
+                }
+                c.innerHTML = currentMaps.map((m, i) => `
+                    <div class="chart-key" data-chart-id="${m.id}">
+                        <button onclick="showMap(${i})" data-index="${i}" class="chart-key__name map-tab">${escapeHtml(m.name)}</button>
+                        <button onclick="deleteMap(${m.id})" title="삭제" class="chart-key__del">✕</button>
+                    </div>`).join('');
+                currentMaps.forEach(m => {
+                    if (Array.isArray(m.markers) && m.markers.length && !annotationsByChartId[m.id]) annotationsByChartId[m.id] = m.markers; // 저장된 마킹 복원
+                    if ((annotationsByChartId[m.id] || []).length) markTab(m.id, true);
+                });
+                // 보고 있던 차트가 남아 있으면 유지(업로드/다른 차트 삭제 후 1번으로 튀지 않게)
+                const keep = currentMaps.findIndex(m => m.id === currentChartId);
+                showMap(keep >= 0 ? keep : 0);
+                refreshAnnotateBtn();
+            };
+            req.onerror = () => { $('mapTabs').innerHTML = "<p class='no-map' style='color:var(--red)'>조회 실패</p>"; };
+        }
+
+        function showMap(index){
+            const m = currentMaps[index]; if (!m) return;
+            currentChartId = m.id;
+            $('mapEmpty').style.display = "none";
+            $('mapStage').classList.remove('hidden');
+            $('mapOverlay').innerHTML = "";
+            const img = $('mainMap');
+            const markers = annotationsByChartId[m.id] || [];
+            // 같은 data URL로 재선택하면 onload가 안 뜨므로 complete도 처리
+            img.onload = () => renderMarkers(markers);
+            img.onerror = () => { $('mapOverlay').innerHTML = ""; $('mapLabel').innerText = (m.name || '') + ' · 로드 실패'; };
+            img.src = m.data;
+            if (img.complete && img.naturalWidth) renderMarkers(markers);
+            $('mapLabel').innerText = m.name;
+            document.querySelectorAll('#mapTabs .map-tab').forEach(b => b.classList.remove('map-tab-active'));
+            const active = document.querySelector(`#mapTabs .map-tab[data-index="${index}"]`);
+            if (active) active.classList.add('map-tab-active');
+        }
+
+        function deleteMap(id){
+            if (!db) return;
+            const m = currentMaps.find(x => x.id === id);
+            if (!confirm(`차트 "${m ? m.name : id}"를 삭제할까요?`)) return;
+            delete annotationsByChartId[id];
+            const tx = db.transaction("maps", "readwrite");
+            tx.objectStore("maps").delete(id);
+            tx.oncomplete = () => loadMaps();
+        }
+
+        // 차트 마킹을 해당 지도 레코드에 저장(재실행/다음 분석에서도 유지)
+        function saveChartMarkers(id, markers){
+            if (!db) return;
+            const tx = db.transaction("maps", "readwrite");
+            const store = tx.objectStore("maps");
+            const g = store.get(id);
+            g.onsuccess = () => { const rec = g.result; if (rec){ rec.markers = markers; store.put(rec); } };
+        }
+
+        // ===== 브리핑(분석 결과) 영속 저장: 오프라인에서도 열람·편집 =====
+        function stripPrivate(d){
+            // 저장용 깊은 복사에서 순환/휘발 필드 정리 (_i는 렌더 시 재부여)
+            const clone = JSON.parse(JSON.stringify(d, (k, v) => (k === '_i' ? undefined : v)));
+            return clone;
+        }
+        let _pendingBriefingSave = false;
+        function saveBriefing(d, done){
+            if (!db || !d) return;
+            const r = d.route || {};
+            const src = ($('packageInput') && $('packageInput').value) || '';
+            const rec = {
+                savedAt: Date.now(),
+                title: `${r.departure || '—'}→${r.destination || '—'}`,
+                data: stripPrivate(d),
+                src: src.slice(0, 400000) // 원문 보기(오프라인) 재구성용
+            };
+            const tx = db.transaction("briefings", "readwrite");
+            tx.onerror = () => { alert("브리핑 저장 실패" + (tx.error && tx.error.name === 'QuotaExceededError' ? " (저장 공간 부족)" : "") + ". 차트·브리핑을 일부 삭제한 뒤 다시 시도하세요."); };
+            if (currentBriefingId != null){ rec.id = currentBriefingId; tx.objectStore("briefings").put(rec); }
+            else {
+                const req = tx.objectStore("briefings").add(rec);
+                req.onsuccess = () => {
+                    currentBriefingId = req.result;
+                    // ANALYZE 직후 id 부여 전에 발생한 편집을 한 번 더 저장
+                    if (_pendingBriefingSave && analysisData){ _pendingBriefingSave = false; saveBriefing(analysisData); }
+                };
+            }
+            tx.oncomplete = () => { refreshBriefingList(); if (done) done(); };
+        }
+        function persistCurrentBriefing(){
+            if (!analysisData) return;
+            if (currentBriefingId != null) saveBriefing(analysisData);
+            else _pendingBriefingSave = true; // id 할당 전이면 큐잉
+        }
+        function refreshBriefingList(){
+            if (!db) return;
+            const tx = db.transaction("briefings", "readonly");
+            const req = tx.objectStore("briefings").getAll();
+            req.onsuccess = () => {
+                const list = (req.result || []).sort((a, b) => b.savedAt - a.savedAt);
+                const box = $('briefList'); if (!box) return;
+                if (!list.length){ box.innerHTML = `<p class="no-map">저장된 브리핑 없음 · 분석하면 자동 저장됩니다</p>`; return; }
+                box.innerHTML = list.map(b => {
+                    const d = new Date(b.savedAt);
+                    const when = `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+                    const n = (b.data && b.data.notams) ? b.data.notams.length : 0;
+                    const cur = (b.id === currentBriefingId) ? ' brief-item--cur' : '';
+                    return `<div class="brief-item${cur}">
+                        <button class="brief-item__open" onclick="openBriefing(${b.id})">
+                            <span class="brief-item__title">✈ ${escapeHtml(b.title)}</span>
+                            <span class="brief-item__meta">${when} · ${n} NOTAM${(b.id === currentBriefingId) ? ' · 열림' : ''}</span>
+                        </button>
+                        <button class="brief-item__del" title="삭제" onclick="deleteBriefing(${b.id})">✕</button>
+                    </div>`;
+                }).join('');
+            };
+        }
+        function openBriefing(id){
+            if (!db) return;
+            const tx = db.transaction("briefings", "readonly");
+            const req = tx.objectStore("briefings").get(id);
+            req.onsuccess = () => {
+                const rec = req.result; if (!rec) return;
+                currentBriefingId = rec.id;
+                if (rec.src && $('packageInput')){ $('packageInput').value = rec.src; $('btnAnalyze').disabled = false; setDocCard(rec.title + ' (저장본)', 0, rec.src.length); }
+                renderAnalysis(rec.data);       // 저장본 열람 (오프라인 가능)
+                refreshBriefingList();
+                const panel = $('analysisResult'); if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            };
+        }
+        function clearAnalysisView(){
+            analysisData = null;
+            positionalByIcao = {};
+            $('flightTimeBadge').innerHTML = "";
+            $('routeCheck').innerHTML = "";
+            $('criticalNotams').innerHTML = `<p class="empty-note">브리핑이 삭제되었습니다</p>`;
+            $('minorNotams').innerHTML = "";
+            $('legend').classList.add('hidden');
+            $('rwyFilter').classList.add('hidden');
+            const xout = $('xcheckOut'); if (xout) xout.innerHTML = "";
+            renderButtons();
+            refreshAnnotateBtn();
+        }
+        function deleteBriefing(id){
+            if (!db) return;
+            if (!confirm("이 브리핑을 삭제할까요?")) return;
+            const tx = db.transaction("briefings", "readwrite");
+            tx.objectStore("briefings").delete(id);
+            tx.oncomplete = () => {
+                if (currentBriefingId === id){ currentBriefingId = null; clearAnalysisView(); }
+                refreshBriefingList();
+            };
+        }
+
+        // ============ PDF 처리 (원문은 화면에 표시하지 않음) ============
+        async function handlePDF(input){
+            const file = input.files[0];
+            if (!file) return;
+            $('pdfStatus').innerHTML = `<span class="loading-spinner"></span> 추출 중…`;
+            try {
+                const pdfjsLib = window.pdfjsLib;
+                if (!pdfjsLib) throw new Error("PDF.js 라이브러리 로드 실패");
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                let fullText = "";
+                for (let i = 1; i <= pdf.numPages; i++){
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    fullText += content.items.map(t => t.str).join(" ") + "\n";
+                }
+                $('packageInput').value = fullText;                 // 내부 보관(숨김)
+                setDocCard(file.name, pdf.numPages, fullText.length); // 카드에는 요약만
+                $('pdfStatus').innerText = `✅ 로드 완료 · 분석 준비됨`;
+                $('btnAnalyze').disabled = fullText.trim().length === 0;
+            } catch (err){
+                $('pdfStatus').innerText = "❌ 오류: " + err.message;
+            } finally {
+                input.value = "";
+            }
+        }
+        function setDocCard(name, pages, chars){
+            const c = $('docCard');
+            c.classList.remove('doccard--empty');
+            c.innerHTML = `<span class="doccard__icon">📄</span>
+                <div><p class="doccard__title">${escapeHtml(name)}</p>
+                <p class="doccard__meta">${pages ? pages + ' pages · ' : ''}${chars.toLocaleString()} chars 추출됨</p></div>`;
+        }
+        function toggleSource(){
+            const ta = $('packageInput'), b = $('btnToggleSrc');
+            const hidden = ta.classList.toggle('hidden');
+            b.textContent = hidden ? '원문·직접입력 ▾' : '원문 숨기기 ▴';
+        }
+
+        // ============ AI 분석 (전체 비행: 출발·항로·도착·교체) ============
+        function showAnalysisError(err){
+            const isNet = (err instanceof TypeError) || /failed to fetch|networkerror|load failed/i.test(err.message);
+            const isQuota = /429|요청 한도 초과/.test(err.message);
+            const isFile = location.protocol === 'file:';
+            const inFrame = (function(){ try { return window.self !== window.top; } catch(_){ return true; } })();
+            const title = isNet ? "연결 실패 (서버 응답 없음)" : (isQuota ? "요청 한도 초과 (429)" : "분석 실패");
+            const body  = isNet ? "요청이 브라우저·네트워크 단계에서 막혔습니다." : escapeHtml(err.message);
+            const frameLine = (isNet && inFrame) ? `<br>• <b style="color:var(--amber)">지금 iframe 미리보기 안에서 실행 중입니다. 샌드박스라 외부 API가 차단될 수 있습니다.</b> 배포한 <b>https 주소(GitHub Pages)</b>나 홈화면 앱에서 여세요.` : '';
+            const fileLine = (isNet && isFile) ? `<br>• <b style="color:var(--amber)">iOS·Safari는 file://에서 API 호출을 차단합니다.</b> https로 호스팅해 사용하세요.` : '';
+            const hint  = isNet
+                ? `${frameLine}${fileLine}<br>• 광고/추적 차단(Content Blocker)·VPN·Lockdown 모드 해제<br>• API Key의 <b>HTTP 리퍼러 제한</b> 확인 (제한 없는 키 권장)`
+                : (isQuota
+                    ? `• <b>분당 한도(RPM)</b>면 30~60초 뒤 다시 ANALYZE<br>• <b>일일 한도(RPD)</b>면 <b>매일 한국시간 17:00(08:00 UTC)</b>에 초기화 → 그때 재시도<br>• 헤더 모델을 <code>2.5 Flash-Lite</code>로(무료 한도↑)<br>• 근본 해결: Google AI Studio에서 <b>결제(Tier 1)</b> 연결 — 최소금액 없이 사용량 과금, 한도 대폭 상향`
+                    : `• 모델명(<code>${escapeHtml(GEMINI_MODEL)}</code>)·API Key·사용량 한도 확인`);
+            $('criticalNotams').innerHTML = `<div class="alert ${isQuota ? 'alert--caut' : 'alert--warn'}">
+                <div class="alert__head"><span class="chip ${isQuota ? 'chip--caut' : 'chip--warn'}">${isQuota ? 'QUOTA' : 'FAIL'}</span><span class="alert__title">${title}</span></div>
+                <p class="alert__body">${body}</p>
+                <p class="alert__body" style="color:var(--muted);margin-top:.45rem;line-height:1.7">${hint}</p></div>`;
+        }
+
+        const NOTAM_ITEM_SPEC = `{
+  "phase":"DEPARTURE|ENROUTE|DESTINATION|ALTERNATE",
+  "icao":"ICAO the item applies to, or ENROUTE",
+  "notam_id":"NOTAM ref number if present (e.g. 'A1234/25'); else empty",
+  "relevant":true,
+  "severity":"warning|caution|advisory",
+  "category":"RWY|TWY|APRON|NAV|APP|AIRSPACE|OBST|OTHER",
+  "feature":"short locatable name for airport-surface items (e.g. 'Taxiway B'); empty for enroute",
+  "valid":"active period in Zulu (e.g. '0300-0600Z' or 'PERM')",
+  "reason":"short Korean phrase: why relevant or not to THIS flight",
+  "title":"short English title (<8 words)",
+  "detail":"ONE concise Korean sentence (<=20 words)"
+}`;
+        const NOTAM_RULES = `RULES:
+- "relevant"=true only if it affects THIS flight: departure NOTAM active around ETD; destination NOTAM active around ETA; enroute NOTAM on the filed route (airway/waypoint/FIR/airspace/navaid) AND active between ETD-ETA.
+- severity: "warning"=relevant AND significant (closure/unavailable rwy·twy·approach·navaid, restricted airspace on route). "caution"=relevant, moderate. "advisory"=NOT relevant (off-route, or outside my time window, or administrative) -> set relevant=false.
+- IGNORE weather (METAR/TAF/SIGMET/AIRMET/wind/temp/forecast) and OFP data (fuel/loadsheet/performance/navlog/crew). NOTAMs only.
+- Normalize IATA->ICAO (ICN=RKSI, LAX=KLAX, GMP=RKSS). enroute items -> "icao":"ENROUTE".
+- Keep Korean fields short. Do NOT include raw NOTAM text (reconstructed locally).`;
+
+        function splitChunks(text, size, overlap){
+            const out = []; let i = 0;
+            while (i < text.length){
+                out.push(text.slice(i, i + size));
+                if (i + size >= text.length) break;
+                i += (size - overlap);
+            }
+            return out;
+        }
+        function mergeNotams(list){
+            const seen = new Set(), out = [];
+            list.forEach(n => {
+                const k = notamKey(n) || (String(n.icao||'') + '|' + String(n.title||'') + '|' + String(n.detail||'')).toLowerCase();
+                if (seen.has(k)) return; seen.add(k); out.push(n);
+            });
+            return out;
+        }
+        async function extractRouteOnly(key, text, onRetry){
+            const prompt = `From this flight package/OFP, extract ONLY the primary flight route as JSON:
+{"departure":"ICAO","destination":"ICAO","alternates":["ICAO"],"etd_utc":"HHMM or ''","eta_utc":"HHMM or ''","flight_time":"e.g. '11H20M' or ''","route_string":"filed route or ''","summary":"one line"}
+Rules: destination = the actual landing airport (OFP DEST/ADES or the DEP-DEST city pair), NEVER an ETOPS/enroute/diversion alternate (e.g. RJTT, PANC are alternates). Normalize IATA->ICAO. Return ONLY JSON.
+TEXT:
+"""${text.slice(0, 60000)}"""`;
+            const res = await geminiFetch(geminiUrl(GEMINI_MODEL), key, { contents:[{ parts:[{ text: prompt }] }], generationConfig:{ responseMimeType:"application/json", temperature:0, maxOutputTokens:2048, thinkingConfig:{ thinkingBudget:0 } } }, onRetry);
+            if (!res.ok){ const t = await res.text(); throw new Error(apiErrText(res.status, t)); }
+            const data = await res.json();
+            const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+            try { return JSON.parse(raw.replace(/```json|```/g, "").trim()); } catch(_){ return {}; }
+        }
+        async function extractChunkNotams(key, chunk, route, onRetry){
+            const ctx = `Flight ${route.departure||'?'}->${route.destination||'?'} (ETD ${route.etd_utc||'?'}Z, ETA ${route.eta_utc||'?'}Z, alternates ${(route.alternates||[]).join('/')||'?'}).`;
+            const prompt = `You are an airline dispatcher. ${ctx}
+From THIS EXCERPT of the flight package, extract EVERY NOTAM present (ignore weather and OFP data). Classify each per the rules.
+Return ONLY JSON: {"notams":[ ${NOTAM_ITEM_SPEC} ]}
+If this excerpt has no NOTAMs, return {"notams":[]}.
+${NOTAM_RULES}
+EXCERPT:
+"""${chunk}"""`;
+            const res = await geminiFetch(geminiUrl(GEMINI_MODEL), key, { contents:[{ parts:[{ text: prompt }] }], generationConfig:{ responseMimeType:"application/json", temperature:0.2, maxOutputTokens:32768, thinkingConfig:{ thinkingBudget:0 } } }, onRetry);
+            if (!res.ok){ const t = await res.text(); throw new Error(apiErrText(res.status, t)); }
+            const data = await res.json();
+            const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+            const clean = raw.replace(/```json|```/g, "").trim();
+            let parsed;
+            try { parsed = JSON.parse(clean); } catch(_){ parsed = salvageAnalysis(clean); }
+            return Array.isArray(parsed?.notams) ? parsed.notams : [];
+        }
+        // ===== 분석 범위 축소: NOTAM 항목만 추려 대상 공항(+항로)만 남김 =====
+        const IATA2ICAO = { ICN:'RKSI', GMP:'RKSS', LAX:'KLAX', JFK:'KJFK', SYD:'YSSY', BKK:'VTBS', NRT:'RJAA', HND:'RJTT', TPE:'RCTP', SFO:'KSFO', ANC:'PANC', HNL:'PHNL', SEA:'KSEA', PDX:'KPDX', NGO:'RJGG', PVG:'ZSPD', HKG:'VHHH' };
+        const ICAO2IATA = Object.fromEntries(Object.entries(IATA2ICAO).map(([k, v]) => [v, k]));
+        function expandCodes(codes){
+            const out = new Set();
+            codes.forEach(c => { const u = String(c).toUpperCase().replace(/[^A-Z0-9]/g, ''); if (!u) return; out.add(u); if (IATA2ICAO[u]) out.add(IATA2ICAO[u]); if (ICAO2IATA[u]) out.add(ICAO2IATA[u]); });
+            return [...out];
+        }
+        function parseNotamEntries(text){
+            const re = /[A-Z]\d{4}\/\d{2}/g; const idx = []; let m;
+            while ((m = re.exec(text))) idx.push(m.index);
+            if (!idx.length) return [];
+            const entries = [];
+            for (let i = 0; i < idx.length; i++){
+                const start = Math.max(0, idx[i] - 20);
+                const end = Math.min(idx[i] + 1600, (i + 1 < idx.length) ? idx[i + 1] : text.length);
+                entries.push(text.slice(start, end));
+            }
+            return entries;
+        }
+        function currentScope(){
+            return {
+                mode: ($('scopeMode') && $('scopeMode').value) || 'full',
+                // RKSI-KLAX / ICN-LAX 형태도 두 공항으로 분리
+                codes: parseAirportTokens(($('scopeAirports') && $('scopeAirports').value) || ''),
+                enroute: !!($('scopeEnroute') && $('scopeEnroute').checked)
+            };
+        }
+        function saveScope(){
+            try { localStorage.setItem('scopeCfg', JSON.stringify({ mode: $('scopeMode').value, air: $('scopeAirports').value, enr: $('scopeEnroute').checked })); } catch(_){}
+        }
+        function loadScope(){
+            try {
+                const c = JSON.parse(localStorage.getItem('scopeCfg') || 'null'); if (!c) return;
+                if ($('scopeMode')) $('scopeMode').value = c.mode || 'full';
+                if ($('scopeAirports')) $('scopeAirports').value = c.air || '';
+                if ($('scopeEnroute')) $('scopeEnroute').checked = !!c.enr;
+            } catch(_){}
+        }
+        // 축소된 NOTAM 텍스트 반환. 미설정이면 null.
+        // 대상 공항 모드인데 매칭 0건이면 { empty:true } — 전체 문서로 조용히 폴백하지 않음.
+        function buildScopedNotams(full){
+            const sc = currentScope();
+            if (sc.mode !== 'airports' || !sc.codes.length) return null;
+            const entries = parseNotamEntries(full);
+            if (!entries.length) return { empty: true, reason: 'NOTAM 번호(A1234/25 형식)를 찾지 못했습니다. 원문을 확인하거나 범위를 「전체」로 바꾸세요.' };
+            const codes = expandCodes(sc.codes);
+            const codeRes = codes.map(c => new RegExp('(^|[^A-Z0-9])' + c + '([^A-Z0-9]|$)'));
+            const firRe = /\bFIR\b|ENROUTE|ENR |UIR\b|OCEANIC|\bNAT\b|\bTRACK\b|AIRWAY/;
+            const kept = entries.filter(e => {
+                const U = e.toUpperCase();
+                if (codeRes.some(re => re.test(U))) return true;
+                if (sc.enroute && firRe.test(U)) return true;
+                return false;
+            });
+            if (!kept.length) return { empty: true, reason: `대상 공항(${sc.codes.join(', ')})에 해당하는 NOTAM이 없습니다. 공항 코드를 확인하거나 「항로 포함」/「전체」를 사용하세요.` };
+            return kept.join('\n\n');
+        }
+
+        async function runChunkedAnalysis(key, routeText, notamText, meta){
+            const setLoad = (msg) => { $('criticalNotams').innerHTML = `<div class="load-block"><span class="loading-spinner"></span><p>${escapeHtml(msg)}</p></div>`; };
+            const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+            setLoad('경로·시간 추출 중…');
+            let route = {};
+            try {
+                const r = await extractRouteOnly(key, routeText, (d) => setLoad(`요청 한도 대기 ${Math.round(d/1000)}s…`));
+                if (r && typeof r === 'object') route = r;
+            } catch (e){
+                // 키·권한 오류나 네트워크 차단은 구간 분석도 똑같이 실패 → 즉시 중단.
+                // 그 외(일시 오류·한도 소진)는 경로 미상인 채로 NOTAM 구간 분석을 계속한다.
+                if ((e instanceof TypeError) || /^API (400|401|403)/.test(e.message || '')) throw e;
+                route = {};
+            }
+            const chunks = splitChunks(notamText, 52000, 3000);
+            let all = []; const failedChunks = [];
+            for (let i = 0; i < chunks.length; i++){
+                setLoad(`구간 분석 ${i + 1}/${chunks.length} · 누적 ${all.length}건${failedChunks.length ? ` · 실패 ${failedChunks.length}` : ''}`);
+                try {
+                    const ns = await extractChunkNotams(key, chunks[i], route, (d) => setLoad(`구간 ${i + 1}/${chunks.length} · 한도 대기 ${Math.round(d/1000)}s`));
+                    all = all.concat(ns);
+                } catch (e){
+                    if (/^API (400|401|403)/.test(e.message || '')) throw e; // 키·권한 오류는 반복해도 실패 → 즉시 중단
+                    failedChunks.push(chunks[i]); // 실패한 구간 텍스트를 보관 → [실패 구간만 재시도] 가능
+                }
+                if (i < chunks.length - 1) await sleep(1200); // 분당 한도(RPM) 완화용 간격
+            }
+            const merged = mergeNotams(all);
+            const result = { route, notams: merged, _chunked: true, _chunkFailed: failedChunks.length, _chunkTotal: chunks.length, _failedChunks: failedChunks, _reduced: !!(meta && meta.reduced), _origLen: meta && meta.origLen, _usedLen: meta && meta.usedLen };
+            currentBriefingId = null;              // 새 분석 → 새 레코드
+            renderAnalysis(result, { fresh: true });
+            saveBriefing(result);                  // 오프라인 열람용 자동 저장
+        }
+
+        // 실패한 구간만 다시 분석 — 전체 ANALYZE를 재실행하지 않아 요청·토큰(무료 한도)을 절약
+        let _retryingChunks = false;
+        async function retryFailedChunks(){
+            const d = analysisData;
+            if (_retryingChunks || !d || !Array.isArray(d._failedChunks) || !d._failedChunks.length) return;
+            const key = $('apiKey').value.trim();
+            if (!key) return alert(hasVault() ? "헤더의 [🔓 잠금해제]로 PIN을 입력해 저장된 키를 먼저 불러오세요." : "API Key를 입력하세요.");
+            _retryingChunks = true;
+            const btn = $('btnAnalyze'); if (btn) btn.disabled = true;
+            const setLoad = (msg) => { $('criticalNotams').innerHTML = `<div class="load-block"><span class="loading-spinner"></span><p>${escapeHtml(msg)}</p></div>`; };
+            const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+            const chunks = d._failedChunks.slice();
+            const route = d.route || {};
+            let recovered = [], stillFailed = [], aborted = '';
+            try {
+                for (let i = 0; i < chunks.length; i++){
+                    setLoad(`실패 구간 재시도 ${i + 1}/${chunks.length} · 복구 ${recovered.length}건`);
+                    try {
+                        const ns = await extractChunkNotams(key, chunks[i], route, (dl) => setLoad(`재시도 ${i + 1}/${chunks.length} · 한도 대기 ${Math.round(dl/1000)}s`));
+                        recovered = recovered.concat(ns);
+                    } catch (e){
+                        // 키·권한 오류·네트워크 차단은 나머지 구간도 실패 → 남은 구간을 보존하고 중단
+                        if ((e instanceof TypeError) || /^API (400|401|403)/.test(e.message || '')){ stillFailed = stillFailed.concat(chunks.slice(i)); aborted = e.message; break; }
+                        stillFailed.push(chunks[i]);
+                    }
+                    if (i < chunks.length - 1) await sleep(1200);
+                }
+            } finally {
+                // 복구분 병합(기존 항목·수동 분류 유지, 겹침 중복 제거) 후 실패 목록 갱신
+                recovered.forEach(n => { if (n._ai === undefined) n._ai = n.severity; });
+                d.notams = mergeNotams((Array.isArray(d.notams) ? d.notams : []).concat(recovered));
+                d._failedChunks = stillFailed;
+                d._chunkFailed = stillFailed.length;
+                renderAnalysis(d);
+                saveBriefing(d);   // 오프라인 저장본에도 반영
+                if (btn) btn.disabled = false;
+                _retryingChunks = false;
+                if (aborted) alert("실패 구간 재시도 중단: " + aborted + "\n\n지금까지 복구된 항목은 반영했습니다.");
+            }
+        }
+
+        async function runAnalysis(){
+            const key = $('apiKey').value.trim();
+            const fullText = $('packageInput').value.trim();
+            if (!key) return alert(hasVault() ? "헤더의 [🔓 잠금해제]로 PIN을 입력해 저장된 키를 먼저 불러오세요." : "API Key를 입력하세요.");
+            if (!fullText) return alert("분석할 문서가 없습니다. PDF를 열거나 원문을 붙여넣으세요.");
+
+            // 범위: '대상 공항만'이면 NOTAM 항목만 추려 대폭 축소 (무료 등급 절약)
+            const scoped = buildScopedNotams(fullText);
+            if (scoped && typeof scoped === 'object' && scoped.empty){
+                return alert("대상 공항 범위 분석 실패\n\n" + scoped.reason);
+            }
+            const reduced = typeof scoped === 'string';
+            const notamText = reduced ? scoped : fullText;
+            const meta = { reduced, origLen: fullText.length, usedLen: notamText.length };
+            const promptText = reduced ? (fullText.slice(0, 8000) + "\n\n=== NOTAM BRIEFING (scope-filtered) ===\n" + notamText) : fullText;
+
+            const btn = $('btnAnalyze'); btn.disabled = true;
+            $('minorNotams').innerHTML = ""; $('flightTimeBadge').innerHTML = "";
+            $('routeCheck').innerHTML = ""; // 이전 분석의 항로대조 배너 제거(새 문서 기준으로 다시 계산됨)
+            $('criticalNotams').innerHTML = `<div class="load-block"><span class="loading-spinner"></span><p>AI ANALYZING · ${reduced ? '대상 공항만' : '전체 비행'} 분석 중${reduced ? ` (범위 ${fullText.length.toLocaleString()}→${notamText.length.toLocaleString()}자)` : ''}</p></div>`;
+
+            // 문서가 크면 구간 분할 (iOS 타임아웃/한 요청 과부하 방지)
+            if (notamText.length > 40000){
+                try { await runChunkedAnalysis(key, fullText, notamText, meta); }
+                catch (err){ showAnalysisError(err); }
+                finally { btn.disabled = false; }
+                return;
+            }
+
+            const prompt = `You are an airline flight dispatcher. Analyze the ENTIRE flight package / OFP / NOTAM briefing below for a COMPLETE flight (departure, enroute, destination, and alternates). Do NOT limit the analysis to a single airport.
+STEP 1 — Extract the flight plan facts. Identify the PRIMARY flight's departure and destination precisely:
+  * departure (ADEP) = the airport the aircraft actually takes off from — the OFP/flightplan DEP/ADEP field, the FROM of the "DEP-DEST" city pair, or the FIRST point of the filed route.
+  * destination (ADES) = the airport the aircraft actually lands at — the OFP/flightplan DEST/ADES field, the TO of the "DEP-DEST" city pair, or the LAST point of the filed route.
+  * CRITICAL: The destination is NEVER a takeoff alternate, destination alternate, ETOPS alternate, or an enroute/diversion alternate. On long oceanic flights the package lists many alternate/ETOPS airports (e.g. RJTT, RJAA, PANC, PHNL, CYVR) — these are ALTERNATES, put them in "alternates", never in "destination".
+  * The OFP header usually shows the city pair like "RKSI-KLAX" / "ICN-LAX"; use exactly those two as departure and destination.
+Also extract estimated time of departure (ETD) and arrival (ETA) in UTC (Zulu), total FLIGHT TIME (block/air time), and the FILED ROUTE (airways, waypoints, FIRs the flight actually crosses). From the Flight Plan / OFP take ONLY these route facts — nothing else.
+STEP 2 — Analyze ONLY NOTAMs. From the NOTAM briefing sections, for EVERY NOTAM decide RELEVANCE to THIS flight, then set severity accordingly.
+IGNORE and DO NOT output as notams: weather products (METAR, TAF, SIGMET, AIRMET, GAMET, wind/temp, forecasts), and OFP data such as fuel/loadsheet/performance/navigation log/crew info. Only real NOTAMs become "notams" entries.
+Return ONLY valid JSON (no markdown, no code fences):
+{
+  "route": { "departure":"ICAO", "destination":"ICAO", "alternates":["ICAO"], "etd_utc":"HHMM or ''", "eta_utc":"HHMM or ''", "flight_time":"total flight/block time e.g. '11H20M' or ''", "route_string":"filed route or ''", "summary":"one line e.g. RKSI->KLAX ETD 0410Z ETA 1730Z" },
+  "notams": [
+    {
+      "phase": "DEPARTURE|ENROUTE|DESTINATION|ALTERNATE",
+      "icao": "ICAO the item applies to, or ENROUTE",
+      "notam_id": "NOTAM series/reference number if present (e.g. 'A1234/25', 'C0456/25'); else empty",
+      "relevant": true,
+      "severity": "warning|caution|advisory",
+      "category": "RWY|TWY|APRON|NAV|APP|AIRSPACE|OBST|OTHER",
+      "feature": "short physically-locatable name for airport-surface items (e.g. 'Taxiway B', 'Runway 06L/24R'); empty for enroute",
+      "valid": "NOTAM active period summary in Zulu (e.g. '0300-0600Z' or 'PERM')",
+      "reason": "one short Korean phrase saying why it is/ isn't relevant to this flight",
+      "title": "short English title (<8 words)",
+      "detail": "ONE concise Korean sentence (<=20 words)"
+    }
+  ]
+}
+RELEVANCE + SEVERITY rules (critical):
+- "relevant"=true ONLY when the NOTAM actually affects THIS flight:
+   * DEPARTURE airport NOTAM: its valid period covers the ETD time window.
+   * DESTINATION airport NOTAM: its valid period covers the ETA time window (include a reasonable buffer).
+   * ENROUTE NOTAM: it lies on/near the FILED ROUTE (an airway, waypoint, FIR, airspace or navaid the flight crosses) AND is active during the enroute time window (between ETD and ETA).
+- severity="warning" ONLY IF relevant=true AND operationally significant (closure / unavailable rwy·twy·approach·navaid, restricted airspace on route, etc.).
+- severity="caution" IF relevant=true but moderate impact.
+- severity="advisory" for EVERYTHING NOT relevant to this flight — i.e. off-route enroute NOTAMs, or airport NOTAMs whose valid period does NOT cover my ETD/ETA, or purely administrative items. Set relevant=false for these.
+- Never mark something "warning" just because it sounds serious in isolation; it must be on my route / in my time window.
+GENERAL rules:
+- Be EXHAUSTIVE across ALL sections (departure first, then enroute/FIR, then destination and alternates). Include every NOTAM; downgrade instead of omitting.
+- "icao": exact ICAO of the airport; for enroute items set "icao":"ENROUTE". Normalize IATA→ICAO (ICN=RKSI, LAX=KLAX, GMP=RKSS).
+- "feature" filled only for airport surface items (taxiway/runway/apron) so they can be located on a chart.
+- If ETD/ETA or route can't be found, still classify by best judgment and note it in "reason".
+- Keep the Korean "detail"/"reason" short so the JSON stays compact. Do NOT include the raw NOTAM text — it is reconstructed locally from the source.
+- Do NOT include weather (METAR/TAF/SIGMET/AIRMET) or any non-NOTAM OFP content in "notams". NOTAMs only.
+TEXT:
+"""${promptText.slice(0, 200000)}"""`;
+
+            try {
+                const res = await geminiFetch(geminiUrl(GEMINI_MODEL), key,
+                    { contents:[{ parts:[{ text: prompt }] }], generationConfig:{ responseMimeType:"application/json", temperature:0.2, maxOutputTokens:65536, thinkingConfig:{ thinkingBudget:0 } } },
+                    (delay) => { $('criticalNotams').innerHTML = `<div class="load-block"><span class="loading-spinner"></span><p>요청 한도 도달 · ${Math.round(delay/1000)}초 후 재시도</p></div>`; });
+                if (!res.ok){ const t = await res.text(); throw new Error(apiErrText(res.status, t)); }
+                const data = await res.json();
+                const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+                const clean = raw.replace(/```json|```/g, "").trim();
+                let parsed, truncated = false;
+                try { parsed = JSON.parse(clean); }
+                catch (e) { parsed = salvageAnalysis(clean); truncated = true; }
+                if ((data?.candidates?.[0]?.finishReason || "") === "MAX_TOKENS") truncated = true;
+                if (parsed && typeof parsed === 'object'){ parsed._truncated = truncated; parsed._reduced = reduced; parsed._origLen = meta.origLen; parsed._usedLen = meta.usedLen; }
+                currentBriefingId = null;          // 새 분석 → 새 레코드
+                renderAnalysis(parsed || { notams: [] }, { fresh: true });
+                if (parsed) saveBriefing(parsed);  // 오프라인 열람용 자동 저장
+            } catch (err){
+                showAnalysisError(err);
+            } finally { btn.disabled = false; }
+        }
+
+        function renderAnalysis(d, opts){
+            const fresh = !!(opts && opts.fresh);
+            analysisData = d;
+            const srcText = ($('packageInput') && $('packageInput').value) || '';
+            const notams = Array.isArray(d.notams) ? d.notams : [];
+            notams.forEach((n, i) => {
+                n._i = i; // 수동 중요도 변경용 안정 인덱스
+                if (n.icao) n.icao = String(n.icao).toUpperCase().trim(); // 소문자 ICAO로 인한 점 표시·차트 매칭·단계 분류 누락 방지
+            });
+            if (fresh) notams.forEach(n => { if (n._ai === undefined) n._ai = n.severity; }); // AI 원본 보관
+            const restored = applyStoredOverrides(notams); // 이전에 내가 지정한 분류 복원
+            const r = (d.route = d.route || {});
+            if (fresh){
+                if (!d._routeAI) d._routeAI = { departure: r.departure || '', destination: r.destination || '' }; // AI 원본 경로 보관
+                const ro = loadRouteOverride();                 // 이전에 내가 고친 경로 재사용
+                if (ro.departure)   r.departure = ro.departure;
+                if (ro.destination) r.destination = ro.destination;
+                d._routeFixed = !!(ro.departure || ro.destination);
+            }
+
+            const times = [];
+            if (r.etd_utc) times.push(`ETD ${escapeHtml(String(r.etd_utc).replace(/z\s*$/i,''))}Z`);
+            if (r.eta_utc) times.push(`ETA ${escapeHtml(String(r.eta_utc).replace(/z\s*$/i,''))}Z`);
+            if (r.flight_time) times.push(`FLT ${escapeHtml(String(r.flight_time))}`);
+            const editBtn = `<button class="linkbtn route__edit" onclick="editRoute()">✎ 경로수정</button>`;
+            const fixedTag = d._routeFixed ? `<span class="route__fixed">수동지정 <button class="linkbtn" onclick="clearRouteOverride()">해제</button></span>` : '';
+            $('flightTimeBadge').innerHTML = (r.departure || r.destination)
+                ? `<div class="route">${escapeHtml(r.departure || '—')}<span class="arrow">→</span>${escapeHtml(r.destination || '—')}${times.length ? `<span class="route__time">${times.join(' · ')}</span>` : ''}${editBtn}</div>
+                   <p class="route__sub">${escapeHtml(r.summary || r.route_string || '')}${(r.alternates && r.alternates.length) ? ' · ALTN ' + escapeHtml(r.alternates.join(', ')) : ''} ${fixedTag}</p>`
+                : (notams.length ? `<div class="route">경로 미확인 ${editBtn}</div>` : (r.summary ? `<div class="summary">✈ ${escapeHtml(r.summary)}</div>` : ""));
+
+            // 항로 대조: FPL Field 15 ↔ Page 2 항로내용(자동추출·미검출 시 route_string)
+            const routeChk = computeRouteCheck(srcText, r);
+            renderRouteCheck(routeChk);
+            prefillXcheck(routeChk, fresh);
+
+            $('legend').classList.toggle('hidden', notams.length === 0);
+
+            // 사용 RWY/TWY 필터 표시 + 프리필
+            const rf = $('rwyFilter');
+            rf.classList.toggle('hidden', notams.length === 0);
+            if ($('inRwy') && document.activeElement !== $('inRwy')) $('inRwy').value = useRwy.join(', ');
+            if ($('inTwy') && document.activeElement !== $('inTwy')) $('inTwy').value = useTwy.join(', ');
+            if ($('inTaxi') && document.activeElement !== $('inTaxi')) $('inTaxi').value = useTaxi.join(', ');
+
+            // 각 NOTAM에 내 RWY/TWY 관련 플래그 부여
+            notams.forEach(n => { n._flag = flagKind(n); });
+
+            positionalByIcao = {};
+            notams.forEach(n => { if (n.feature && n.icao && n.icao !== 'ENROUTE'){ (positionalByIcao[n.icao] = positionalByIcao[n.icao] || []).push(n); } });
+
+            // 단계(출발/항로/도착/교체) 로컬 계산
+            notams.forEach(n => { n._phase = computePhase(n, r); });
+
+            // 직접-관련 RED: 내 FPL 항로/사용 활주로에 직접 적용되는 것만 WARNING, 나머지는 ADVISORY
+            const directMode = getDirectRed();
+            if ($('directRed')) $('directRed').checked = directMode;
+            const routeTokset = buildRouteTokenSet(r, srcText);
+            let directWarnN = 0;
+            notams.forEach(n => {
+                if (n._userSet){ n._direct = ''; return; }              // 내가 수동 지정한 분류는 유지
+                if (!directMode){ if (n._ai !== undefined) n.severity = n._ai; n._direct = ''; return; }
+                const dd = deriveDirectSeverity(n, n._phase, routeTokset);
+                n.severity = dd.sev; n._direct = dd.why;
+                if (dd.why) directWarnN++;
+            });
+
+            const buckets = { DEPARTURE:[], ENROUTE:[], DESTINATION:[], ALTERNATE:[], OTHER:[] };
+            notams.forEach(n => buckets[n._phase].push(n));
+
+            // 🚩 '관련만 보기': 공항(출발/도착/교체) NOTAM 중 내 RWY/TWY/택시루트 관련만 표시
+            const rwyOnly = getRwyOnly();
+            if ($('rwyOnly')) $('rwyOnly').checked = rwyOnly;
+            const rwyOnlyActive = rwyOnly && (useRwy.length || useTwy.length || useTaxi.length);
+            let rwyHiddenN = 0;
+            if (rwyOnlyActive){
+                ['DEPARTURE','DESTINATION','ALTERNATE'].forEach(ph => {
+                    const before = buckets[ph].length;
+                    buckets[ph] = buckets[ph].filter(n => n._flag);
+                    rwyHiddenN += before - buckets[ph].length;
+                });
+            }
+            const sections = [
+                ['DEPARTURE', '출발 공항', '🛫', false],
+                ['ENROUTE',   '항로 · ENROUTE', '🗺', false],
+                ['DESTINATION','도착 공항', '🛬', false],
+                ['ALTERNATE', '교체 공항', '⇄', true],
+                ['OTHER',     '기타', '•', true]
+            ];
+            const html = sections.map(s => phaseSection(s, buckets[s[0]])).join('');
+
+            // 🚩 내 RWY/TWY 관련 NOTAM 별도 정리 (상단)
+            let flagSec = "";
+            if (useRwy.length || useTwy.length || useTaxi.length){
+                const rank = { warning:0, caution:1, advisory:2 };
+                const flagged = notams.filter(n => n._flag).sort((a,b) => (rank[a.severity] ?? 9) - (rank[b.severity] ?? 9));
+                const scope = [useRwy.length ? 'RWY ' + useRwy.join('/') : '', useTwy.length ? 'TWY ' + useTwy.join('/') : '', useTaxi.length ? 'TAXI ' + useTaxi.join('/') : ''].filter(Boolean).join(' · ');
+                flagSec = `<section class="phase-sec flag-sec">
+                    <div class="phase-sec__hd">
+                        <span class="phase-sec__icon">🚩</span>
+                        <span class="phase-sec__name">내 사용 RWY/TWY 관련</span>
+                        <span class="phase-sec__counts"><span class="cbadge cbadge--caut">${flagged.length}건</span></span>
+                    </div>
+                    <div class="phase-sec__body">
+                        <p class="flag-note">대상: ${escapeHtml(scope)}</p>
+                        ${flagged.length ? flagged.map(alertCard).join('') : `<p class="phase-empty">입력한 RWY/TWY와 일치하는 NOTAM 없음</p>`}
+                    </div>
+                </section>`;
+            }
+
+            const restoreNote = (fresh && restored > 0)
+                ? `<div class="restore-note">↺ 이전에 직접 지정한 분류 <b>${restored}건</b>을 복원했습니다. <button class="linkbtn" onclick="resetOverrides()">AI 분류로 초기화</button></div>`
+                : "";
+            const banner = d._truncated
+                ? `<div class="alert alert--caut" style="margin-bottom:.6rem"><div class="alert__head"><span class="chip chip--caut">PARTIAL</span><span class="alert__title">응답이 잘려 일부만 표시됨</span></div><p class="alert__body">NOTAM이 많아 출력 길이 제한에 걸렸습니다. 복구된 항목만 표시했습니다. 다시 실행하거나, 원문을 구간별로 나눠 분석해 보세요.</p></div>`
+                : (d._chunked ? `<div class="restore-note" style="color:var(--cyan);border-color:rgba(51,207,230,.35);background:rgba(51,207,230,.06)">⣿ <b style="color:var(--cyan)">구간 분할 분석</b> · 총 ${notams.length}건${d._chunkFailed ? ` <b style="color:var(--amber)">· ${d._chunkFailed}/${d._chunkTotal} 구간 실패</b>${(Array.isArray(d._failedChunks) && d._failedChunks.length) ? ` <button class="linkbtn" onclick="retryFailedChunks()">↻ 실패 구간만 재시도</button>` : ' (다시 ANALYZE 또는 Flash-Lite)'}` : ''}</div>` : "");
+            const scopeNote = d._reduced
+                ? `<div class="restore-note" style="color:var(--green);border-color:rgba(47,208,138,.35);background:rgba(47,208,138,.06)">◎ <b style="color:var(--green)">대상 공항만 분석</b> · 원문 ${(d._origLen||0).toLocaleString()}→${(d._usedLen||0).toLocaleString()}자로 축소해 요청·토큰을 절약했습니다.</div>`
+                : "";
+            const directNote = (directMode && notams.length)
+                ? `<div class="restore-note" style="color:#ff9a94;border-color:rgba(240,85,79,.35);background:rgba(240,85,79,.06)">⤳ <b style="color:#ff9a94">직접 관련만 RED</b> · 내 FPL 항로·사용 RWY/TWY·NAV/APP에 직접 적용되는 <b>${directWarnN}건</b>만 WARNING/CAUTION, 나머지는 ADVISORY로 낮췄습니다. <button class="linkbtn" onclick="disableDirectRed()">전체 표시</button></div>`
+                : "";
+            const rwyOnlyNote = rwyOnlyActive
+                ? `<div class="restore-note" style="color:var(--cyan);border-color:rgba(51,207,230,.35);background:rgba(51,207,230,.06)">🚩 <b style="color:var(--cyan)">관련만 보기</b> · 공항 NOTAM 중 내 RWY/TWY/택시루트 관련만 표시${rwyHiddenN?` (비관련 <b>${rwyHiddenN}건</b> 숨김)`:''}. <button class="linkbtn" onclick="disableRwyOnly()">전체 보기</button></div>`
+                : "";
+            $('criticalNotams').innerHTML = notams.length ? (scopeNote + directNote + rwyOnlyNote + restoreNote + banner + flagSec + html) : ((scopeNote + banner) || `<p class="empty-note">활성 NOTAM 없음 · NO ACTIVE NOTAMS</p>`);
+            $('minorNotams').innerHTML = "";
+
+            renderButtons(); // 분석에 등장한 공항 버튼 자동 추가 + NOTAM 표시점 갱신
+            refreshAnnotateBtn();
+            // Integrated Flight Ops Briefer(iframe 부모) 연동: 버튼 표시 + 요약 자동 전송
+            syncJointBriefingExport(notams.length > 0);
+        }
+
+        function isEmbedded(){
+            try { return window.self !== window.top; } catch(_){ return true; }
+        }
+        function isSameOriginParent(){
+            try { return isEmbedded() && window.parent.location.origin === location.origin; } catch(_){ return false; }
+        }
+        // Joint Briefing PDF용 평문 요약 (WARNING/CAUTION 위주)
+        function buildJointNotamSummary(d){
+            if (!d) return '';
+            const r = d.route || {};
+            const lines = [];
+            lines.push(`ROUTE: ${r.departure || '—'} → ${r.destination || '—'}${r.flight_time ? ' · FLT ' + r.flight_time : ''}${r.etd_utc ? ' · ETD ' + String(r.etd_utc).replace(/z\s*$/i,'') + 'Z' : ''}${r.eta_utc ? ' · ETA ' + String(r.eta_utc).replace(/z\s*$/i,'') + 'Z' : ''}`);
+            if (r.alternates && r.alternates.length) lines.push('ALTN: ' + r.alternates.join(', '));
+            if (r.summary) lines.push(String(r.summary));
+            lines.push('');
+            const notams = Array.isArray(d.notams) ? d.notams : [];
+            const phaseOrder = ['DEPARTURE','ENROUTE','DESTINATION','ALTERNATE','OTHER'];
+            const phaseKo = { DEPARTURE:'출발', ENROUTE:'항로', DESTINATION:'도착', ALTERNATE:'교체', OTHER:'기타' };
+            const rank = { warning:0, caution:1, advisory:2 };
+            const byPhase = {};
+            notams.forEach(n => {
+                const ph = n._phase || normPhase(n.phase) || 'OTHER';
+                (byPhase[ph] = byPhase[ph] || []).push(n);
+            });
+            phaseOrder.forEach(ph => {
+                const items = (byPhase[ph] || []).slice().sort((a,b) => (rank[a.severity] ?? 9) - (rank[b.severity] ?? 9));
+                let pick = items.filter(n => n.severity === 'warning' || n.severity === 'caution');
+                if (!pick.length) pick = items.filter(n => n.relevant !== false).slice(0, 6);
+                if (!pick.length) return;
+                const icao = pick.find(n => n.icao && n.icao !== 'ENROUTE')?.icao || '';
+                lines.push(`[${phaseKo[ph] || ph}${icao ? ' / ' + icao : ''}]`);
+                pick.forEach(n => {
+                    const tag = String(n.severity || 'advisory').toUpperCase();
+                    const id = n.notam_id ? ` ${n.notam_id}` : '';
+                    const feat = n.feature ? ` · ${n.feature}` : '';
+                    const valid = n.valid ? ` (${n.valid})` : '';
+                    lines.push(`• [${tag}]${id}${feat}${valid}`);
+                    if (n.detail) lines.push('  ' + String(n.detail));
+                    if (n.reason) lines.push('  — ' + String(n.reason));
+                });
+                lines.push('');
+            });
+            return lines.join('\n').trim();
+        }
+        function syncJointBriefingExport(hasNotams){
+            const btn = $('btnSendJoint');
+            if (btn) btn.classList.toggle('hidden', !(isEmbedded() && hasNotams));
+            if (isEmbedded() && hasNotams && analysisData){
+                try {
+                    window.parent.postMessage({ type:'IFOB_NOTAM_SUMMARY', text: buildJointNotamSummary(analysisData), source:'pilot-ops', auto:true }, '*');
+                } catch(_){}
+            }
+        }
+        function sendToJointBriefing(){
+            const text = buildJointNotamSummary(analysisData);
+            if (!text){ alert('보낼 분석 결과가 없습니다. 먼저 ANALYZE를 실행하세요.'); return; }
+            try {
+                window.parent.postMessage({ type:'IFOB_NOTAM_SUMMARY', text, source:'pilot-ops', auto:false }, '*');
+                const btn = $('btnSendJoint');
+                if (btn){ const t = btn.textContent; btn.textContent = '✓ 전송됨'; setTimeout(() => { btn.textContent = t; }, 1600); }
+            } catch(e){ alert('부모 창으로 전송 실패: ' + e.message); }
+        }
+
+        function phaseSection([ph, ko, icon, collapse], items){
+            if (!items || !items.length) return '';
+            const rank = { warning:0, caution:1, advisory:2 };
+            const sorted = items.slice().sort((a,b) => (rank[a.severity] ?? 9) - (rank[b.severity] ?? 9));
+            const loc = ph !== 'ENROUTE' ? (sorted.find(i => i.icao && i.icao !== 'ENROUTE')?.icao || '') : '';
+            const nW = sorted.filter(n => n.severity === 'warning').length;
+            const nC = sorted.filter(n => n.severity === 'caution').length;
+            const active = sorted.filter(n => n.severity !== 'advisory');
+            const advis  = sorted.filter(n => n.severity === 'advisory');
+
+            const counts = `${nW ? `<span class="cbadge cbadge--warn">⚠ ${nW}</span>` : ''}${nC ? `<span class="cbadge cbadge--caut">△ ${nC}</span>` : ''}${advis.length ? `<span class="cbadge cbadge--adv">${advis.length} 참고</span>` : ''}`;
+            const activeHtml = active.length ? active.map(alertCard).join('') : `<p class="phase-empty">내 비행에 적용되는 NOTAM 없음</p>`;
+            const advHtml = advis.length ? `<details class="adv-toggle"><summary>해당 없음 · 참고 ${advis.length}건 보기</summary><div class="adv-list">${advis.map(alertCard).join('')}</div></details>` : '';
+            const hd = `<span class="phase-sec__icon">${icon}</span>
+                    <span class="phase-sec__name">${ko}</span>
+                    ${loc ? `<span class="phase-sec__code">${escapeHtml(loc)}</span>` : ''}
+                    <span class="phase-sec__counts">${counts}</span>`;
+
+            if (collapse){
+                // 클릭하면 열리는 드롭다운 (기본 접힘)
+                return `<details class="phase-sec phase-sec--drop">
+                    <summary class="phase-sec__hd">${hd}<span class="drop-caret">▾</span></summary>
+                    <div class="phase-sec__body">${activeHtml}${advHtml}</div>
+                </details>`;
+            }
+            return `<section class="phase-sec">
+                <div class="phase-sec__hd">${hd}</div>
+                <div class="phase-sec__body">${activeHtml}${advHtml}</div>
+            </section>`;
+        }
+
+        function alertCard(n){
+            const sev = (n.severity || 'warning').toLowerCase();
+            const cls  = sev === 'advisory' ? 'alert--adv' : (sev === 'caution' ? 'alert--caut' : 'alert--warn');
+            const chip = sev === 'advisory' ? 'chip--adv'  : (sev === 'caution' ? 'chip--caut'  : 'chip--warn');
+            const tag  = sev === 'advisory' ? 'ADVISORY'   : (sev === 'caution' ? 'CAUTION'      : 'WARNING');
+            const feat = n.feature ? `<span class="chip chip--feat">⌖ ${escapeHtml(n.feature)}</span>` : '';
+            const rel  = n.relevant === true ? `<span class="chip chip--rel">MY FLIGHT</span>`
+                       : (n.relevant === false ? `<span class="chip chip--norel">해당없음</span>` : '');
+            const flag = n._flag ? `<span class="chip chip--flag">🚩 ${escapeHtml(n._flag)}</span>` : '';
+            const onroute = n._direct ? `<span class="chip chip--onroute">⤳ ${escapeHtml(n._direct)}</span>` : '';
+            const meta = [];
+            if (n.valid)  meta.push(`유효 ${escapeHtml(n.valid)}`);
+            if (n.reason) meta.push(escapeHtml(n.reason));
+            const metaHtml = meta.length ? `<p class="alert__meta">${meta.join(' · ')}${n._userSet ? ' <span class="edited">· 중요도 수정됨</span>' : ''}</p>`
+                                         : (n._userSet ? `<p class="alert__meta"><span class="edited">중요도 수정됨</span></p>` : '');
+            const rawText = rawFromSource(n);
+            const rawHtml = rawText ? `<details class="raw-toggle"><summary>원문 보기${n.notam_id ? ' · ' + escapeHtml(n.notam_id) : ''}</summary><pre class="raw-pre">${escapeHtml(rawText)}</pre></details>` : '';
+            const i = n._i;
+            const sevSel = (typeof i === 'number') ? `<div class="sevsel" title="중요도 직접 변경">
+                    <button class="sevsel__b ${sev==='warning'?'on on--warn':''}" onclick="setSeverity(${i},'warning')">W</button>
+                    <button class="sevsel__b ${sev==='caution'?'on on--caut':''}" onclick="setSeverity(${i},'caution')">C</button>
+                    <button class="sevsel__b ${sev==='advisory'?'on on--adv':''}" onclick="setSeverity(${i},'advisory')">A</button>
+                </div>` : '';
+            return `<div class="alert ${cls}">
+                <div class="alert__head">
+                    <span class="chip ${chip}">${tag}</span>
+                    <span class="chip chip--cat">${escapeHtml(n.category || 'NOTAM')}</span>
+                    ${flag}${onroute}${rel}${feat}
+                    <span class="alert__title">${escapeHtml(n.title || '')}</span>
+                    <span class="alert__spacer"></span>
+                    ${sevSel}
+                </div>
+                <p class="alert__body">${escapeHtml(n.detail || '')}</p>${metaHtml}${rawHtml}</div>`;
+        }
+
+        // NOTAM 원문: 모델의 raw를 우선, 없으면 원문 텍스트에서 번호로 추출
+        // (렌더마다 NOTAM당 여러 번 호출되고 원문이 수백 KB일 수 있어 결과를 캐시)
+        const _rawCache = new WeakMap();
+        function rawFromSource(n){
+            if (n.raw && String(n.raw).trim()) return String(n.raw).trim();
+            const id = (n.notam_id || '').trim();
+            if (!id) return '';
+            const src = ($('packageInput') && $('packageInput').value) || '';
+            const hit = _rawCache.get(n);
+            if (hit && hit.src === src) return hit.val;
+            let val = '';
+            const idx = src.indexOf(id);
+            if (idx >= 0){
+                const seg = src.slice(idx, idx + 900);
+                const re = /[A-Z]\d{4}\/\d{2}/g;
+                let mm, cut = seg.length, first = true;
+                while ((mm = re.exec(seg))){ if (first){ first = false; continue; } cut = mm.index; break; }
+                val = seg.slice(0, cut).trim();
+            }
+            _rawCache.set(n, { src, val });
+            return val;
+        }
+
+        // 사용자가 NOTAM 중요도를 직접 변경
+        function setSeverity(i, sev){
+            if (!analysisData || !analysisData.notams || !analysisData.notams[i]) return;
+            const n = analysisData.notams[i];
+            n.severity = sev;
+            n._userSet = true;
+            const k = notamKey(n);
+            if (k) saveOverride(k, sev);   // 같은 내용은 다음 분석에서도 재사용
+            renderAnalysis(analysisData);
+            persistCurrentBriefing();      // 오프라인 저장본에도 반영
+        }
+
+        // --- 내가 바꾼 분류를 브라우저에 저장/복원 (공항+NOTAM 식별자 기준) ---
+        function loadOverrides(){ try { return JSON.parse(localStorage.getItem('sevOverrides') || '{}'); } catch(_){ return {}; } }
+        function saveOverride(key, sev){ try { const o = loadOverrides(); o[key] = sev; localStorage.setItem('sevOverrides', JSON.stringify(o)); } catch(_){} }
+        function notamKey(n){
+            const icao = (n.icao || 'ENROUTE').toUpperCase();
+            const id = (n.notam_id || '').toUpperCase().replace(/\s+/g, '');
+            if (id) return icao + '::' + id;
+            const t = (n.title || '').toLowerCase().replace(/\s+/g, ' ').trim();
+            const f = (n.feature || '').toLowerCase().trim();
+            return (t || f) ? icao + '::' + t + '|' + f : '';
+        }
+        function applyStoredOverrides(notams){
+            const o = loadOverrides();
+            let count = 0;
+            notams.forEach(n => {
+                const k = notamKey(n);
+                if (k && o[k]){ if (n.severity !== o[k]) count++; n.severity = o[k]; n._userSet = true; }
+            });
+            return count;
+        }
+        function resetOverrides(){
+            if (!confirm("직접 지정한 NOTAM 분류를 모두 초기화하고 AI 분류로 되돌릴까요?")) return;
+            try { localStorage.removeItem('sevOverrides'); } catch(_){}
+            if (analysisData && analysisData.notams){
+                analysisData.notams.forEach(n => { if (n._ai !== undefined) n.severity = n._ai; delete n._userSet; });
+            }
+            renderAnalysis(analysisData || { notams: [] });
+        }
+
+        // --- 출발/도착 공항 수동 수정 (AI가 목적지 등을 오인할 때) ---
+        function loadRouteOverride(){ try { return JSON.parse(localStorage.getItem('routeOverride') || '{}'); } catch(_){ return {}; } }
+        function editRoute(){
+            const r = (analysisData && analysisData.route) || {};
+            const depRaw = prompt("출발 공항 ICAO (예: RKSI)", r.departure || "");
+            if (depRaw === null) return;
+            const destRaw = prompt("도착 공항 ICAO (예: KLAX)", r.destination || "");
+            if (destRaw === null) return;
+            applyRouteOverride(depRaw.trim().toUpperCase(), destRaw.trim().toUpperCase());
+        }
+        function applyRouteOverride(dep, dest){
+            const ov = {};
+            if (dep)  ov.departure = dep;
+            if (dest) ov.destination = dest;
+            try { localStorage.setItem('routeOverride', JSON.stringify(ov)); } catch(_){}
+            if (analysisData){
+                analysisData.route = analysisData.route || {};
+                if (dep)  analysisData.route.departure = dep;
+                if (dest) analysisData.route.destination = dest;
+                analysisData._routeFixed = !!(dep || dest);
+                renderAnalysis(analysisData); // 경로 변경 → NOTAM 단계 재분류
+                persistCurrentBriefing();
+            }
+        }
+        function clearRouteOverride(){
+            try { localStorage.removeItem('routeOverride'); } catch(_){}
+            if (analysisData){
+                if (analysisData._routeAI){
+                    analysisData.route = analysisData.route || {};
+                    analysisData.route.departure   = analysisData._routeAI.departure;
+                    analysisData.route.destination = analysisData._routeAI.destination;
+                }
+                analysisData._routeFixed = false;
+                renderAnalysis(analysisData);
+            }
+        }
+
+        // --- 사용 RWY / 예상 TWY 로 관련 NOTAM 플래그 ---
+        function parseTokens(s){ return String(s || '').toUpperCase().split(/[\s,/]+/).map(t => t.trim()).filter(Boolean); }
+        // 공항 범위용: RKSI-KLAX / ICN-LAX처럼 하이픈 쌍도 분리 (RWY 토큰과 분리)
+        function parseAirportTokens(s){
+            return String(s || '').toUpperCase().split(/[\s,/]+/)
+                .flatMap(t => t.split('-'))
+                .map(t => t.trim()).filter(Boolean);
+        }
+        function loadRwyTwy(){ try { return JSON.parse(localStorage.getItem('rwyTwy') || '{}'); } catch(_){ return {}; } }
+        function applyRwyTwy(){
+            useRwy = parseTokens($('inRwy').value);
+            useTwy = parseTokens($('inTwy').value);
+            useTaxi = parseTokens($('inTaxi') ? $('inTaxi').value : '');
+            try { localStorage.setItem('rwyTwy', JSON.stringify({ rwy: $('inRwy').value, twy: $('inTwy').value, taxi: $('inTaxi') ? $('inTaxi').value : '' })); } catch(_){}
+            if (analysisData) renderAnalysis(analysisData);
+        }
+        function clearRwyTwy(){
+            useRwy = []; useTwy = []; useTaxi = [];
+            if ($('inRwy')) $('inRwy').value = ''; if ($('inTwy')) $('inTwy').value = ''; if ($('inTaxi')) $('inTaxi').value = '';
+            try { localStorage.removeItem('rwyTwy'); } catch(_){}
+            if (analysisData) renderAnalysis(analysisData);
+        }
+        function getRwyOnly(){ try { return localStorage.getItem('rwyOnlyMode') === '1'; } catch(_){ return false; } }
+        function toggleRwyOnly(){ try { localStorage.setItem('rwyOnlyMode', $('rwyOnly').checked ? '1' : '0'); } catch(_){} if (analysisData) renderAnalysis(analysisData); }
+        function disableRwyOnly(){ if ($('rwyOnly')) $('rwyOnly').checked = false; toggleRwyOnly(); }
+        function rwyMatcher(tok){
+            const m = /^(\d{1,2})([LCR])?$/.exec(tok);
+            if (!m) return null;
+            const num = String(parseInt(m[1], 10));
+            const side = m[2] ? m[2] : '[LCR]?';
+            try { return new RegExp('(^|[^0-9])0*' + num + side + '(?![0-9])'); } catch(_){ return null; }
+        }
+        function tokRegex(tok){
+            const esc = tok.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            try { return new RegExp('(^|[^0-9A-Z])' + esc + '([^0-9A-Z]|$)'); } catch(_){ return null; }
+        }
+        // NOTAM이 내 RWY/TWY와 관련되면 종류 문자열 반환('RWY'|'TWY'|'RWY+TWY'), 아니면 ''
+        function flagKind(n){
+            if (!useRwy.length && !useTwy.length && !useTaxi.length) return '';
+            const text = [(n.feature || ''), (n.title || ''), (n.detail || ''), (rawFromSource(n) || '')].join(' \n ').toUpperCase();
+            const cat = (n.category || '').toUpperCase();
+            // 표기 변형 인식: RWY/RWYS/RUNWAY(S)/RY(S)/R/W · TWY/TWYS/TAXIWAY(S)/TAXI WAY/TXWY(S)/T/W
+            const rwyCtx = cat === 'RWY' || /\bRWYS?\b|\bRUNWAYS?\b|\bRYS?\b|R\/W/.test(text);
+            const twyCtx = cat === 'TWY' || /\bTWYS?\b|\bTAXIWAYS?\b|TAXI\s*-?\s*WAY|\bTXWYS?\b|T\/W/.test(text);
+            let rwy = false, twy = false;
+            if (rwyCtx) for (const t of useRwy){ const re = rwyMatcher(t); if (re && re.test(text)){ rwy = true; break; } }
+            if (twyCtx) for (const t of useTwy.concat(useTaxi)){ const re = tokRegex(t); if (re && re.test(text)){ twy = true; break; } }
+            return (rwy && twy) ? 'RWY+TWY' : (rwy ? 'RWY' : (twy ? 'TWY' : ''));
+        }
+
+        // 잘린 JSON에서 완성된 route + notam 객체들만 복구
+        function salvageAnalysis(clean){
+            const out = { route:{}, notams:[] };
+            const rm = clean.match(/"route"\s*:\s*(\{[^}]*\})/);
+            if (rm){ try { out.route = JSON.parse(rm[1]); } catch(_){} }
+            const ni = clean.indexOf('"notams"');
+            const arrStart = ni >= 0 ? clean.indexOf('[', ni) : -1;
+            if (arrStart >= 0){
+                let depth = 0, inStr = false, esc = false, objStart = -1;
+                for (let i = arrStart; i < clean.length; i++){
+                    const c = clean[i];
+                    if (esc){ esc = false; continue; }
+                    if (c === '\\'){ esc = true; continue; }
+                    if (c === '"'){ inStr = !inStr; continue; }
+                    if (inStr) continue;
+                    if (c === '{'){ if (depth === 0) objStart = i; depth++; }
+                    else if (c === '}'){ depth--; if (depth === 0 && objStart >= 0){ try { out.notams.push(JSON.parse(clean.slice(objStart, i + 1))); } catch(_){} objStart = -1; } }
+                    else if (c === ']' && depth === 0){ break; }
+                }
+            }
+            return out;
+        }
+
+        function normPhase(p){
+            const s = (p || '').toUpperCase();
+            if (/DEP/.test(s)) return 'DEPARTURE';
+            if (/ENR|CRUIS|ROUTE/.test(s)) return 'ENROUTE';
+            if (/DEST|ARR/.test(s)) return 'DESTINATION';
+            if (/ALT/.test(s)) return 'ALTERNATE';
+            return '';
+        }
+        function computePhase(n, route){
+            const icao = (n.icao || '').toUpperCase();
+            const dep  = (route.departure || '').toUpperCase();
+            const dest = (route.destination || '').toUpperCase();
+            const alts = (route.alternates || []).map(x => String(x).toUpperCase());
+            if (dep && icao === dep) return 'DEPARTURE';
+            if (dest && icao === dest) return 'DESTINATION';
+            if (alts.includes(icao)) return 'ALTERNATE';
+            if (icao === 'ENROUTE' || icao === '') return 'ENROUTE';
+            // ICAO는 있으나 경로와 매칭 안 됨(항로상 공항/FIR 등) → 모델 라벨 참고 후 ENROUTE
+            return normPhase(n.phase) || 'ENROUTE';
+        }
+
+        // ============ 직접-관련 RED 판정 + 항로 대조 ============
+        // 좌표점 정규화: 38N140W / N38W140 / 3800N14000W → 표준형 "38N/140W"
+        function normRoutePoint(tok){
+            let m;
+            m = /^(\d{2,4})([NS])(\d{3,5})([EW])$/.exec(tok);
+            if (m) return canonLL(m[1], m[2], m[3], m[4]);
+            m = /^([NS])(\d{2,4})([EW])(\d{3,5})$/.exec(tok);
+            if (m) return canonLL(m[2], m[1], m[4], m[3]);
+            return null;
+        }
+        function canonLL(latRaw, latH, lonRaw, lonH){
+            const laD = parseInt(latRaw.slice(0,2),10), laM = latRaw.length>2 ? parseInt(latRaw.slice(2),10) : 0;
+            const loD = parseInt(lonRaw.slice(0,3),10), loM = lonRaw.length>3 ? parseInt(lonRaw.slice(3),10) : 0;
+            return `${laD}${laM?('.'+laM):''}${latH}/${loD}${loM?('.'+loM):''}${lonH}`;
+        }
+        // 항로 문자열 → 표준 토큰 배열(DCT·속도/고도 제거, 좌표 정규화)
+        function tokenizeRoute(str){
+            if (!str) return [];
+            const s = String(str).toUpperCase().replace(/\.\.+/g,' ').replace(/[()]/g,' ');
+            const out = [];
+            for (let t of s.split(/[\s]+/)){
+                if (!t) continue;
+                if (t.indexOf('/') >= 0) t = t.split('/')[0];
+                if (!t || t==='DCT' || t==='SID' || t==='STAR' || t==='IFR' || t==='VFR') continue;
+                if (/^[NMK]\d{3,4}[FSMA]\d{2,4}$/.test(t)) continue;   // 속도/고도(N0496F340, M084F360)
+                if (/^[FSA]\d{2,4}$/.test(t)) continue;
+                const p = normRoutePoint(t);
+                out.push(p || t);
+            }
+            return out;
+        }
+        function looksRouteTok(t){
+            t = (t||'').toUpperCase();
+            if (!t) return false;
+            if (t === 'DCT') return true;
+            if (normRoutePoint(t)) return true;
+            if (/^[A-Z]{2,5}$/.test(t)) return true;          // 웨이포인트/공항
+            if (/^[A-Z]{1,3}\d{1,4}$/.test(t)) return true;   // 항로(Y886, OTR7, UL512)
+            if (/^[A-Z]{3,6}\d[A-Z]?$/.test(t)) return true;  // SID/STAR(SUMMR2, PENYT1A)
+            return false;
+        }
+        // ICAO FPL 전문에서 Field 15(항로) 추출 { adep, ades, raw }
+        function extractFplRoute(text){
+            if (!text) return null;
+            const i = text.indexOf('(FPL'); if (i < 0) return null;
+            const j = text.indexOf(')', i);
+            const block = text.slice(i, j > i ? j+1 : i+4000);
+            const re = /-([A-Z]{4})(\d{4})/g;
+            const m1 = re.exec(block), m2 = re.exec(block);
+            if (!m1 || !m2) return null;
+            const seg = block.slice(m1.index + m1[0].length, m2.index).replace(/^[\s-]+/,'').replace(/[\s-]+$/,'');
+            return { adep: m1[1], ades: m2[1], raw: seg };
+        }
+        // 양끝의 출발/도착 공항코드 제거(항로 구간만 비교)
+        function trimEnds(toks, fpl){
+            const t = toks.slice(); const ap = new Set();
+            if (fpl){ [fpl.adep, fpl.ades].forEach(c => { if(c){ ap.add(c); if (ICAO2IATA[c]) ap.add(ICAO2IATA[c]); } }); }
+            while (t.length && ap.has(t[0])) t.shift();
+            while (t.length && ap.has(t[t.length-1])) t.pop();
+            return t;
+        }
+        // 문서에서 서술형(Page 2) 항로를 최대한 추출
+        function extractNarrativeRoute(text, fpl){
+            if (!text) return '';
+            let s = String(text);
+            const fi = s.indexOf('(FPL');
+            if (fi >= 0){ const fj = s.indexOf(')', fi); s = s.slice(0, fi) + '\n' + s.slice(fj>fi?fj+1:fi+4000); }
+            const U = s.toUpperCase();
+            let seedS = -1, seedE = -1, best = null, m;
+            const chainRe = /[A-Z0-9]{2,11}(?:\s*\.\.\s*[A-Z0-9]{2,11}){2,}/g;
+            while ((m = chainRe.exec(U))){ if (!best || m[0].length > best[0].length) best = m; }
+            if (best){ seedS = best.index; seedE = best.index + best[0].length; }
+            else {
+                const coordRe = /(?:\d{2,4}[NS]\d{3,5}[EW]|[NS]\d{2,4}[EW]\d{3,5})/g;
+                const c = coordRe.exec(U); if (!c) return '';
+                seedS = c.index; seedE = c.index + c[0].length;
+            }
+            // 뒤로 확장(공백/.. 구분 항로 토큰 흡수)
+            let end = seedE; const fRe = /\s*(?:\.\.|\s)\s*([A-Z0-9]{1,11})/y; fRe.lastIndex = end; let mm, cnt = 0;
+            while ((mm = fRe.exec(U)) && cnt < 60){
+                const tk = mm[1]; if (!looksRouteTok(tk)) break;
+                end = fRe.lastIndex; cnt++;
+                if (fpl && (tk === fpl.ades || tk === ICAO2IATA[fpl.ades])) break;
+            }
+            // 앞으로 확장(SID/출발공항 흡수) — 토큰 앞 경계까지 확인해 창 경계에서 토큰이 잘려 들어가지 않게 함
+            let start = seedS, guard = 0;
+            while (guard++ < 60){
+                const wStart = Math.max(0, start - 24);
+                const pre = U.slice(wStart, start);
+                const pm = /(^|[^A-Z0-9])([A-Z0-9]{1,11})\s*(?:\.\.|\s)\s*$/.exec(pre);
+                if (pm && looksRouteTok(pm[2]) && (pm[1] !== '' || wStart === 0)){
+                    start = wStart + pm.index + pm[1].length;
+                    if (fpl && (pm[2] === fpl.adep || pm[2] === ICAO2IATA[fpl.adep])) break;
+                } else break;
+            }
+            return s.slice(start, end).replace(/\s+/g,' ').trim();
+        }
+        function isSubseq(a, b){ let i = 0; for (let j = 0; j < b.length && i < a.length; j++){ if (b[j] === a[i]) i++; } return i === a.length; }
+        function compareTokens(a, b){
+            if (!a.length || !b.length) return { status:'none' };
+            const eq = a.length === b.length && a.every((x,i) => x === b[i]);
+            if (eq) return { status:'match', n:a.length };
+            const setA = new Set(a), setB = new Set(b);
+            const onlyA = a.filter(x => !setB.has(x)), onlyB = b.filter(x => !setA.has(x));
+            let div = -1; for (let i = 0; i < Math.min(a.length,b.length); i++){ if (a[i] !== b[i]){ div = i; break; } }
+            const sub = (!onlyA.length && isSubseq(a,b)) || (!onlyB.length && isSubseq(b,a));
+            return { status: sub ? 'subset' : 'diff', onlyA, onlyB, div, na:a.length, nb:b.length };
+        }
+        function computeRouteCheck(srcText, route){
+            const fpl = extractFplRoute(srcText);
+            const aStr = fpl ? fpl.raw : '';
+            let bStr = extractNarrativeRoute(srcText, fpl) || '';
+            let bLabel = bStr ? 'Page 2 항로내용' : '';
+            if (!bStr && route && route.route_string){ bStr = route.route_string; bLabel = 'AI 추출 route_string'; }
+            const aTok = trimEnds(tokenizeRoute(aStr), fpl);
+            const bTok = trimEnds(tokenizeRoute(bStr), fpl);
+            return { fpl:!!fpl, aStr, bStr, bLabel, aTok, bTok, cmp: compareTokens(aTok, bTok), have: !!(aStr && bStr) };
+        }
+        function renderRouteCheck(chk){
+            const el = $('routeCheck'); if (!el) return;
+            if (!chk.have){ el.innerHTML = ''; return; }
+            const c = chk.cmp;
+            if (c.status === 'match'){
+                el.innerHTML = `<div class="rchk rchk--ok">✅ 항로 일치 · FPL Field 15 ↔ ${escapeHtml(chk.bLabel)} · ${c.n}개 지점 순서까지 동일<button class="linkbtn" onclick="openXcheck()">대조표</button></div>`;
+            } else if (c.status === 'subset'){
+                el.innerHTML = `<div class="rchk rchk--warn">◐ 부분 일치 · 공통 구간 순서는 같으나 한쪽에 지점이 더 있음(검출 범위 차이 가능)<button class="linkbtn" onclick="openXcheck()">자세히</button></div>`;
+            } else if (c.status === 'diff'){
+                el.innerHTML = `<div class="rchk rchk--bad">⚠ 항로 불일치 · ①${c.na} vs ②${c.nb} 지점${c.div>=0?` · ${c.div+1}번째부터 상이`:''}<button class="linkbtn" onclick="openXcheck()">자세히</button></div>`;
+            } else { el.innerHTML = ''; }
+        }
+        function prefillXcheck(chk, fresh){
+            const A = $('xcheckA'), B = $('xcheckB'); if (!A || !B) return;
+            if (fresh){
+                // 새 분석 → 이전 비행에서 남은 수동 입력·대조 결과를 버리고 새 문서의 자동값으로 교체
+                A.value = chk.aStr || ''; A.dataset.auto = '1';
+                B.value = chk.bStr || ''; B.dataset.auto = '1';
+                const out = $('xcheckOut'); if (out) out.innerHTML = '';
+            } else {
+                const setIf = (el, val) => { if (val && (el.dataset.auto !== '0' || !el.value.trim())){ el.value = val; el.dataset.auto = '1'; } };
+                setIf(A, chk.aStr); setIf(B, chk.bStr);
+            }
+            const labA = $('xcheckAlab'); if (labA) labA.textContent = '① FPL Field 15' + (chk.fpl ? ' (자동추출됨)' : ' (미검출 — 직접 붙여넣기)');
+            const labB = $('xcheckBlab'); if (labB) labB.textContent = '② ' + (chk.bLabel || 'Page 2 항로내용') + ' (자동추출·직접 붙여넣기)';
+        }
+        function openXcheck(){ const x = $('xcheck'); if (x){ x.open = true; x.scrollIntoView({ behavior:'smooth', block:'center' }); runXcheck(); } }
+        function resetXcheck(){
+            const A = $('xcheckA'), B = $('xcheckB'); if (A) A.dataset.auto = '1'; if (B) B.dataset.auto = '1';
+            const srcText = ($('packageInput') && $('packageInput').value) || '';
+            const r = (analysisData && analysisData.route) || {};
+            prefillXcheck(computeRouteCheck(srcText, r), true); runXcheck();
+        }
+        function runXcheck(){
+            const out = $('xcheckOut'); if (!out) return;
+            const src = ($('packageInput') && $('packageInput').value) || '';
+            const fpl = extractFplRoute(src);
+            const a = trimEnds(tokenizeRoute($('xcheckA').value), fpl);
+            const b = trimEnds(tokenizeRoute($('xcheckB').value), fpl);
+            if (!a.length || !b.length){ out.innerHTML = `<div class="rchk rchk--warn" style="margin:0">대조하려면 양쪽 항로를 모두 입력하세요.</div>`; return; }
+            const cmp = compareTokens(a, b);
+            const rowHtml = (label, arr, other) => {
+                const toks = arr.map((t,i) => `<span class="xtok ${other[i]===t?'xtok--ok':'xtok--bad'}">${escapeHtml(t)}</span>`).join('');
+                return `<div class="xrow"><span class="xrow__lab">${label} · ${arr.length}지점</span>${toks}</div>`;
+            };
+            let verdict;
+            if (cmp.status === 'match') verdict = `<span class="xverdict" style="background:rgba(47,208,138,.15);color:var(--green)">✅ 완전 일치 · ${cmp.n}개 지점이 순서까지 동일</span>`;
+            else if (cmp.status === 'subset') verdict = `<span class="xverdict" style="background:rgba(242,169,59,.15);color:var(--amber)">◐ 부분 일치 · 공통 구간 순서 일치, 한쪽에 지점 추가</span>`;
+            else verdict = `<span class="xverdict" style="background:rgba(240,85,79,.15);color:var(--red)">⚠ 불일치 · ${cmp.div>=0?`${cmp.div+1}번째 지점부터 상이`:'지점 구성 상이'}</span>`;
+            const diff = ((cmp.onlyA && cmp.onlyA.length) ? `<p class="xrow__lab">①에만: ${cmp.onlyA.map(escapeHtml).join(', ')}</p>` : '')
+                       + ((cmp.onlyB && cmp.onlyB.length) ? `<p class="xrow__lab">②에만: ${cmp.onlyB.map(escapeHtml).join(', ')}</p>` : '');
+            out.innerHTML = verdict + rowHtml('① FPL Field 15', a, b) + rowHtml('② 대조 대상', b, a) + diff;
+        }
+
+        // 내 FPL 항로 토큰 집합(웨이포인트·항로만; 좌표/공항코드 제외)
+        function buildRouteTokenSet(route, srcText){
+            const toks = new Set();
+            const add = arr => arr.forEach(t => {
+                if (!t || t.indexOf('/') >= 0) return;                 // 좌표 정규형 제외
+                if (/^[A-Z]{2,5}$/.test(t) || /^[A-Z]{1,3}\d{1,4}$/.test(t)) toks.add(t);
+            });
+            const fpl = extractFplRoute(srcText);
+            if (fpl) add(tokenizeRoute(fpl.raw));
+            if (route && route.route_string) add(tokenizeRoute(route.route_string));
+            [route && route.departure, route && route.destination].forEach(c => { if (c) toks.delete(String(c).toUpperCase()); });
+            return toks;
+        }
+        function notamText(n){
+            return [(n.feature||''),(n.title||''),(n.detail||''),(n.reason||''),(rawFromSource(n)||'')].join(' \n ').toUpperCase();
+        }
+        function isRunwayRelated(n){
+            if ((n.category||'').toUpperCase() === 'RWY') return true;
+            return /\bRWY\b|\bRWYS\b|\bRUNWAY\b|\bR\/W\b|\bRWY\s?\d/.test(notamText(n));
+        }
+        function isTwyRelated(n){
+            if ((n.category||'').toUpperCase() === 'TWY') return true;
+            return /\bTWYS?\b|\bTAXIWAYS?\b|TAXI\s*-?\s*WAY|\bTXWYS?\b|T\/W/.test(notamText(n));
+        }
+        function isNavAppRelated(n){
+            const cat = (n.category||'').toUpperCase();
+            if (cat === 'NAV' || cat === 'APP') return true;
+            return /\bILS\b|\bVOR\b|\bDME\b|\bLOC\b|\bGLIDE\b|\bGP\b|\bAPPROACH\b|\bRNAV\b|\bRNP\b|\bNDB\b/.test(notamText(n));
+        }
+        function directWordRe(tok){
+            const esc = String(tok).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+            try { return new RegExp('(^|[^A-Z0-9])' + esc + '([^A-Z0-9]|$)'); } catch(_){ return null; }
+        }
+        // 공항 단계(출발/도착/교체)에서 직접 관련 사유
+        function airportDirectReason(n, lbl){
+            const hasSurf = useRwy.length || useTwy.length || useTaxi.length;
+            if (hasSurf){
+                const fk = flagKind(n);
+                return fk ? lbl + ' ' + fk + '(내입력)' : '';
+            }
+            if (isRunwayRelated(n)) return lbl + ' RWY';
+            if (isTwyRelated(n)) return lbl + ' TWY';
+            if (isNavAppRelated(n)) return lbl + ' NAV/APP';
+            return '';
+        }
+        // 직접-관련이면 사유 문자열 반환, 아니면 ''
+        function directRedReason(n, phase, tokset){
+            if (phase === 'DEPARTURE' || phase === 'DESTINATION'){
+                return airportDirectReason(n, phase === 'DEPARTURE' ? '출발' : '도착');
+            }
+            if (phase === 'ALTERNATE'){
+                return airportDirectReason(n, '교체');
+            }
+            if (phase === 'ENROUTE'){
+                const t = notamText(n);
+                for (const tok of tokset){ const re = directWordRe(tok); if (re && re.test(t)) return '항로 ' + tok; }
+                return '';
+            }
+            return '';
+        }
+        function deriveDirectSeverity(n, phase, tokset){
+            const inWindow = n.relevant !== false;           // AI 시간창 게이트(명시적 false만 제외)
+            const why = directRedReason(n, phase, tokset);
+            if (why && inWindow){
+                // 직접 관련: WARNING 강조. AI가 caution이면 caution 유지(과대 승격 방지)
+                const ai = String(n._ai || n.severity || '').toLowerCase();
+                return { sev: (ai === 'caution' ? 'caution' : 'warning'), why };
+            }
+            return { sev:'advisory', why:'' };
+        }
+        function getDirectRed(){ try { const v = localStorage.getItem('directRedMode'); return v === null ? true : v === '1'; } catch(_){ return true; } }
+        function toggleDirectRed(){ try { localStorage.setItem('directRedMode', $('directRed').checked ? '1' : '0'); } catch(_){} if (analysisData) renderAnalysis(analysisData); }
+        function disableDirectRed(){ if ($('directRed')) $('directRed').checked = false; toggleDirectRed(); }
+
+        // ============ 차트에 NOTAM 위치 표시 (Gemini Vision) ============
+        function refreshAnnotateBtn(){
+            const list = positionalByIcao[currentAirport] || [];
+            const b = $('btnAnnotate'), hint = $('chartHint'), bc = $('btnClearMarks');
+            if (list.length && currentMaps.length){
+                b.classList.remove('hidden'); b.disabled = false;
+                bc.classList.toggle('hidden', !currentMaps.some(m => (annotationsByChartId[m.id] || []).length));
+                hint.classList.remove('hidden');
+                hint.textContent = `⌖ ${currentAirport} 표시대상 ${list.length}건 · [차트 자동분석]이 모든 차트를 검사해 해당 차트만 하이라이트 · 마커가 틀리면 드래그해 이동`;
+            } else {
+                b.classList.add('hidden'); hint.classList.add('hidden'); bc.classList.add('hidden');
+            }
+        }
+
+        function renderMarkers(markers){
+            const ov = $('mapOverlay'); ov.innerHTML = "";
+            (markers || []).forEach((mk, i) => {
+                const el = document.createElement('div');
+                el.className = 'marker' + (mk.severity === 'caution' ? ' marker--caut' : '') + (mk.top < 6 ? ' marker--flip' : '');
+                el.style.left   = mk.left + '%';
+                el.style.top    = mk.top + '%';
+                el.style.width  = mk.width + '%';
+                el.style.height = mk.height + '%';
+                el.innerHTML = `<span class="marker__tag">
+                        <span class="marker__txt">⌖ ${escapeHtml(mk.label)}${mk._moved ? ' ·이동됨' : ''}${mk._edited ? ' ·수정됨' : ''}</span>
+                        <button class="marker__act" data-act="sev" data-i="${i}" title="심각도 색 전환 (WARNING↔CAUTION)">◐</button>
+                        <button class="marker__act" data-act="edit" data-i="${i}" title="설명 수정">✎</button>
+                        <button class="marker__act marker__act--del" data-act="del" data-i="${i}" title="삭제">✕</button>
+                    </span><span class="marker__grip"></span>`;
+                // 버튼 클릭은 드래그로 번지지 않게 차단
+                el.querySelectorAll('.marker__act').forEach(b => {
+                    b.addEventListener('pointerdown', (ev) => ev.stopPropagation());
+                    b.addEventListener('click', (ev) => {
+                        ev.stopPropagation();
+                        const act = ev.currentTarget.dataset.act, idx = +ev.currentTarget.dataset.i;
+                        if (act === 'del') deleteMarker(idx); else if (act === 'sev') toggleMarkerSeverity(idx); else editMarker(idx);
+                    });
+                });
+                enableMarkerDrag(el, mk);
+                ov.appendChild(el);
+            });
+        }
+
+        // 마커 삭제 (잘못 감지된 표시 제거)
+        function deleteMarker(index){
+            if (currentChartId == null) return;
+            const arr = annotationsByChartId[currentChartId] || [];
+            const mk = arr[index]; if (!mk) return;
+            if (!confirm(`"${mk.label}" 표시를 이 차트에서 삭제할까요?`)) return;
+            arr.splice(index, 1);
+            saveChartMarkers(currentChartId, arr);
+            markTab(currentChartId, arr.length > 0);   // 마지막 마커면 하이라이트도 해제
+            renderMarkers(arr);
+        }
+
+        // 마커 심각도 색 전환 (warning 빨강 ↔ caution 호박)
+        function toggleMarkerSeverity(index){
+            if (currentChartId == null) return;
+            const arr = annotationsByChartId[currentChartId] || [];
+            const mk = arr[index]; if (!mk) return;
+            mk.severity = (mk.severity === 'caution') ? 'warning' : 'caution';
+            mk._sevSet = true;
+            saveChartMarkers(currentChartId, arr);
+            renderMarkers(arr);
+        }
+
+        // 마커 설명(라벨) 수정
+        function editMarker(index){
+            if (currentChartId == null) return;
+            const arr = annotationsByChartId[currentChartId] || [];
+            const mk = arr[index]; if (!mk) return;
+            const v = prompt('표시 설명 수정', mk.label || '');
+            if (v === null) return;
+            const nv = v.trim();
+            if (!nv) return alert('설명은 비울 수 없습니다. 삭제하려면 ✕를 누르세요.');
+            mk.label = nv; mk._edited = true;
+            saveChartMarkers(currentChartId, arr);
+            renderMarkers(arr);
+        }
+
+        // 마커를 드래그해 위치 보정 (mk는 annotationsByChartId 배열의 참조 → 이동 즉시 저장됨)
+        function enableMarkerDrag(el, mk){
+            el.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                const ov = $('mapOverlay');
+                const rect = ov.getBoundingClientRect();
+                if (!rect.width || !rect.height) return;
+                const startX = e.clientX, startY = e.clientY, sl = mk.left, st = mk.top;
+                el.setPointerCapture(e.pointerId);
+                el.classList.add('marker--drag');
+                const move = (ev) => {
+                    const nl = Math.max(0, Math.min(100 - mk.width,  sl + (ev.clientX - startX) / rect.width  * 100));
+                    const nt = Math.max(0, Math.min(100 - mk.height, st + (ev.clientY - startY) / rect.height * 100));
+                    mk.left = nl; mk.top = nt;
+                    el.style.left = nl + '%'; el.style.top = nt + '%';
+                    el.classList.toggle('marker--flip', nt < 6);
+                };
+                const up = () => {
+                    el.classList.remove('marker--drag');
+                    if (!mk._moved){ mk._moved = true; const tag = el.querySelector('.marker__txt'); if (tag && !/·이동됨/.test(tag.textContent)) tag.textContent += ' ·이동됨'; }
+                    if (currentChartId != null) saveChartMarkers(currentChartId, annotationsByChartId[currentChartId] || []); // 이동 위치 저장
+                    el.removeEventListener('pointermove', move);
+                    el.removeEventListener('pointerup', up);
+                    el.removeEventListener('pointercancel', up);
+                };
+                el.addEventListener('pointermove', move);
+                el.addEventListener('pointerup', up);
+                el.addEventListener('pointercancel', up); // iOS에서 터치가 스크롤 등으로 취소돼도 드래그 상태 정리
+            });
+        }
+
+        function markTab(id, on){
+            const el = document.querySelector(`#mapTabs .chart-key[data-chart-id="${id}"]`);
+            if (el) el.classList.toggle('chart-key--marked', on);
+        }
+
+        // 한 차트에서 feature 위치(box_2d)를 감지 → 마커 배열 반환
+        async function detectOnChart(key, m, features, list, onRetry){
+            const { mime, b64 } = splitDataUrl(m.data);
+            const vprompt = `Detect the location of each listed feature on THIS airport chart/diagram for ${currentAirport}.
+Return ONLY JSON: {"detections":[{"label":"<exact feature text>","box_2d":[ymin,xmin,ymax,xmax]}]}
+- box_2d values are normalized to 0-1000 over the FULL image (y = top→bottom, x = left→right).
+- Draw the box TIGHTLY around the specific taxiway/runway/apron segment named by the feature, following the printed label and its line/path — not the whole airport.
+- Include an entry ONLY for features actually visible on THIS chart. If this is not a ground/taxi diagram or none are visible, return {"detections":[]}.
+Features to locate: ${JSON.stringify(features)}`;
+            const res = await geminiFetch(geminiUrl(GEMINI_MODEL), key, {
+                contents:[{ parts:[ { inline_data:{ mime_type: mime, data: b64 } }, { text: vprompt } ] }],
+                generationConfig:{ responseMimeType:"application/json", temperature:0, thinkingConfig:{ thinkingBudget:0 } }
+            }, onRetry);
+            if (!res.ok){ const t = await res.text(); throw new Error(apiErrText(res.status, t)); }
+            const data = await res.json();
+            const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+            let parsed;
+            try { parsed = JSON.parse(raw.replace(/```json|```/g, "").trim()); }
+            catch(_){ return []; } // 잘린/비정상 JSON → 이 차트는 빈 결과로 계속
+            const clamp = v => Math.max(0, Math.min(100, v));
+            const featLower = (s) => String(s || '').toLowerCase().trim();
+            return (parsed.detections || [])
+                .filter(d => Array.isArray(d.box_2d) && d.box_2d.length === 4 && d.box_2d.every(v => isFinite(v)))
+                .map(d => {
+                    const [ymin, xmin, ymax, xmax] = d.box_2d.map(Number);
+                    const label = String(d.label || '');
+                    // 라벨이 feature 목록과 일치할 때만 매칭 — list[0] 폴백 금지(잘못된 심각도/출처 방지)
+                    const src = list.find(n => featLower(n.feature) === featLower(label));
+                    if (!src && features.length){
+                        // 부분 일치(모델이 접두/접미를 붙인 경우) 허용
+                        const fuzzy = list.find(n => {
+                            const f = featLower(n.feature); const L = featLower(label);
+                            return f && L && (L.includes(f) || f.includes(L));
+                        });
+                        if (!fuzzy) return null;
+                        return {
+                            label: label || fuzzy.feature || '',
+                            severity: fuzzy.severity || 'warning',
+                            left:   clamp(Math.min(xmin, xmax) / 10),
+                            top:    clamp(Math.min(ymin, ymax) / 10),
+                            width:  Math.max(1.5, clamp(Math.abs(xmax - xmin) / 10)),
+                            height: Math.max(1.5, clamp(Math.abs(ymax - ymin) / 10))
+                        };
+                    }
+                    if (!src) return null;
+                    return {
+                        label: label || src.feature || '',
+                        severity: src.severity || 'warning',
+                        left:   clamp(Math.min(xmin, xmax) / 10),
+                        top:    clamp(Math.min(ymin, ymax) / 10),
+                        width:  Math.max(1.5, clamp(Math.abs(xmax - xmin) / 10)),
+                        height: Math.max(1.5, clamp(Math.abs(ymax - ymin) / 10))
+                    };
+                })
+                .filter(Boolean);
+        }
+
+        // AI가 공항의 모든 차트를 스캔 → 표시 대상이 있는 차트만 하이라이트
+        async function scanAllCharts(){
+            const key = $('apiKey').value.trim();
+            if (!key) return alert(hasVault() ? "헤더의 [🔓 잠금해제]로 PIN을 입력해 저장된 키를 먼저 불러오세요." : "API Key를 입력하세요.");
+            const list = positionalByIcao[currentAirport] || [];
+            if (!list.length) return alert(`${currentAirport}에 위치표시할 NOTAM이 없습니다. 먼저 ANALYZE를 실행하세요.`);
+            if (!currentMaps.length) return alert("차트를 먼저 업로드하세요.");
+
+            const features = [...new Set(list.map(n => n.feature).filter(Boolean))];
+            const b = $('btnAnnotate'); const label = b.textContent;
+            b.disabled = true;
+            let hit = 0, reused = 0, failed = 0, stopped = false;
+            try {
+                for (let idx = 0; idx < currentMaps.length; idx++){
+                    const m = currentMaps[idx];
+                    // 이미 마킹된 차트(이전 스캔·복원·수동이동)는 재사용 → API 호출·수정내용 보존
+                    if (Object.prototype.hasOwnProperty.call(annotationsByChartId, m.id)){
+                        const cached = annotationsByChartId[m.id] || [];
+                        markTab(m.id, cached.length > 0);
+                        if (cached.length){ hit++; reused++; }
+                        if (m.id === currentChartId) renderMarkers(cached);
+                        continue;
+                    }
+                    b.innerHTML = `<span class="loading-spinner"></span> 스캔 ${idx + 1}/${currentMaps.length}`;
+                    let found = [];
+                    try {
+                        found = await detectOnChart(key, m, features, list,
+                            (d) => { b.innerHTML = `<span class="loading-spinner"></span> 한도 대기 ${Math.round(d/1000)}s`; });
+                    } catch (e){
+                        if (/429|요청 한도 초과/.test(e.message)){ alert(e.message + "\n\n지금까지 스캔한 결과는 유지됩니다."); stopped = true; break; }
+                        // 네트워크 차단이면 이후 요청도 모두 실패 → 중단. 그 외(응답 파싱 실패 등)는 이 차트만 건너뛰고 계속
+                        if ((e instanceof TypeError) || /failed to fetch|networkerror/i.test(e.message)) throw e;
+                        failed++;
+                        continue;
+                    }
+                    annotationsByChartId[m.id] = found;   // 결과 저장(빈 배열이면 하이라이트 해제)
+                    saveChartMarkers(m.id, found);        // 브라우저에 저장 → 다음에도 재사용
+                    markTab(m.id, found.length > 0);      // 내용이 있는 차트만 하이라이트
+                    if (found.length) hit++;
+                    if (m.id === currentChartId) renderMarkers(found);
+                }
+                if (!stopped) alert(`차트 자동분석 완료 · ${currentMaps.length}개 중 ${hit}개 차트에 표시 대상${reused ? ` (기존 마킹 ${reused}개 재사용)` : ''}${failed ? ` · ${failed}개 차트 분석 실패(다시 시도 가능)` : ''}.\n표시가 틀리면 마커를 드래그해 옮기세요. 다시 감지하려면 [마킹 초기화].`);
+            } catch (err){
+                const isNet = (err instanceof TypeError) || /failed to fetch|networkerror/i.test(err.message);
+                alert(isNet ? "연결 실패: 요청이 차단되었습니다 (차단기·API Key 제한·네트워크 확인)." : "차트 스캔 실패\n" + err.message);
+            } finally { b.disabled = false; b.textContent = label; }
+        }
+
+        // 현재 공항 차트의 마킹을 모두 지움(다시 자동분석 가능)
+        function clearAirportMarks(){
+            if (!currentMaps.length) return;
+            if (!confirm(`${currentAirport} 차트의 저장된 마킹을 모두 지울까요? (다음 [차트 자동분석] 때 다시 감지)`)) return;
+            currentMaps.forEach(m => { delete annotationsByChartId[m.id]; markTab(m.id, false); saveChartMarkers(m.id, []); });
+            $('mapOverlay').innerHTML = "";
+        }
+
+        // ============ API 키 보안 저장 (PIN 암호화, AES-GCM) ============
+        function _b64(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))); }
+        function _unb64(s){ return Uint8Array.from(atob(s), c => c.charCodeAt(0)); }
+        async function _deriveKey(pin, salt){
+            const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pin), 'PBKDF2', false, ['deriveKey']);
+            return crypto.subtle.deriveKey({ name:'PBKDF2', salt, iterations:150000, hash:'SHA-256' }, base, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']);
+        }
+        async function saveKeyEncrypted(apiKey, pin){
+            const salt = crypto.getRandomValues(new Uint8Array(16));
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const k = await _deriveKey(pin, salt);
+            const ct = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, k, new TextEncoder().encode(apiKey));
+            localStorage.setItem('keyVault', JSON.stringify({ s:_b64(salt), iv:_b64(iv), ct:_b64(ct) }));
+            localStorage.removeItem('geminiKey'); // 평문 제거
+        }
+        async function loadKeyEncrypted(pin){
+            const v = JSON.parse(localStorage.getItem('keyVault') || 'null');
+            if (!v) return null;
+            const k = await _deriveKey(pin, _unb64(v.s));
+            const pt = await crypto.subtle.decrypt({ name:'AES-GCM', iv:_unb64(v.iv) }, k, _unb64(v.ct));
+            return new TextDecoder().decode(pt);
+        }
+        function hasVault(){ try { return !!localStorage.getItem('keyVault'); } catch(_){ return false; } }
+        function updateKeyUI(){
+            const btn = $('btnKey'), del = $('btnKeyDel'), st = $('keyStatus');
+            const vault = hasVault(), keyed = !!$('apiKey').value.trim();
+            del.classList.toggle('hidden', !vault);
+            if (vault && !keyed){ btn.textContent = '🔓 잠금해제'; st.textContent = '🔒 암호화 저장됨'; st.className = 'keystat keystat--lock'; }
+            else if (vault && keyed){ btn.textContent = '🔒 잠금'; st.textContent = '🔓 사용 중'; st.className = 'keystat keystat--open'; }
+            else if (keyed){ btn.textContent = '🔒 PIN 저장'; st.textContent = '미저장'; st.className = 'keystat'; }
+            else { btn.textContent = '🔒 PIN 저장'; st.textContent = ''; st.className = 'keystat'; }
+        }
+        async function keyLockAction(){
+            const vault = hasVault(), keyed = !!$('apiKey').value.trim();
+            if (vault && !keyed){ // 잠금해제
+                const pin = prompt('PIN 입력 (잠금해제)');
+                if (!pin) return;
+                try { const k = await loadKeyEncrypted(pin); if (k){ $('apiKey').value = k; updateKeyUI(); } else alert('저장된 키가 없습니다.'); }
+                catch(_){ alert('PIN이 올바르지 않습니다.'); }
+                return;
+            }
+            if (vault && keyed){ $('apiKey').value = ''; updateKeyUI(); return; } // 잠금(메모리에서 지움)
+            if (keyed){ // 암호화 저장
+                if (!(window.crypto && crypto.subtle)){ alert('암호화 저장은 https 또는 localhost(또는 홈화면 앱)에서만 가능합니다. 파일을 호스팅해 사용하세요.'); return; }
+                const pin = prompt('저장용 PIN 설정 (4자리 이상)');
+                if (!pin || pin.length < 4){ if (pin !== null) alert('PIN은 4자리 이상이어야 합니다.'); return; }
+                if (prompt('PIN 확인') !== pin){ alert('PIN이 일치하지 않습니다.'); return; }
+                try { await saveKeyEncrypted($('apiKey').value.trim(), pin); alert('API 키를 암호화해 저장했습니다. 다음부터 PIN으로 잠금해제하세요.'); updateKeyUI(); }
+                catch(e){ alert('저장 실패: ' + e.message); }
+                return;
+            }
+            alert('먼저 API 키를 입력하세요.');
+        }
+        function deleteVault(){
+            if (!confirm('저장된 암호화 키를 삭제할까요?')) return;
+            try { localStorage.removeItem('keyVault'); } catch(_){}
+            $('apiKey').value = ''; updateKeyUI();
+        }
+
+        // 연결 진단: GET(단순요청) → POST(preflight) 순으로 어디서 막히는지 판별
+        async function testConnection(){
+            const key = $('apiKey').value.trim();
+            if (!key) return alert(hasVault() ? '먼저 [🔓 잠금해제]로 키를 불러오세요.' : 'API Key를 입력하세요.');
+            const b = $('btnTest'); const label = b.textContent; b.disabled = true; b.textContent = '테스트 중…';
+            const out = []; let getOk = false;
+            // ① 기본 연결 (단순 GET, preflight 없음 — 헤더를 붙이면 preflight가 생기므로 여기서만 URL 키 사용)
+            try {
+                const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}`);
+                if (r.ok){ getOk = true; out.push('① 기본연결(GET): ✅ 정상 · 키 유효'); }
+                else { const t = await r.text();
+                    const why = /referer|referrer|API_KEY_HTTP_REFERRER|blocked|restrict/i.test(t) ? '키에 도메인/리퍼러 제한 → 이 사이트 차단'
+                              : (r.status === 400 ? 'API Key가 올바르지 않음' : (r.status === 403 ? '권한/제한 문제' : t.slice(0,100)));
+                    out.push(`① 기본연결(GET): ❌ HTTP ${r.status} — ${why}`);
+                }
+            } catch(e){ out.push('① 기본연결(GET): ❌ 차단(TypeError) — googleapis.com 자체가 막힘(콘텐츠 차단기·VPN·사설 릴레이·DNS)'); }
+            // ② 분석요청 (POST, CORS preflight 포함)
+            let postQuota = false;
+            try {
+                const r = await fetch(geminiUrl(GEMINI_MODEL),
+                    { method:'POST', headers:{ 'Content-Type':'application/json', 'x-goog-api-key': key }, body: JSON.stringify({ contents:[{ parts:[{ text:'ping' }] }], generationConfig:{ maxOutputTokens:1, thinkingConfig:{ thinkingBudget:0 } } }) });
+                if (r.status === 429) postQuota = true;
+                out.push(r.ok ? '② 분석요청(POST): ✅ 정상' : (r.status === 429 ? '② 분석요청(POST): ⚠ HTTP 429 (요청 한도 초과)' : `② 분석요청(POST): ⚠ HTTP ${r.status}`));
+            } catch(e){ out.push('② 분석요청(POST): ❌ 차단(TypeError) — POST/CORS preflight 차단(주로 콘텐츠 차단기)'); }
+            // 해석
+            let advice;
+            if (postQuota) advice = '▶ 통신은 정상이나 요청 한도(429)에 도달했습니다. 1~2분 기다렸다 재시도하거나, 헤더의 모델을 2.5 Flash-Lite(무료 한도↑)로 바꾸세요. 계속되면 Google AI Studio에서 결제(유료)로 상향하세요.';
+            else if (getOk) advice = '▶ GET·POST 모두 정상이면 통신은 열려 있습니다. 그대로 ANALYZE 하세요. (대용량 문서는 자동 구간 분석됩니다.)';
+            else advice = '▶ 설정 > Safari에서 콘텐츠 차단기/확장 OFF, VPN·Lockdown·iCloud 사설 릴레이 OFF, 회사/기내 와이파이면 셀룰러로 재시도. GET이 403이면 API Key의 도메인/리퍼러 제한을 해제하세요.';
+            b.disabled = false; b.textContent = label;
+            alert('연결 진단 결과\n\n' + out.join('\n') + '\n\n' + advice);
+        }
+
+        // ============ Zulu 시계 & 초기화 ============
+        function tickZulu(){
+            const d = new Date(), p = n => String(n).padStart(2, '0');
+            const el = $('zulu'); if (el) el.textContent = `${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())}Z`;
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            renderButtons(); tickZulu(); setInterval(tickZulu, 1000);
+            // 레거시 평문키가 있고 금고가 없으면 이관용으로 채워줌(이후 PIN 저장 권장)
+            try { if (!hasVault()){ const k = localStorage.getItem('geminiKey'); if (k) $('apiKey').value = k; } } catch(e){}
+            updateKeyUI();
+            try { const mdl = localStorage.getItem('geminiModel'); if (mdl){ GEMINI_MODEL = mdl; const sel = $('modelSel'); if (sel) sel.value = mdl; } } catch(e){}
+            const inFrame = (function(){ try { return window.self !== window.top; } catch(_){ return true; } })();
+            let sameOriginParent = false;
+            try { sameOriginParent = inFrame && window.parent.location.origin === location.origin; } catch(_){ sameOriginParent = false; }
+            if (location.protocol === 'file:' || (inFrame && !sameOriginParent && location.protocol !== 'https:')){
+                const n = $('envNotice');
+                if (n){ n.classList.remove('hidden');
+                    n.innerHTML = inFrame
+                        ? `⚠ <b>iframe 미리보기 안에서 실행 중</b> — 샌드박스라 Gemini API 호출이 <b>차단</b>될 수 있습니다("Load failed"). 배포한 <b>https 주소(GitHub Pages)</b> 또는 <b>홈 화면 앱</b>에서 열어야 분석이 됩니다. <button class="linkbtn" onclick="this.closest('.env-notice').classList.add('hidden')">닫기</button>`
+                        : `⚠ <b>로컬 파일(file://)로 실행 중</b> — iPhone·iPad(Safari)에서는 API 호출이 차단됩니다. <b>https로 호스팅</b>(GitHub Pages 등) 후 홈 화면에 추가해 사용하세요. <button class="linkbtn" onclick="this.closest('.env-notice').classList.add('hidden')">닫기</button>`;
+                }
+            } else if (sameOriginParent || isEmbedded()){
+                const n = $('envNotice');
+                if (n){ n.classList.remove('hidden');
+                    n.innerHTML = `↗ <b>Integrated Flight Ops Briefer</b> 안에서 실행 중 — API Key는 <b>상단에서 한 번만</b> 입력하세요. ANALYZE 결과는 부모 창으로 자동 전송됩니다. <button class="btn btn--amber btn--sm" onclick="sendToJointBriefing()">↗ 지금 보내기</button> <button class="linkbtn" onclick="this.closest('.env-notice').classList.add('hidden')">닫기</button>`;
+                }
+            }
+            // 통합 앱(iframe) 안에서는 API 키 UI 숨김 — 부모가 단일 소스
+            if (isEmbedded()){
+                ['apiKey','btnKey','btnKeyDel','btnTest','keyStatus'].forEach(id => { const el = $(id); if (el) el.classList.add('hidden'); });
+                const managed = $('keyManagedByParent'); if (managed) managed.classList.remove('hidden');
+                try {
+                    const shared = localStorage.getItem('ifob_gemini_key');
+                    if (shared && $('apiKey')) $('apiKey').value = shared;
+                } catch(_){}
+            }
+            // 부모(IntegratedFlightBriefer) ↔ 연동
+            window.addEventListener('message', (ev) => {
+                const msg = ev.data;
+                if (!msg || typeof msg !== 'object') return;
+                if (msg.type === 'IFOB_REQUEST_SUMMARY') sendToJointBriefing();
+                if (msg.type === 'IFOB_SET_API_KEY' && typeof msg.key === 'string'){
+                    const inp = $('apiKey');
+                    if (inp){ inp.value = msg.key.trim(); updateKeyUI(); }
+                }
+            });
+            try { if (isEmbedded()) window.parent.postMessage({ type:'IFOB_CHILD_READY', source:'pilot-ops' }, '*'); } catch(_){}
+            $('apiKey').addEventListener('input', updateKeyUI); // 평문 자동저장은 하지 않음(보안)
+            $('packageInput').addEventListener('input', (e) => { $('btnAnalyze').disabled = e.target.value.trim().length === 0; });
+            const rt = loadRwyTwy();
+            if (rt.rwy){ $('inRwy').value = rt.rwy; useRwy = parseTokens(rt.rwy); }
+            if (rt.twy){ $('inTwy').value = rt.twy; useTwy = parseTokens(rt.twy); }
+            if (rt.taxi && $('inTaxi')){ $('inTaxi').value = rt.taxi; useTaxi = parseTokens(rt.taxi); }
+            if ($('rwyOnly')) $('rwyOnly').checked = getRwyOnly();
+            ['inRwy','inTwy','inTaxi'].forEach(id => { const el = $(id); if (el) el.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyRwyTwy(); }); });
+            loadScope();
+            if ($('directRed')) $('directRed').checked = getDirectRed();
+            ['xcheckA','xcheckB'].forEach(id => { const e = $(id); if (e) e.addEventListener('input', () => { e.dataset.auto = '0'; }); });
+
+            // 오프라인 지원: 앱 셸 캐시(sw.js가 함께 배포된 경우) + 저장소 영속화 요청
+            if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')){
+                navigator.serviceWorker.register('./sw.js').catch(() => {}); // sw.js 없으면 조용히 무시
+            }
+            if (navigator.storage && navigator.storage.persist){
+                navigator.storage.persist().catch(() => {}); // iOS가 저장소(브리핑·차트)를 지우지 않도록 요청
+            }
+        });
+    </script>
+</body>
+</html>

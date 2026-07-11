@@ -2,9 +2,9 @@
    - 같은 출처(앱 셸): 네트워크 우선 → 새 배포가 즉시 반영, 오프라인이면 캐시 사용
    - CDN(pdf.js, fonts): 캐시 우선, no-cors(opaque) 응답도 저장
    - Gemini API: 캐시하지 않음(항상 네트워크) */
-const CACHE = 'pilot-ops-v4';
+const CACHE = 'pilot-ops-v5';
 const CDN_RE = /(^|\.)cdnjs\.cloudflare\.com$|(^|\.)fonts\.googleapis\.com$|(^|\.)fonts\.gstatic\.com$/;
-const SHELL = ['./', './index.html', './IntegratedFlightBriefer.html'];
+const SHELL = ['./', './index.html', './notam.html', './IntegratedFlightBriefer.html'];
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();
