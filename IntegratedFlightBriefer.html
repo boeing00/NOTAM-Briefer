@@ -4,7 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Integrated Flight Ops Briefer · NOTAM + Joint Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
   --panel:#080b12; --surface:#131c29; --raised:#16202f;
@@ -73,6 +78,42 @@ hr{border:none;border-top:1px solid var(--line);margin:1rem 0}
 .notice{border:1px solid var(--amber);border-radius:10px;padding:.7rem .9rem;color:#ffe6b0;
   background:rgba(242,169,59,.1);margin-bottom:1rem;font-size:.75rem;line-height:1.6}
 .notice.info{border-color:var(--cyan-dim);color:#bfe9f2;background:rgba(51,207,230,.08)}
+/* PDF 렌더용 (화면 밖) */
+#pdfRenderHost{position:fixed;left:-10000px;top:0;width:794px;background:#fff;z-index:-1;pointer-events:none}
+.pdfdoc{width:794px;box-sizing:border-box;padding:40px 42px 48px;background:#fff;color:#212121;
+  font-family:"IBM Plex Sans","IBM Plex Sans KR",system-ui,sans-serif;font-size:12px;line-height:1.45}
+.pdfdoc *{box-sizing:border-box}
+.pdf-title{font-size:26px;font-weight:700;color:#1565C0;margin:0 0 4px}
+.pdf-sub{font-size:10px;color:#757575;margin:0 0 14px}
+.pdf-sec{background:#E3F2FD;border:1px solid #90CAF9;color:#1565C0;font-weight:700;font-size:13px;
+  padding:7px 10px;margin:16px 0 10px;border-radius:2px}
+.pdf-subsec{background:#1976D2;color:#fff;font-weight:700;font-size:11px;padding:5px 8px;margin:8px 0 0}
+.pdf-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border:1px solid #ddd;margin-bottom:10px}
+.pdf-grid div{padding:6px 8px;border-right:1px solid #eee;border-bottom:1px solid #eee;background:#fafafa}
+.pdf-grid div:nth-child(4n){border-right:none}
+.pdf-grid .lbl{font-size:9px;color:#757575;font-weight:700}
+.pdf-fi{display:flex;gap:12px;align-items:center;margin:8px 0}
+.pdf-fi .fn{font-size:28px;font-weight:700;color:#1565C0;min-width:110px}
+.pdf-fi .meta{font-size:11px;color:#757575}
+.pdf-fi .route{font-size:18px;font-weight:700}
+.pdf-table{width:100%;border-collapse:collapse;margin:6px 0 10px;font-size:11px}
+.pdf-table th{background:#1976D2;color:#fff;padding:5px 6px;text-align:left;font-weight:700}
+.pdf-table td{padding:5px 6px;border:1px solid #e0e0e0;vertical-align:top}
+.pdf-table tr:nth-child(even) td{background:#f5f5f5}
+.pdf-table .hi td{background:#FFEBEE;font-weight:700;color:#B71C1C}
+.pdf-table .ok td{background:#E8F5E9;font-weight:700}
+.pdf-table .num{text-align:right}
+.pdf-wxrow{display:grid;grid-template-columns:120px 1fr;gap:6px;padding:4px 8px;border-bottom:1px solid #eee;font-size:11px}
+.pdf-wxrow .k{color:#757575;font-weight:700}
+.pdf-bullet{margin:3px 0;font-size:11.5px}
+.pdf-indent{margin:2px 0 2px 16px;font-size:11px;color:#424242}
+.pdf-alerts{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0}
+.pdf-al{padding:6px 10px;border-radius:4px;font-weight:700;font-size:10px;color:#fff;opacity:.35}
+.pdf-al.on{opacity:1;font-size:13px;padding:8px 14px;box-shadow:0 0 0 2px #fff,0 0 0 3px #1565C0}
+.pdf-al.GREEN{background:#2E7D32}.pdf-al.BLUE{background:#1565C0}.pdf-al.YELLOW{background:#F9A825;color:#212121}
+.pdf-al.ORANGE{background:#E65100}.pdf-al.RED{background:#B71C1C}
+.pdf-note{font-size:10px;color:#757575;font-style:italic;margin:4px 0 8px}
+.pdf-notam{white-space:pre-wrap;font-size:11px;line-height:1.5;font-family:"IBM Plex Sans KR",sans-serif}
 </style>
 </head>
 <body>
@@ -87,9 +128,9 @@ hr{border:none;border-top:1px solid var(--line);margin:1rem 0}
   </div>
 
   <div class="notice info">
-    ℹ <b>Joint Briefing PDF의 포맷은 절대 바뀌지 않습니다.</b> 이 도구는 PDF를 직접 그리지 않고,
-    Joint Briefing skill의 원본 Python(reportlab) 코드를 <b>그대로</b> 담은 스크립트에 값만 채워 넣습니다.
-    reportlab이 설치된 환경에서 그 스크립트를 실행하면 원본과 100% 동일한 레이아웃·폰트·표 디자인의 PDF가 나옵니다.
+    ℹ <b>③탭에서 Joint Briefing PDF 파일을 바로 다운로드</b>합니다 (브라우저에서 생성).
+    레이아웃은 Flight Info / Weather / Security / Sterile Cockpit / Emergency / Crew Coordination / Pilot Memo
+    + (선택) NOTAM Briefing Summary 순서를 따릅니다. 동일 내용을 reportlab용 <code>.py</code>로도 받을 수 있습니다.
   </div>
 
   <div class="notice" id="fileWarning" style="display:none">
@@ -101,7 +142,7 @@ hr{border:none;border-top:1px solid var(--line);margin:1rem 0}
   <div class="tabs">
     <button class="tab active" data-tab="notam" onclick="switchTab('notam')">① NOTAM 브리핑</button>
     <button class="tab" data-tab="joint" onclick="switchTab('joint')">② Joint Briefing Briefer</button>
-    <button class="tab" data-tab="combine" onclick="switchTab('combine')">③ PDF 스크립트 생성</button>
+    <button class="tab" data-tab="combine" onclick="switchTab('combine')">③ Joint Briefing PDF</button>
   </div>
   <p class="tab-hint">
     Joint Briefing은 <b>②번 탭</b>입니다. (사이트 루트 <code>index.html</code>은 NOTAM 전용 ·
@@ -220,30 +261,24 @@ ROUTE: RKSI → KLAX · FLT 11H20M
     </div>
   </div>
 
-  <!-- ============ TAB 3: SCRIPT GENERATION ============ -->
+  <!-- ============ TAB 3: PDF DOWNLOAD ============ -->
   <div class="tabpage" id="page-combine" style="display:none">
     <div class="panel">
-      <h2>Python 스크립트 생성 (PDF는 여기서 직접 안 만듭니다)</h2>
+      <h2>Joint Briefing PDF 다운로드</h2>
       <p class="hint">
-        아래 버튼을 누르면 Joint Briefing skill의 <b>원본 Python 코드(변경 없음)</b>에
-        ②탭 데이터를 채우고, ①탭 NOTAM 요약이 있으면 맨 뒤에 "NOTAM Briefing Summary" 섹션을
-        (기존 섹션은 건드리지 않고) 추가한 <b>.py 파일</b>을 만듭니다.<br>
-        실행 방법: <code>pip install reportlab</code> 후 <code>python 파일명.py</code>.
-        Python 환경이 없다면 아래 "코드 보기"로 열어서 전체 복사한 뒤, Claude(Cowork) 채팅에 붙여넣고 실행해 달라고 하면 됩니다 —
-        Claude가 실행하는 것도 정확히 이 코드이므로 결과 PDF는 동일합니다.
+        ②탭 데이터(+ ①탭 NOTAM 요약)로 <b>PDF 파일</b>을 브라우저에서 바로 만듭니다.
+        버튼을 누르면 <code>JointBriefing_….pdf</code>가 다운로드됩니다.
       </p>
       <div class="row">
-        <button class="btn go" onclick="downloadScript()">.py 스크립트 다운로드 ▸</button>
-        <button class="btn ghost" onclick="toggleScriptPreview()">코드 보기 / 숨기기</button>
-        <button class="btn ghost" onclick="copyScript()">코드 복사</button>
+        <button class="btn go" id="btnPdf" onclick="downloadPdf()">📄 PDF 다운로드 ▸</button>
+        <button class="btn ghost" onclick="downloadScript()">.py (고급 · reportlab)</button>
+        <button class="btn ghost" onclick="toggleScriptPreview()">.py 코드 보기</button>
         <span class="status" id="scriptStatus"></span>
       </div>
       <hr>
-      <h3>데이터 확인용 요약 (⚠ 이건 PDF 목차가 아닙니다)</h3>
-      <p class="hint">아래 박스는 항공편/NOTAM 데이터가 잘 채워졌는지 빠르게 확인하는 용도일 뿐입니다.
-        Security, Sterile Cockpit, Emergency Procedure, Crew Coordination, Pilot Memo 같은 고정 섹션들은
-        여기에 나열되지 않지만 실제 PDF에는 원본과 동일하게 전부 들어갑니다.
-        전체 내용을 확인하려면 "코드 보기"를 눌러 스크립트 전문을 보거나, 실제로 스크립트를 실행해서 PDF를 열어보세요.</p>
+      <h3>포함될 내용 미리보기</h3>
+      <p class="hint">Flight Information · Weather · Security · Sterile Cockpit · Emergency Procedure · Crew Coordination · Pilot Memo
+        · (NOTAM 요약이 있으면) NOTAM Briefing Summary</p>
       <div class="small" id="combinePreview">아직 데이터 없음. ①②탭을 먼저 채워주세요.</div>
       <div id="scriptPreviewWrap" style="display:none;margin-top:.8rem">
         <textarea id="scriptPreview" class="codebox" readonly></textarea>
@@ -251,7 +286,9 @@ ROUTE: RKSI → KLAX · FLT 11H20M
     </div>
   </div>
 
-  <div class="foot">Integrated Flight Ops Briefer · 이 도구는 Peter의 로컬 브라우저에서만 동작하며 API 키·PDF 데이터는 외부로 전송되지 않습니다 (Gemini API 직접 호출 제외).</div>
+  <div id="pdfRenderHost" aria-hidden="true"></div>
+
+  <div class="foot">Integrated Flight Ops Briefer · PDF는 이 브라우저에서 생성되며 서버로 업로드되지 않습니다 (Gemini API 호출 제외).</div>
 </div>
 
 <script>
@@ -557,11 +594,17 @@ function recalc(){
   else if(oat >= 0 && ftHours < 8){ OIL_MIN = 10; }
   else { OIL_MIN = 6 + 0.5*ftHours; }
 
-  CALC = { finalRes, altn, trip, tof, oat, ftHours, MIN_FUEL, DIVERT_MIN_FUEL, BUF_10, BUF_20, BUF_30, OIL_MIN };
+  CALC = { finalRes, altn, trip, tof, oat, ftHours, MIN_FUEL, DIVERT_MIN_FUEL, BUF_10, BUF_20, BUF_30, OIL_MIN,
+    EMERGENCY_FUEL: finalRes,
+    OIL_RULE: (oat < 0 && ftHours < 14) ? 'OAT < 0°C & Flight Time < 14h → 13 qts'
+      : (oat < 0 && ftHours >= 14) ? `OAT < 0°C & Flight Time ≥ 14h → 6 + 0.5×${ftHours.toFixed(1)}h`
+      : (oat >= 0 && ftHours < 8) ? 'OAT ≥ 0°C & Flight Time < 8h → 10 qts'
+      : `OAT ≥ 0°C & Flight Time ≥ 8h → 6 + 0.5×${ftHours.toFixed(1)}h`
+  };
   document.getElementById('calcPreview').innerHTML =
     `(미리보기) Min Fuel <b>${MIN_FUEL.toLocaleString()}</b> · Divert Min <b>${DIVERT_MIN_FUEL.toLocaleString()}</b> LBS
      (+10m ${BUF_10.toLocaleString()} / +20m ${BUF_20.toLocaleString()} / +30m ${BUF_30.toLocaleString()})
-     &nbsp;·&nbsp; Min Oil <b>${Math.round(OIL_MIN)} qts</b> — 실제 PDF 값은 스크립트 실행 시 동일 공식으로 재계산됩니다.`;
+     &nbsp;·&nbsp; Min Oil <b>${Math.round(OIL_MIN)} qts</b> — ③탭 PDF에 동일 공식으로 반영됩니다.`;
   return CALC;
 }
 document.addEventListener('input', (e)=>{
@@ -1222,6 +1265,197 @@ function scriptFileName(){
   const fd = gatherFlightData();
   return `JointBriefing_${fd.flight_no.replace(/\s/g,'')}_${fd.date}.py`;
 }
+function pdfFileName(){
+  const fd = gatherFlightData();
+  return `JointBriefing_${fd.flight_no.replace(/\s/g,'')}_${fd.date}.pdf`;
+}
+
+function fmtLbs(n){ return Math.floor(+n || 0).toLocaleString('en-US'); }
+
+function buildPdfHtml(){
+  recalc();
+  const fd = gatherFlightData();
+  const wd = gatherWeatherData();
+  const c = CALC;
+  const notam = document.getElementById('notamSummary').value.trim();
+  const alerts = ['GREEN','BLUE','YELLOW','ORANGE','RED'].map(l =>
+    `<span class="pdf-al ${l}${l===fd.alert_level?' on':''}">${l}</span>`).join('');
+
+  const wxBlocks = ['departure','arrival','alternate','enroute','turbulence'].map(key => {
+    const b = wd[key] || { title: key, rows: [] };
+    const rows = (b.rows || []).map(r =>
+      `<div class="pdf-wxrow"><div class="k">${escapeHtml(r[0]||'')}</div><div>${escapeHtml(r[1]||'')}</div></div>`
+    ).join('');
+    return `<div class="pdf-subsec">${escapeHtml(b.title || key)}</div>${rows}`;
+  }).join('');
+
+  const notamSec = notam ? `
+    <div class="pdf-sec">NOTAM Briefing Summary</div>
+    <div class="pdf-notam">${escapeHtml(notam)}</div>` : '';
+
+  return `<div class="pdfdoc">
+    <h1 class="pdf-title">Joint Briefing</h1>
+    <p class="pdf-sub">${escapeHtml(fd.airline)} – Joint Briefing System | For Internal Use Only | Generated: ${escapeHtml(fd.date)}</p>
+
+    <div class="pdf-grid">
+      <div><div class="lbl">Date</div>${escapeHtml(fd.date)}</div>
+      <div><div class="lbl">Flight No</div>${escapeHtml((fd.flight_no||'').split(' ').pop())}</div>
+      <div><div class="lbl">DEP</div>${escapeHtml(fd.dep)}</div>
+      <div><div class="lbl">ARR</div>${escapeHtml(fd.arr)}</div>
+    </div>
+
+    <div class="pdf-sec">Flight Information</div>
+    <div class="pdf-fi">
+      <div class="fn">${escapeHtml(fd.flight_no)}</div>
+      <div>
+        <div class="meta">${escapeHtml(fd.date_label)}</div>
+        <div class="route">${escapeHtml(fd.route_label)}</div>
+      </div>
+    </div>
+    <table class="pdf-table">
+      <tr><th>A/C</th><th>Flight Time</th><th>Gate (Spot)</th></tr>
+      <tr><td>${escapeHtml(fd.ac_type)} / ${escapeHtml(fd.ac_reg)}</td><td>${escapeHtml(fd.flight_time)}</td><td>${escapeHtml(fd.gate_spot)}</td></tr>
+      <tr><th>Schedule</th><th colspan="2">PAX</th></tr>
+      <tr><td>${escapeHtml(fd.schedule)}</td><td colspan="2">${escapeHtml(fd.pax)}</td></tr>
+    </table>
+
+    <div class="pdf-sec">Weather</div>
+    ${wxBlocks}
+
+    <div class="pdf-sec">Security</div>
+    <div class="pdf-bullet">• Emphasize that all crew are security staff.</div>
+    <div class="pdf-bullet">• Alert Level</div>
+    <div class="pdf-alerts">${alerts}</div>
+    <div class="pdf-bullet"><b>• Cockpit Entry Procedure (Two-Crew Rule)</b></div>
+    <div class="pdf-indent">– Intercom call → Authorization by flight crew (pre-arranged code word if required by PIC)</div>
+    <div class="pdf-indent">– Flight crew may request crew member's name if in doubt – names can be confirmed during Joint Briefing</div>
+    <div class="pdf-indent">– Cabin crew must confirm no passenger is in the Clear Zone</div>
+    <div class="pdf-indent">– Close curtain in front of cockpit door → pre-arranged knocks → enter normal access code on keypad</div>
+    <div class="pdf-indent">– A cabin crew must be present at cockpit door to monitor entry/exit status</div>
+    <div class="pdf-indent">– Cockpit door unlocked via Flight Deck Door Lock Panel (Boeing) / Cockpit Door Control Panel (Airbus), or manually after camera/peep hole check</div>
+    <div class="pdf-bullet"><b>• Emergency Alert Signal</b></div>
+    <div class="pdf-indent">– Push "EMER" – Interphone call to cockpit is strictly prohibited during sterile phase</div>
+
+    <div class="pdf-sec">Sterile Cockpit Procedure</div>
+    <div class="pdf-bullet">• Below 10,000 feet – No non-essential communication</div>
+    <div class="pdf-bullet">• Emergency Alert Signal: Push EMER only for genuine emergencies</div>
+
+    <div class="pdf-sec">Emergency Procedure</div>
+    <div class="pdf-bullet"><b>• Rejected Takeoff</b></div>
+    <div class="pdf-indent">– Remain at jump seat with harness fastened until aircraft completely stopped</div>
+    <div class="pdf-indent">– Await PIC announcement before any action</div>
+    <div class="pdf-bullet"><b>• PA &amp; Evacuation Signal</b></div>
+    <table class="pdf-table">
+      <tr><th>PIC Announcement</th><th>Cabin Crew Judgment</th><th>Cabin Crew Procedures</th></tr>
+      <tr><td>"This is the Captain"<br>"Remain seated, remain seated."</td><td>Not necessary to execute emergency evacuation.</td><td>Hold each original position to prepare subsequent mission.</td></tr>
+      <tr><td>"Attention, crew at station."</td><td>Expected to execute emergency evacuation.</td><td>Prepare emergency evacuation at each original position.</td></tr>
+      <tr><td>"This is the Captain. Evacuate, evacuate!"</td><td>Mandatory to execute emergency evacuation.</td><td>Conduct passenger's emergency evacuation.</td></tr>
+    </table>
+    <div class="pdf-bullet"><b>• Brace Signal (Below 1,000 ft AGL – approx. 1 min before landing)</b></div>
+    <table class="pdf-table">
+      <tr><th>Flight Crew</th><th>Cabin Crew</th></tr>
+      <tr><td>Brace Signal: Cycle the seat belt sign (4 times chime bell)<br>PA: "Brace for impact, Brace for impact."</td><td>Shouting "Brace" – Fasten seat belt and harness, brace for impact until aircraft completely stopped.</td></tr>
+      <tr><td>Emergency Light / Emergency Exit Light: ON</td><td>Passenger Cabin Emergency Light: ON (at the appropriate time)</td></tr>
+      <tr><td colspan="2">Turn on the emergency light to assist in passenger evacuation.</td></tr>
+    </table>
+
+    <div class="pdf-sec">Crew Coordination</div>
+    <div class="pdf-bullet">• Temperature Control</div>
+    <div class="pdf-bullet">• Taxi Time &amp; Ready Signal – ${escapeHtml(fd.taxi_time)}</div>
+    <div class="pdf-bullet">• PA Monitoring</div>
+    <div class="pdf-bullet">• Unruly Passenger – Notify cockpit immediately</div>
+    <div class="pdf-bullet">• CABIN LOG – Any item affecting airworthiness must be reported to PIC without exception</div>
+    <div class="pdf-bullet">• Timing of In-flight Services – To be conducted in coordination with PIC</div>
+
+    <div class="pdf-sec">Pilot Memo</div>
+    <div class="pdf-subsec">A. Fuel Calculation  (Units: LBS, No Rounding Up)</div>
+    <table class="pdf-table">
+      <tr><th>Item</th><th>Formula</th><th class="num">Value (LBS)</th></tr>
+      <tr><td>Final Reserve</td><td>From FPL</td><td class="num">${fmtLbs(c.finalRes)}</td></tr>
+      <tr><td>Emergency Fuel</td><td>= Final Reserve</td><td class="num">${fmtLbs(c.EMERGENCY_FUEL)}</td></tr>
+      <tr><td>Min Fuel</td><td>= 1.3 × Final Reserve</td><td class="num">${fmtLbs(c.MIN_FUEL)}</td></tr>
+      <tr><td>ALTN Fuel</td><td>From FPL</td><td class="num">${fmtLbs(c.altn)}</td></tr>
+      <tr class="hi"><td>Divert Min Fuel</td><td>= ALTN Fuel + Min Fuel</td><td class="num">${fmtLbs(c.DIVERT_MIN_FUEL)}</td></tr>
+      <tr><td>Divert Min +10min</td><td>= Divert Min + ~10min burn</td><td class="num">${fmtLbs(c.BUF_10)}</td></tr>
+      <tr><td>Divert Min +20min</td><td>= Divert Min + ~20min burn</td><td class="num">${fmtLbs(c.BUF_20)}</td></tr>
+      <tr><td>Divert Min +30min</td><td>= Divert Min + ~30min burn</td><td class="num">${fmtLbs(c.BUF_30)}</td></tr>
+      <tr><td>Planned T/O Fuel</td><td>From FPL</td><td class="num">${fmtLbs(c.tof)}</td></tr>
+    </table>
+    <p class="pdf-note">※ Buffer values (+10/+20/+30 min) estimated from actual trip fuel burn rate. Verify against actual fuel flow.</p>
+
+    <div class="pdf-subsec">B. Required Minimum Oil</div>
+    <table class="pdf-table">
+      <tr><th>Condition</th><th>Rule</th><th>Min Oil</th></tr>
+      <tr><td>OAT &lt; 0°C &amp; F/T &lt; 14h</td><td>13 qts flat</td><td>13 qts</td></tr>
+      <tr><td>OAT &lt; 0°C &amp; F/T ≥ 14h</td><td>6 + 0.5 qt/h</td><td>variable</td></tr>
+      <tr><td>OAT ≥ 0°C &amp; F/T &lt; 8h</td><td>10 qts flat</td><td>10 qts</td></tr>
+      <tr><td>OAT ≥ 0°C &amp; F/T ≥ 8h</td><td>6 + 0.5 qt/h</td><td>variable</td></tr>
+      <tr class="ok"><td>THIS FLIGHT</td><td>OAT ${c.oat}°C / F/T ${c.ftHours.toFixed(2)}h → ${escapeHtml(c.OIL_RULE)}</td><td>${Math.round(c.OIL_MIN)} qts</td></tr>
+    </table>
+    <p class="pdf-note">※ OAT at cruise = ${c.oat}°C (from FPL wind/temp summary). Flight Time = ${c.ftHours.toFixed(2)}h.</p>
+
+    ${notamSec}
+
+    <hr style="border:none;border-top:1px solid #ccc;margin:18px 0 8px">
+    <p class="pdf-sub" style="margin:0">${escapeHtml(fd.airline)} – Joint Briefing System | For Internal Use Only | Generated: ${escapeHtml(fd.date)}</p>
+  </div>`;
+}
+
+let _pdfBusy = false;
+async function downloadPdf(){
+  const st = document.getElementById('scriptStatus');
+  const btn = document.getElementById('btnPdf');
+  if (_pdfBusy) return;
+  if (!window.jspdf || !window.html2canvas){
+    st.textContent = '❌ PDF 라이브러리 로드 중… 잠시 후 다시 눌러주세요.';
+    st.className = 'status err';
+    return;
+  }
+  _pdfBusy = true;
+  if (btn) btn.disabled = true;
+  st.className = 'status';
+  st.textContent = 'PDF 생성 중…';
+  const host = document.getElementById('pdfRenderHost');
+  try{
+    host.innerHTML = buildPdfHtml();
+    const el = host.querySelector('.pdfdoc');
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const canvas = await html2canvas(el, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      windowWidth: el.scrollWidth,
+      windowHeight: el.scrollHeight
+    });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
+    const pageW = 210, pageH = 297;
+    const imgW = pageW;
+    const imgH = canvas.height * imgW / canvas.width;
+    const imgData = canvas.toDataURL('image/jpeg', 0.93);
+    let heightLeft = imgH;
+    let y = 0;
+    pdf.addImage(imgData, 'JPEG', 0, y, imgW, imgH);
+    heightLeft -= pageH;
+    while (heightLeft > 1){
+      y = heightLeft - imgH;
+      pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, y, imgW, imgH);
+      heightLeft -= pageH;
+    }
+    pdf.save(pdfFileName());
+    st.textContent = '✅ PDF 다운로드 완료 · ' + pdfFileName();
+  }catch(err){
+    st.textContent = '❌ PDF 생성 실패: ' + (err && err.message ? err.message : err);
+    st.className = 'status err';
+  }finally{
+    host.innerHTML = '';
+    _pdfBusy = false;
+    if (btn) btn.disabled = false;
+  }
+}
 
 function downloadScript(){
   const st = document.getElementById('scriptStatus');
@@ -1233,9 +1467,11 @@ function downloadScript(){
     a.href = url; a.download = scriptFileName();
     document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
-    st.textContent = '✅ .py 다운로드 완료 — pip install reportlab 후 python ' + scriptFileName() + ' 로 실행하세요.';
+    st.className = 'status';
+    st.textContent = '✅ .py 다운로드 완료 (고급 · reportlab) — ' + scriptFileName();
   }catch(err){
     st.textContent = '❌ ' + err.message;
+    st.className = 'status err';
   }
 }
 
@@ -1264,9 +1500,9 @@ function updateCombinePreview(){
   const fd = gatherFlightData();
   const notam = document.getElementById('notamSummary').value.trim();
   document.getElementById('combinePreview').innerHTML =
-    `Flight: <b>${escapeHtml(fd.flight_no || '(미입력)')}</b> ${escapeHtml(fd.route_label)} on ${escapeHtml(fd.date)}<br>
-     NOTAM 요약: ${notam ? escapeHtml(notam.length.toLocaleString()) + '자 · NOTAM Briefing Summary 섹션이 추가됩니다' : '비어있음 — 원래 Joint Briefing PDF만 생성됩니다 (①탭 ANALYZE 후 자동 수신)'}<br>
-     출력 파일명: <code>${escapeHtml(scriptFileName())}</code> 실행 시 생성될 PDF: <code>JointBriefing_${escapeHtml(fd.flight_no.replace(/\s/g,''))}_${escapeHtml(fd.date)}.pdf</code>`;
+    `Flight: <b>${escapeHtml(fd.flight_no || '(미입력)')}</b> ${escapeHtml(fd.route_label)} on ${escapeHtml(fd.date)} · Alert ${escapeHtml(fd.alert_level)}<br>
+     NOTAM 요약: ${notam ? escapeHtml(notam.length.toLocaleString()) + '자 · PDF 맨 뒤에 NOTAM Briefing Summary 포함' : '비어있음 — Joint Briefing 본문만 생성'}<br>
+     다운로드 파일: <code>${escapeHtml(pdfFileName())}</code>`;
 }
 
 if(location.protocol === 'file:'){ document.getElementById('fileWarning').style.display = 'block'; }

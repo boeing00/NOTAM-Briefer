@@ -27,7 +27,7 @@
 |----|------|
 | ① NOTAM 브리핑 | 같은 폴더의 최신 `index.html` iframe · ANALYZE 후 요약 자동 전송 |
 | ② Joint Briefing Briefer | FPL/OFP AI 추출 + Flight/Weather/Fuel 입력 |
-| ③ PDF 스크립트 생성 | 원본 Joint Briefing Python(reportlab) `.py` 다운로드 (NOTAM 요약은 PDF 맨 뒤에만 추가) |
+| ③ Joint Briefing PDF | 브라우저에서 **PDF 바로 다운로드** (`.py` reportlab은 고급 옵션) |
 
 > 통합 앱·iframe 연동은 **HTTPS**(GitHub Pages)에서 가장 안정적입니다.
 
