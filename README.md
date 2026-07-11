@@ -20,10 +20,14 @@
 | `.nojekyll` | GitHub Pages의 Jekyll 처리 비활성화 |
 
 ## Integrated Flight Ops Briefer
-`IntegratedFlightBriefer.html`을 열면 세 탭이 있습니다.
-1. **NOTAM 브리핑** — 같은 폴더의 최신 `index.html`을 iframe으로 실행. ANALYZE 후 WARNING/CAUTION 요약이 자동으로 통합 박스로 전송됩니다.
-2. **Joint Briefing 데이터** — FPL/OFP에서 AI 추출 또는 수동 입력.
-3. **스크립트 생성** — 원본 Joint Briefing Python(reportlab)에 값을 채운 `.py` 다운로드. NOTAM 요약이 있으면 PDF 맨 뒤에만 추가됩니다.
+통합 UI 주소: `https://<user>.github.io/NOTAM-Briefer/IntegratedFlightBriefer.html`  
+(루트 `/` 는 NOTAM 전용 `index.html`입니다.)
+
+| 탭 | 내용 |
+|----|------|
+| ① NOTAM 브리핑 | 같은 폴더의 최신 `index.html` iframe · ANALYZE 후 요약 자동 전송 |
+| ② Joint Briefing Briefer | FPL/OFP AI 추출 + Flight/Weather/Fuel 입력 |
+| ③ PDF 스크립트 생성 | 원본 Joint Briefing Python(reportlab) `.py` 다운로드 (NOTAM 요약은 PDF 맨 뒤에만 추가) |
 
 > 통합 앱·iframe 연동은 **HTTPS**(GitHub Pages)에서 가장 안정적입니다.
 
