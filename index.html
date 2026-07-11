@@ -562,17 +562,23 @@
         async function handleMaps(input){
             if (!db || !input.files.length) return;
             $('selectedIcao').innerHTML = `<span class="loading-spinner"></span> SAVING…`;
-            const results = await Promise.all(Array.from(input.files).map(file => new Promise((res, rej) => {
-                const r = new FileReader();
-                r.onload = (e) => res({ icao: currentAirport, name: file.name.replace(/\.[^.]+$/, ""), data: e.target.result });
-                r.onerror = rej;
-                r.readAsDataURL(file);
-            })));
-            const tx = db.transaction("maps", "readwrite");
-            results.forEach(item => tx.objectStore("maps").add(item));
-            tx.oncomplete = () => { $('selectedIcao').innerText = currentAirport; loadMaps(); };
-            tx.onerror = () => { $('selectedIcao').innerText = currentAirport; alert("지도 저장 중 오류가 발생했습니다."); };
-            input.value = "";
+            try {
+                const results = await Promise.all(Array.from(input.files).map(file => new Promise((res, rej) => {
+                    const r = new FileReader();
+                    r.onload = (e) => res({ icao: currentAirport, name: file.name.replace(/\.[^.]+$/, ""), data: e.target.result });
+                    r.onerror = rej;
+                    r.readAsDataURL(file);
+                })));
+                const tx = db.transaction("maps", "readwrite");
+                results.forEach(item => tx.objectStore("maps").add(item));
+                tx.oncomplete = () => { $('selectedIcao').innerText = currentAirport; loadMaps(); };
+                tx.onerror = () => { $('selectedIcao').innerText = currentAirport; alert("지도 저장 중 오류가 발생했습니다."); };
+            } catch (_){
+                $('selectedIcao').innerText = currentAirport;
+                alert("파일을 읽는 중 오류가 발생했습니다. 다시 시도하세요.");
+            } finally {
+                input.value = "";
+            }
         }
 
         function loadMaps(){
@@ -601,7 +607,9 @@
                     if (Array.isArray(m.markers) && m.markers.length && !annotationsByChartId[m.id]) annotationsByChartId[m.id] = m.markers; // 저장된 마킹 복원
                     if ((annotationsByChartId[m.id] || []).length) markTab(m.id, true);
                 });
-                showMap(0);
+                // 보고 있던 차트가 남아 있으면 유지(업로드/다른 차트 삭제 후 1번으로 튀지 않게)
+                const keep = currentMaps.findIndex(m => m.id === currentChartId);
+                showMap(keep >= 0 ? keep : 0);
                 refreshAnnotateBtn();
             };
             req.onerror = () => { $('mapTabs').innerHTML = "<p class='no-map' style='color:var(--red)'>조회 실패</p>"; };
@@ -899,7 +907,16 @@ EXCERPT:
             const setLoad = (msg) => { $('criticalNotams').innerHTML = `<div class="load-block"><span class="loading-spinner"></span><p>${escapeHtml(msg)}</p></div>`; };
             const sleep = (ms) => new Promise(r => setTimeout(r, ms));
             setLoad('경로·시간 추출 중…');
-            const route = await extractRouteOnly(key, routeText, (d) => setLoad(`요청 한도 대기 ${Math.round(d/1000)}s…`));
+            let route = {};
+            try {
+                const r = await extractRouteOnly(key, routeText, (d) => setLoad(`요청 한도 대기 ${Math.round(d/1000)}s…`));
+                if (r && typeof r === 'object') route = r;
+            } catch (e){
+                // 키·권한 오류나 네트워크 차단은 구간 분석도 똑같이 실패 → 즉시 중단.
+                // 그 외(일시 오류·한도 소진)는 경로 미상인 채로 NOTAM 구간 분석을 계속한다.
+                if ((e instanceof TypeError) || /^API (400|401|403)/.test(e.message || '')) throw e;
+                route = {};
+            }
             const chunks = splitChunks(notamText, 52000, 3000);
             let all = [], failed = 0;
             for (let i = 0; i < chunks.length; i++){
@@ -935,6 +952,7 @@ EXCERPT:
 
             const btn = $('btnAnalyze'); btn.disabled = true;
             $('minorNotams').innerHTML = ""; $('flightTimeBadge').innerHTML = "";
+            $('routeCheck').innerHTML = ""; // 이전 분석의 항로대조 배너 제거(새 문서 기준으로 다시 계산됨)
             $('criticalNotams').innerHTML = `<div class="load-block"><span class="loading-spinner"></span><p>AI ANALYZING · ${reduced ? '대상 공항만' : '전체 비행'} 분석 중${reduced ? ` (범위 ${fullText.length.toLocaleString()}→${notamText.length.toLocaleString()}자)` : ''}</p></div>`;
 
             // 문서가 크면 구간 분할 (iOS 타임아웃/한 요청 과부하 방지)
@@ -1018,7 +1036,10 @@ TEXT:
             analysisData = d;
             const srcText = ($('packageInput') && $('packageInput').value) || '';
             const notams = Array.isArray(d.notams) ? d.notams : [];
-            notams.forEach((n, i) => { n._i = i; }); // 수동 중요도 변경용 안정 인덱스
+            notams.forEach((n, i) => {
+                n._i = i; // 수동 중요도 변경용 안정 인덱스
+                if (n.icao) n.icao = String(n.icao).toUpperCase().trim(); // 소문자 ICAO로 인한 점 표시·차트 매칭·단계 분류 누락 방지
+            });
             if (fresh) notams.forEach(n => { if (n._ai === undefined) n._ai = n.severity; }); // AI 원본 보관
             const restored = applyStoredOverrides(notams); // 이전에 내가 지정한 분류 복원
             const r = (d.route = d.route || {});
@@ -1209,18 +1230,26 @@ TEXT:
         }
 
         // NOTAM 원문: 모델의 raw를 우선, 없으면 원문 텍스트에서 번호로 추출
+        // (렌더마다 NOTAM당 여러 번 호출되고 원문이 수백 KB일 수 있어 결과를 캐시)
+        const _rawCache = new WeakMap();
         function rawFromSource(n){
             if (n.raw && String(n.raw).trim()) return String(n.raw).trim();
             const id = (n.notam_id || '').trim();
             if (!id) return '';
             const src = ($('packageInput') && $('packageInput').value) || '';
+            const hit = _rawCache.get(n);
+            if (hit && hit.src === src) return hit.val;
+            let val = '';
             const idx = src.indexOf(id);
-            if (idx < 0) return '';
-            const seg = src.slice(idx, idx + 900);
-            const re = /[A-Z]\d{4}\/\d{2}/g;
-            let mm, cut = seg.length, first = true;
-            while ((mm = re.exec(seg))){ if (first){ first = false; continue; } cut = mm.index; break; }
-            return seg.slice(0, cut).trim();
+            if (idx >= 0){
+                const seg = src.slice(idx, idx + 900);
+                const re = /[A-Z]\d{4}\/\d{2}/g;
+                let mm, cut = seg.length, first = true;
+                while ((mm = re.exec(seg))){ if (first){ first = false; continue; } cut = mm.index; break; }
+                val = seg.slice(0, cut).trim();
+            }
+            _rawCache.set(n, { src, val });
+            return val;
         }
 
         // 사용자가 NOTAM 중요도를 직접 변경
@@ -1473,14 +1502,15 @@ TEXT:
                 end = fRe.lastIndex; cnt++;
                 if (fpl && (tk === fpl.ades || tk === ICAO2IATA[fpl.ades])) break;
             }
-            // 앞으로 확장(SID/출발공항 흡수)
+            // 앞으로 확장(SID/출발공항 흡수) — 토큰 앞 경계까지 확인해 창 경계에서 토큰이 잘려 들어가지 않게 함
             let start = seedS, guard = 0;
             while (guard++ < 60){
-                const pre = U.slice(Math.max(0,start-18), start);
-                const pm = /([A-Z0-9]{1,11})\s*(?:\.\.|\s)\s*$/.exec(pre);
-                if (pm && looksRouteTok(pm[1])){
-                    start = Math.max(0,start-18) + pm.index;
-                    if (fpl && (pm[1] === fpl.adep || pm[1] === ICAO2IATA[fpl.adep])) break;
+                const wStart = Math.max(0, start - 24);
+                const pre = U.slice(wStart, start);
+                const pm = /(^|[^A-Z0-9])([A-Z0-9]{1,11})\s*(?:\.\.|\s)\s*$/.exec(pre);
+                if (pm && looksRouteTok(pm[2]) && (pm[1] !== '' || wStart === 0)){
+                    start = wStart + pm.index + pm[1].length;
+                    if (fpl && (pm[2] === fpl.adep || pm[2] === ICAO2IATA[fpl.adep])) break;
                 } else break;
             }
             return s.slice(start, end).replace(/\s+/g,' ').trim();
@@ -1520,8 +1550,15 @@ TEXT:
         }
         function prefillXcheck(chk, fresh){
             const A = $('xcheckA'), B = $('xcheckB'); if (!A || !B) return;
-            const setIf = (el, val) => { if (val && (el.dataset.auto !== '0' || !el.value.trim())){ el.value = val; el.dataset.auto = '1'; } };
-            setIf(A, chk.aStr); setIf(B, chk.bStr);
+            if (fresh){
+                // 새 분석 → 이전 비행에서 남은 수동 입력·대조 결과를 버리고 새 문서의 자동값으로 교체
+                A.value = chk.aStr || ''; A.dataset.auto = '1';
+                B.value = chk.bStr || ''; B.dataset.auto = '1';
+                const out = $('xcheckOut'); if (out) out.innerHTML = '';
+            } else {
+                const setIf = (el, val) => { if (val && (el.dataset.auto !== '0' || !el.value.trim())){ el.value = val; el.dataset.auto = '1'; } };
+                setIf(A, chk.aStr); setIf(B, chk.bStr);
+            }
             const labA = $('xcheckAlab'); if (labA) labA.textContent = '① FPL Field 15' + (chk.fpl ? ' (자동추출됨)' : ' (미검출 — 직접 붙여넣기)');
             const labB = $('xcheckBlab'); if (labB) labB.textContent = '② ' + (chk.bLabel || 'Page 2 항로내용') + ' (자동추출·직접 붙여넣기)';
         }
@@ -1762,7 +1799,7 @@ Features to locate: ${JSON.stringify(features)}`;
             const features = [...new Set(list.map(n => n.feature).filter(Boolean))];
             const b = $('btnAnnotate'); const label = b.textContent;
             b.disabled = true;
-            let hit = 0, reused = 0, stopped = false;
+            let hit = 0, reused = 0, failed = 0, stopped = false;
             try {
                 for (let idx = 0; idx < currentMaps.length; idx++){
                     const m = currentMaps[idx];
@@ -1781,7 +1818,10 @@ Features to locate: ${JSON.stringify(features)}`;
                             (d) => { b.innerHTML = `<span class="loading-spinner"></span> 한도 대기 ${Math.round(d/1000)}s`; });
                     } catch (e){
                         if (/429|요청 한도 초과/.test(e.message)){ alert(e.message + "\n\n지금까지 스캔한 결과는 유지됩니다."); stopped = true; break; }
-                        throw e;
+                        // 네트워크 차단이면 이후 요청도 모두 실패 → 중단. 그 외(응답 파싱 실패 등)는 이 차트만 건너뛰고 계속
+                        if ((e instanceof TypeError) || /failed to fetch|networkerror/i.test(e.message)) throw e;
+                        failed++;
+                        continue;
                     }
                     annotationsByChartId[m.id] = found;   // 결과 저장(빈 배열이면 하이라이트 해제)
                     saveChartMarkers(m.id, found);        // 브라우저에 저장 → 다음에도 재사용
@@ -1789,7 +1829,7 @@ Features to locate: ${JSON.stringify(features)}`;
                     if (found.length) hit++;
                     if (m.id === currentChartId) renderMarkers(found);
                 }
-                if (!stopped) alert(`차트 자동분석 완료 · ${currentMaps.length}개 중 ${hit}개 차트에 표시 대상${reused ? ` (기존 마킹 ${reused}개 재사용)` : ''}.\n표시가 틀리면 마커를 드래그해 옮기세요. 다시 감지하려면 [마킹 초기화].`);
+                if (!stopped) alert(`차트 자동분석 완료 · ${currentMaps.length}개 중 ${hit}개 차트에 표시 대상${reused ? ` (기존 마킹 ${reused}개 재사용)` : ''}${failed ? ` · ${failed}개 차트 분석 실패(다시 시도 가능)` : ''}.\n표시가 틀리면 마커를 드래그해 옮기세요. 다시 감지하려면 [마킹 초기화].`);
             } catch (err){
                 const isNet = (err instanceof TypeError) || /failed to fetch|networkerror/i.test(err.message);
                 alert(isNet ? "연결 실패: 요청이 차단되었습니다 (차단기·API Key 제한·네트워크 확인)." : "차트 스캔 실패\n" + err.message);
