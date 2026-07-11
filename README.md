@@ -14,9 +14,18 @@
 ## 파일 구성
 | 파일 | 설명 |
 |------|------|
-| `index.html` | 앱 본체 (아이콘·매니페스트 내장, 단일 파일) |
+| `index.html` | Pilot Ops Center · EFB 본체 (NOTAM 브리핑) |
+| `IntegratedFlightBriefer.html` | NOTAM + Joint Briefing 통합 UI (①탭에서 `index.html` iframe 연동) |
 | `sw.js` | 서비스워커 (오프라인 앱 셸 캐시) — `index.html`과 같은 폴더 필수 |
 | `.nojekyll` | GitHub Pages의 Jekyll 처리 비활성화 |
+
+## Integrated Flight Ops Briefer
+`IntegratedFlightBriefer.html`을 열면 세 탭이 있습니다.
+1. **NOTAM 브리핑** — 같은 폴더의 최신 `index.html`을 iframe으로 실행. ANALYZE 후 WARNING/CAUTION 요약이 자동으로 통합 박스로 전송됩니다.
+2. **Joint Briefing 데이터** — FPL/OFP에서 AI 추출 또는 수동 입력.
+3. **스크립트 생성** — 원본 Joint Briefing Python(reportlab)에 값을 채운 `.py` 다운로드. NOTAM 요약이 있으면 PDF 맨 뒤에만 추가됩니다.
+
+> 통합 앱·iframe 연동은 **HTTPS**(GitHub Pages)에서 가장 안정적입니다.
 
 ## 배포 (GitHub Pages)
 1. 위 세 파일을 저장소에 커밋 · 푸시합니다.
