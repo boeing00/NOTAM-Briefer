@@ -314,7 +314,7 @@
             </div>
             <div class="hdr__right">
                 <div class="clock"><span class="clock__dot"></span><span class="clock__lbl">UTC</span><span id="zulu" class="clock__val">--:--:--Z</span></div>
-                <div class="keybox">
+                <div class="keybox" id="keybox">
                     <input type="password" id="apiKey" class="keyin" placeholder="GEMINI API KEY">
                     <button id="btnKey" class="btn btn--sm btn--cyan" onclick="keyLockAction()">🔒 PIN 저장</button>
                     <button id="btnKeyDel" class="linkbtn hidden" onclick="deleteVault()">삭제</button>
@@ -324,6 +324,7 @@
                         <option value="gemini-2.5-flash-lite">2.5 Flash-Lite · 한도↑</option>
                     </select>
                     <span id="keyStatus" class="keystat"></span>
+                    <span id="keyManagedByParent" class="keystat hidden" style="color:var(--cyan)">키: 상단(통합 앱)에서 관리</span>
                 </div>
             </div>
         </header>
@@ -2155,20 +2156,29 @@ Features to locate: ${JSON.stringify(features)}`;
                         ? `⚠ <b>iframe 미리보기 안에서 실행 중</b> — 샌드박스라 Gemini API 호출이 <b>차단</b>될 수 있습니다("Load failed"). 배포한 <b>https 주소(GitHub Pages)</b> 또는 <b>홈 화면 앱</b>에서 열어야 분석이 됩니다. <button class="linkbtn" onclick="this.closest('.env-notice').classList.add('hidden')">닫기</button>`
                         : `⚠ <b>로컬 파일(file://)로 실행 중</b> — iPhone·iPad(Safari)에서는 API 호출이 차단됩니다. <b>https로 호스팅</b>(GitHub Pages 등) 후 홈 화면에 추가해 사용하세요. <button class="linkbtn" onclick="this.closest('.env-notice').classList.add('hidden')">닫기</button>`;
                 }
-            } else if (sameOriginParent){
+            } else if (sameOriginParent || isEmbedded()){
                 const n = $('envNotice');
                 if (n){ n.classList.remove('hidden');
-                    n.innerHTML = `↗ <b>Integrated Flight Ops Briefer</b> 안에서 실행 중 — ANALYZE 후 결과가 부모 창의 NOTAM 요약으로 자동 전송됩니다. <button class="btn btn--amber btn--sm" onclick="sendToJointBriefing()">↗ 지금 보내기</button> <button class="linkbtn" onclick="this.closest('.env-notice').classList.add('hidden')">닫기</button>`;
+                    n.innerHTML = `↗ <b>Integrated Flight Ops Briefer</b> 안에서 실행 중 — API Key는 <b>상단에서 한 번만</b> 입력하세요. ANALYZE 결과는 부모 창으로 자동 전송됩니다. <button class="btn btn--amber btn--sm" onclick="sendToJointBriefing()">↗ 지금 보내기</button> <button class="linkbtn" onclick="this.closest('.env-notice').classList.add('hidden')">닫기</button>`;
                 }
+            }
+            // 통합 앱(iframe) 안에서는 API 키 UI 숨김 — 부모가 단일 소스
+            if (isEmbedded()){
+                ['apiKey','btnKey','btnKeyDel','btnTest','keyStatus'].forEach(id => { const el = $(id); if (el) el.classList.add('hidden'); });
+                const managed = $('keyManagedByParent'); if (managed) managed.classList.remove('hidden');
+                try {
+                    const shared = localStorage.getItem('ifob_gemini_key');
+                    if (shared && $('apiKey')) $('apiKey').value = shared;
+                } catch(_){}
             }
             // 부모(IntegratedFlightBriefer) ↔ 연동
             window.addEventListener('message', (ev) => {
                 const msg = ev.data;
                 if (!msg || typeof msg !== 'object') return;
                 if (msg.type === 'IFOB_REQUEST_SUMMARY') sendToJointBriefing();
-                if (msg.type === 'IFOB_SET_API_KEY' && typeof msg.key === 'string' && msg.key.trim()){
+                if (msg.type === 'IFOB_SET_API_KEY' && typeof msg.key === 'string'){
                     const inp = $('apiKey');
-                    if (inp && !inp.value.trim()){ inp.value = msg.key.trim(); updateKeyUI(); }
+                    if (inp){ inp.value = msg.key.trim(); updateKeyUI(); }
                 }
             });
             try { if (isEmbedded()) window.parent.postMessage({ type:'IFOB_CHILD_READY', source:'pilot-ops' }, '*'); } catch(_){}
