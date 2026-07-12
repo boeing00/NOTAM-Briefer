@@ -294,7 +294,7 @@ ROUTE: RKSI → KLAX · FLT 11H20M
 
   <div id="pdfRenderHost" aria-hidden="true"></div>
 
-  <div class="foot">Integrated Flight Ops Briefer · PDF는 이 브라우저에서 생성되며 서버로 업로드되지 않습니다 (Gemini API 호출 제외).</div>
+  <div class="foot">Integrated Flight Ops Briefer · PDF는 이 브라우저에서 생성되며 서버로 업로드되지 않습니다 (Gemini API 호출 제외). · <span id="buildVer"></span></div>
 </div>
 
 <script>
@@ -461,6 +461,10 @@ function renderWxBlocks(){
 }
 renderWxBlocks();
 
+// ============ BUILD VERSION (배포 확인용) ============
+const IFOB_BUILD = 'v2026-07-12c';
+(function(){ const el = document.getElementById('buildVer'); if (el) el.textContent = IFOB_BUILD; })();
+
 // ============ PDF TEXT EXTRACTION ============
 const PDFJS_VER = '3.11.174';
 const PDFJS_CDN = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VER}`;
@@ -613,11 +617,36 @@ Return ONLY valid JSON, no markdown fences.
 TEXT:
 """${'{{TEXT}}'}"""`;
 
+// JSON 문자열 리터럴 안의 생 제어문자(\n, \t 포함)를 이스케이프.
+// PDF에서 추출된 제어문자를 모델이 그대로 되돌려주면 JSON.parse가 실패한다.
+function escapeCtrlInJsonStrings(s){
+  let out = '', inStr = false, esc = false;
+  for (let i = 0; i < s.length; i++){
+    const ch = s[i];
+    const code = s.charCodeAt(i);
+    if (inStr){
+      if (esc){ out += ch; esc = false; continue; }
+      if (ch === '\\'){ out += ch; esc = true; continue; }
+      if (ch === '"'){ inStr = false; out += ch; continue; }
+      if (code < 0x20){
+        out += code === 10 ? '\\n' : code === 9 ? '\\t' : code === 13 ? '\\r' : '';
+        continue;
+      }
+      out += ch;
+    } else {
+      if (ch === '"') inStr = true;
+      out += ch;
+    }
+  }
+  return out;
+}
+
 function parseModelJson(raw){
   let s = String(raw || '').replace(/```json|```/g, '').trim();
   const a = s.indexOf('{'), b = s.lastIndexOf('}');
   if (a >= 0 && b > a) s = s.slice(a, b + 1);
-  return JSON.parse(s);
+  try { return JSON.parse(s); }
+  catch(_){ return JSON.parse(escapeCtrlInJsonStrings(s)); }
 }
 
 function buildExtractParts(){
@@ -643,7 +672,7 @@ function buildExtractParts(){
         ? ("Partial text extract (" + textLen + " chars) — prefer the attached PDF when they disagree:\n"
            + extractedText.slice(0, 8000))
         : "(No extractable text layer — read the attached PDF document fully.)";
-      parts.push({ text: EXTRACT_PROMPT_SPEC.replace('{{TEXT}}', hint) });
+      parts.push({ text: fillPromptText(hint) });
       return { parts, mode: 'pdf' };
     }
   }
@@ -651,8 +680,14 @@ function buildExtractParts(){
   if (!hasText){
     throw new Error("먼저 PDF를 업로드하세요.");
   }
-  parts.push({ text: EXTRACT_PROMPT_SPEC.replace('{{TEXT}}', extractedText.slice(0, 60000)) });
+  parts.push({ text: fillPromptText(extractedText.slice(0, 60000)) });
   return { parts, mode: 'text' };
+}
+
+// split/join — String.replace는 대체 문자열의 "$&" 등 특수 패턴을 해석해
+// PDF 텍스트에 "$"가 있으면 프롬프트가 손상될 수 있다.
+function fillPromptText(text){
+  return EXTRACT_PROMPT_SPEC.split('{{TEXT}}').join(text);
 }
 
 async function extractWithAI(){
@@ -710,10 +745,13 @@ async function extractWithAI(){
     }
     let parsed;
     try { parsed = parseModelJson(raw); }
-    catch(_){
+    catch(parseErr){
+      try { console.error('[IFOB] JSON parse failed', parseErr, '\nfinishReason:', cand?.finishReason, '\nraw response:', raw); } catch(_){}
+      const snippet = raw.trim().slice(0, 80).replace(/\s+/g, ' ');
       throw new Error(cand?.finishReason === 'MAX_TOKENS'
         ? 'AI 응답이 길이 제한으로 잘렸습니다 — 다시 시도하세요.'
-        : 'AI 응답 JSON 파싱 실패 — 다시 시도하세요.');
+        : 'AI 응답 JSON 파싱 실패 (' + (parseErr && parseErr.message ? parseErr.message.slice(0, 60) : '?')
+          + ') · 응답 시작: "' + snippet + '…"');
     }
     if (!parsed || typeof parsed !== 'object') throw new Error('AI 응답이 비어 있습니다.');
     applyExtracted(parsed);
