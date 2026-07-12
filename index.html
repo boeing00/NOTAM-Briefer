@@ -197,12 +197,12 @@ ROUTE: RKSI → KLAX · FLT 11H20M
       </div>
       <div class="field">
         <label>FPL / OFP / Dispatch Release PDF</label>
-        <input type="file" id="fplFile" accept="application/pdf" onchange="handlePDF(this)">
+        <input type="file" id="fplFile" accept="application/pdf,.pdf" onchange="handlePDF(this)">
       </div>
       <div class="row">
         <button class="btn go" id="btnExtract" onclick="extractWithAI()" disabled>AI로 데이터 추출 ▸</button>
       </div>
-      <p class="hint">API Key는 <b>상단에서 한 번만</b> 입력하면 됩니다 (① NOTAM 앱과 공유). PDF를 연 뒤 AI 추출을 누르거나, 손으로 직접 입력해도 됩니다.</p>
+      <p class="hint">API Key는 <b>상단에서 한 번만</b> 입력하면 됩니다 (① NOTAM 앱과 공유). PDF를 연 뒤 AI 추출을 누르거나, 손으로 직접 입력해도 됩니다. 한글·CJK 폰트 PDF는 CMap으로 추출하며, 스캔본(텍스트 0자)은 AI가 PDF 원본으로 읽습니다.</p>
     </div>
 
     <div class="panel">
@@ -461,29 +461,126 @@ function renderWxBlocks(){
 renderWxBlocks();
 
 // ============ PDF TEXT EXTRACTION ============
+const PDFJS_VER = '3.11.174';
+const PDFJS_CDN = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VER}`;
+const PDFJS_DIST = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VER}`;
+const PDF_TEXT_MIN_CHARS = 200; // below this → Gemini multimodal PDF fallback
+const PDF_MULTIMODAL_MAX_BYTES = 15 * 1024 * 1024;
+
 let extractedText = "";
+let uploadedPdfBytes = null; // Uint8Array kept for multimodal fallback
+let uploadedPdfName = "";
+
+function waitForPdfJs(timeoutMs){
+  if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  const limit = timeoutMs || 12000;
+  return new Promise((resolve, reject) => {
+    const t0 = Date.now();
+    const id = setInterval(() => {
+      if (window.pdfjsLib){ clearInterval(id); resolve(window.pdfjsLib); }
+      else if (Date.now() - t0 > limit){
+        clearInterval(id);
+        reject(new Error("PDF.js 라이브러리 로드 실패 — 네트워크/CDN을 확인하세요."));
+      }
+    }, 40);
+  });
+}
+
+function pdfDocOptions(data, extra){
+  return Object.assign({
+    data,
+    cMapUrl: PDFJS_DIST + '/cmaps/',
+    cMapPacked: true,
+    standardFontDataUrl: PDFJS_DIST + '/standard_fonts/',
+    useSystemFonts: true
+  }, extra || {});
+}
+
+async function openPdfDocument(pdfjsLib, data){
+  pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_CDN + '/pdf.worker.min.js';
+  try {
+    return await pdfjsLib.getDocument(pdfDocOptions(data)).promise;
+  } catch (err) {
+    const msg = (err && err.message) ? err.message : String(err);
+    // Worker blocked (Safari / CSP / opaque SW cache) → parse on main thread
+    if (/worker|fetch|dynamically imported|cannot load|Failed to fetch/i.test(msg) ||
+        (err && err.name === 'UnknownErrorException')){
+      return await pdfjsLib.getDocument(pdfDocOptions(data, { disableWorker: true })).promise;
+    }
+    throw err;
+  }
+}
+
+function itemsToText(items){
+  let out = '';
+  for (let i = 0; i < items.length; i++){
+    const t = items[i];
+    out += t.str || '';
+    out += t.hasEOL ? '\n' : ' ';
+  }
+  return out;
+}
+
+function friendlyPdfError(err){
+  const msg = (err && err.message) ? err.message : String(err);
+  if (/password/i.test(msg)) return "암호로 보호된 PDF입니다. 암호 없는 복사본으로 다시 올려주세요.";
+  if (/Invalid PDF|Missing PDF|format Error|corrupted|PDFDocument/i.test(msg))
+    return "손상되었거나 PDF가 아닌 파일입니다.";
+  return msg;
+}
+
+function uint8ToBase64(u8){
+  let s = '';
+  const chunk = 0x8000;
+  for (let i = 0; i < u8.length; i += chunk){
+    s += String.fromCharCode.apply(null, u8.subarray(i, Math.min(i + chunk, u8.length)));
+  }
+  return btoa(s);
+}
+
 async function handlePDF(input){
   const file = input.files[0];
   if(!file) return;
   const st = document.getElementById('extractStatus');
+  const btn = document.getElementById('btnExtract');
   st.textContent = "PDF 텍스트 추출 중…"; st.className='status';
+  extractedText = "";
+  uploadedPdfBytes = null;
+  uploadedPdfName = file.name || "";
+  if (btn) btn.disabled = true;
   try{
-    const pdfjsLib = window.pdfjsLib;
-    if(!pdfjsLib) throw new Error("PDF.js 라이브러리 로드 실패 — 네트워크/CDN을 확인하세요.");
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    if (file.type && file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name || '')){
+      throw new Error("PDF 파일만 업로드할 수 있습니다.");
+    }
+    const pdfjsLib = await waitForPdfJs();
     const buf = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({data:buf}).promise;
+    const data = new Uint8Array(buf);
+    uploadedPdfBytes = data;
+    const pdf = await openPdfDocument(pdfjsLib, data);
     let text = "";
     for(let i=1;i<=pdf.numPages;i++){
       const page = await pdf.getPage(i);
       const content = await page.getTextContent();
-      text += content.items.map(t=>t.str).join(' ') + "\n";
+      text += itemsToText(content.items) + "\n";
     }
-    extractedText = text;
-    st.textContent = `✅ 추출 완료 · ${pdf.numPages} pages · ${text.length.toLocaleString()} chars`;
-    document.getElementById('btnExtract').disabled = false;
+    extractedText = text.trim() ? text : "";
+    const chars = extractedText.length;
+    if (!chars){
+      st.textContent = `⚠ 텍스트 0자 · ${pdf.numPages} pages — 스캔/이미지 PDF일 수 있습니다. AI 추출 시 PDF 원본으로 읽습니다.`;
+      if (btn) btn.disabled = !uploadedPdfBytes;
+    } else {
+      st.textContent = `✅ 추출 완료 · ${pdf.numPages} pages · ${chars.toLocaleString()} chars`
+        + (chars < PDF_TEXT_MIN_CHARS ? " · 텍스트 부족 시 AI가 PDF 원본으로 보강" : "");
+      if (btn) btn.disabled = false;
+    }
   }catch(err){
-    st.textContent = "❌ 오류: " + err.message; st.className='status err';
+    extractedText = "";
+    uploadedPdfBytes = null;
+    st.textContent = "❌ 오류: " + friendlyPdfError(err);
+    st.className='status err';
+    if (btn) btn.disabled = true;
+  } finally {
+    input.value = "";
   }
 }
 
@@ -513,23 +610,71 @@ Return ONLY valid JSON, no markdown fences.
 TEXT:
 """${'{{TEXT}}'}"""`;
 
+function buildExtractParts(){
+  const hasText = !!(extractedText && extractedText.trim());
+  const textLen = hasText ? extractedText.trim().length : 0;
+  const hasPdf = !!(uploadedPdfBytes && uploadedPdfBytes.length);
+  const preferPdf = hasPdf && (!hasText || textLen < PDF_TEXT_MIN_CHARS);
+  const parts = [];
+
+  if (preferPdf){
+    if (uploadedPdfBytes.length > PDF_MULTIMODAL_MAX_BYTES){
+      if (!hasText){
+        throw new Error("PDF가 너무 큽니다(15MB 초과). 텍스트 레이어가 있는 PDF이거나 용량을 줄여 주세요.");
+      }
+    } else {
+      parts.push({
+        inline_data: {
+          mime_type: 'application/pdf',
+          data: uint8ToBase64(uploadedPdfBytes)
+        }
+      });
+      const hint = hasText
+        ? ("Partial text extract (" + textLen + " chars) — prefer the attached PDF when they disagree:\n"
+           + extractedText.slice(0, 8000))
+        : "(No extractable text layer — read the attached PDF document fully.)";
+      parts.push({ text: EXTRACT_PROMPT_SPEC.replace('{{TEXT}}', hint) });
+      return { parts, mode: 'pdf' };
+    }
+  }
+
+  if (!hasText){
+    throw new Error("먼저 PDF를 업로드하세요.");
+  }
+  parts.push({ text: EXTRACT_PROMPT_SPEC.replace('{{TEXT}}', extractedText.slice(0, 60000)) });
+  return { parts, mode: 'text' };
+}
+
 async function extractWithAI(){
   const key = getApiKey();
   const st = document.getElementById('extractStatus');
   if(!key){ st.textContent="❌ 상단에 Gemini API Key를 입력하세요."; st.className='status err'; return; }
-  if(!extractedText){ st.textContent="❌ 먼저 PDF를 업로드하세요."; st.className='status err'; return; }
-  st.textContent = "AI 분석 중…"; st.className='status';
-  const prompt = EXTRACT_PROMPT_SPEC.replace('{{TEXT}}', extractedText.slice(0,60000));
+  const hasText = !!(extractedText && extractedText.trim());
+  const hasPdf = !!(uploadedPdfBytes && uploadedPdfBytes.length);
+  if(!hasText && !hasPdf){ st.textContent="❌ 먼저 PDF를 업로드하세요."; st.className='status err'; return; }
+
+  let built;
+  try { built = buildExtractParts(); }
+  catch (err){
+    st.textContent = "❌ " + (err && err.message ? err.message : err);
+    st.className = 'status err';
+    return;
+  }
+
+  st.textContent = built.mode === 'pdf'
+    ? ("AI 분석 중… (PDF 원본" + (uploadedPdfName ? " · " + uploadedPdfName : "") + ")")
+    : "AI 분석 중…";
+  st.className='status';
   const btn = document.getElementById('btnExtract');
   if (btn) btn.disabled = true;
   try{
-    let res, lastErr;
+    let res;
     for (let attempt = 0; attempt < 3; attempt++){
       res = await fetch(geminiUrl(), {
         method:'POST',
         headers:{'Content-Type':'application/json','x-goog-api-key':key},
         body: JSON.stringify({
-          contents:[{parts:[{text:prompt}]}],
+          contents:[{parts: built.parts}],
           generationConfig:{ responseMimeType:'application/json', temperature:0, maxOutputTokens:4096 }
         })
       });
@@ -546,13 +691,15 @@ async function extractWithAI(){
     catch(_){ throw new Error('AI 응답 JSON 파싱 실패 — 다시 시도하세요.'); }
     if (!parsed || typeof parsed !== 'object') throw new Error('AI 응답이 비어 있습니다.');
     applyExtracted(parsed);
-    st.textContent = "✅ 추출 완료 · 아래 항목을 검토하세요.";
+    st.textContent = built.mode === 'pdf'
+      ? "✅ 추출 완료 (PDF 원본) · 아래 항목을 검토하세요."
+      : "✅ 추출 완료 · 아래 항목을 검토하세요.";
   }catch(err){
     const isNet = (err instanceof TypeError) || /failed to fetch|networkerror/i.test(err.message||'');
     st.textContent = "❌ " + (isNet ? "연결 실패 (차단기·네트워크·file:// 환경 확인)" : err.message);
     st.className='status err';
   } finally {
-    if (btn) btn.disabled = !extractedText;
+    if (btn) btn.disabled = !(extractedText || uploadedPdfBytes);
   }
 }
 
