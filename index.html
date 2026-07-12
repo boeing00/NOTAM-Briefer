@@ -610,6 +610,13 @@ Return ONLY valid JSON, no markdown fences.
 TEXT:
 """${'{{TEXT}}'}"""`;
 
+function parseModelJson(raw){
+  let s = String(raw || '').replace(/```json|```/g, '').trim();
+  const a = s.indexOf('{'), b = s.lastIndexOf('}');
+  if (a >= 0 && b > a) s = s.slice(a, b + 1);
+  return JSON.parse(s);
+}
+
 function buildExtractParts(){
   const hasText = !!(extractedText && extractedText.trim());
   const textLen = hasText ? extractedText.trim().length : 0;
@@ -675,7 +682,10 @@ async function extractWithAI(){
         headers:{'Content-Type':'application/json','x-goog-api-key':key},
         body: JSON.stringify({
           contents:[{parts: built.parts}],
-          generationConfig:{ responseMimeType:'application/json', temperature:0, maxOutputTokens:4096 }
+          // thinkingBudget:0 — 2.5-flash의 thinking 토큰이 출력 한도를 잠식해
+          // JSON이 중간에 잘리는 것을 방지
+          generationConfig:{ responseMimeType:'application/json', temperature:0,
+            maxOutputTokens:32768, thinkingConfig:{ thinkingBudget:0 } }
         })
       });
       if (res.status !== 429) break;
@@ -685,10 +695,23 @@ async function extractWithAI(){
     }
     if(!res.ok){ const t = await res.text(); throw new Error(`API ${res.status}: ${t.slice(0,200)}`); }
     const data = await res.json();
-    const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+    const cand = data?.candidates?.[0];
+    const blockReason = data?.promptFeedback?.blockReason;
+    if (blockReason) throw new Error('요청이 차단되었습니다 (' + blockReason + ').');
+    const raw = (cand?.content?.parts || [])
+      .filter(p => p && typeof p.text === 'string' && !p.thought)
+      .map(p => p.text).join('');
+    if (!raw.trim()){
+      throw new Error('AI 응답이 비어 있습니다' +
+        (cand?.finishReason ? ' (' + cand.finishReason + ')' : '') + ' — 다시 시도하세요.');
+    }
     let parsed;
-    try { parsed = JSON.parse(raw.replace(/```json|```/g,'').trim()); }
-    catch(_){ throw new Error('AI 응답 JSON 파싱 실패 — 다시 시도하세요.'); }
+    try { parsed = parseModelJson(raw); }
+    catch(_){
+      throw new Error(cand?.finishReason === 'MAX_TOKENS'
+        ? 'AI 응답이 길이 제한으로 잘렸습니다 — 다시 시도하세요.'
+        : 'AI 응답 JSON 파싱 실패 — 다시 시도하세요.');
+    }
     if (!parsed || typeof parsed !== 'object') throw new Error('AI 응답이 비어 있습니다.');
     applyExtracted(parsed);
     st.textContent = built.mode === 'pdf'
