@@ -138,8 +138,8 @@ hr{border:none;border-top:1px solid var(--line);margin:1rem 0}
 
   <div class="notice info">
     ℹ <b>③탭에서 Joint Briefing PDF 파일을 바로 다운로드</b>합니다 (브라우저에서 생성).
-    레이아웃은 Flight Info / Weather / Security / Sterile Cockpit / Emergency / Crew Coordination / Pilot Memo
-    + (선택) NOTAM Briefing Summary 순서를 따릅니다. 동일 내용을 reportlab용 <code>.py</code>로도 받을 수 있습니다.
+    레이아웃은 비행 정보 · 기상 · 보안 · Sterile Cockpit · 비상 절차 · 승무원 협조 · 조종사 메모
+    + (선택) NOTAM 브리핑 요약 순서를 따릅니다. 동일 내용을 reportlab용 <code>.py</code>로도 받을 수 있습니다.
   </div>
 
   <div class="notice" id="fileWarning" style="display:none">
@@ -165,7 +165,7 @@ hr{border:none;border-top:1px solid var(--line);margin:1rem 0}
         같은 저장소의 NOTAM 앱(<code>notam.html</code>)을 아래에서 실행합니다.
         FPL/OFP를 열고 <b>ANALYZE</b> 하면 WARNING/CAUTION 요약이 아래 박스로 <b>자동 전송</b>됩니다.
         수동으로 고치거나, <b>분석 결과 가져오기</b>로 다시 받을 수 있습니다.
-        ③에서 스크립트를 만들 때 이 요약이 Joint Briefing PDF 맨 뒤 "NOTAM Briefing Summary"로 붙습니다 (본문 포맷은 변경하지 않음).
+        ③에서 PDF를 만들 때 이 요약이 합동 브리핑 PDF 맨 뒤 "NOTAM 브리핑 요약"으로 붙습니다 (본문 포맷은 변경하지 않음).
       </p>
       <div class="row" style="margin-bottom:.5rem">
         <button class="btn go" type="button" onclick="pullNotamFromFrame()">↻ 분석 결과 가져오기</button>
@@ -209,12 +209,12 @@ ROUTE: RKSI → KLAX · FLT 11H20M
       <h2>2 · 세 가지 질문 (skill 규칙: 항상 이 세 가지만)</h2>
       <div class="grid3">
         <div class="field">
-          <label>Flight Time (예: 2:40)</label>
+          <label>비행시간 (예: 2:40)</label>
           <input type="text" id="q_flightTime" placeholder="0:00">
         </div>
         <div class="field">
-          <label>Taxi Time</label>
-          <input type="text" id="q_taxiTime" placeholder="– (refer to ground crew)">
+          <label>택시 시간</label>
+          <input type="text" id="q_taxiTime" placeholder="– (지상조업 확인)">
         </div>
         <div class="field">
           <label>Ready Signal</label>
@@ -222,36 +222,36 @@ ROUTE: RKSI → KLAX · FLT 11H20M
         </div>
       </div>
       <div class="field">
-        <label>Security Alert Level (미지정 시 BLUE — skill 고정 규칙)</label>
+        <label>보안 경보 단계 (미지정 시 BLUE — skill 고정 규칙)</label>
         <div class="alertbtns" id="alertBtns"></div>
       </div>
     </div>
 
     <div class="panel">
-      <h2>3 · Flight Information</h2>
+      <h2>3 · 비행 정보 (Flight Information)</h2>
       <div class="grid3">
-        <div class="field"><label>Airline</label><input type="text" id="f_airline"></div>
-        <div class="field"><label>Flight No (예: OZ 101)</label><input type="text" id="f_flightno"></div>
-        <div class="field"><label>Date (YYYY-MM-DD)</label><input type="text" id="f_date"></div>
-        <div class="field"><label>Date Label (예: 2026.05.03, Sun)</label><input type="text" id="f_datelabel"></div>
+        <div class="field"><label>항공사</label><input type="text" id="f_airline"></div>
+        <div class="field"><label>편명 (예: OZ 101)</label><input type="text" id="f_flightno"></div>
+        <div class="field"><label>날짜 (YYYY-MM-DD)</label><input type="text" id="f_date"></div>
+        <div class="field"><label>날짜 표기 (예: 2026.05.03, 일)</label><input type="text" id="f_datelabel"></div>
         <div class="field"><label>DEP (IATA)</label><input type="text" id="f_dep"></div>
         <div class="field"><label>ARR (IATA)</label><input type="text" id="f_arr"></div>
-        <div class="field"><label>A/C Type</label><input type="text" id="f_actype"></div>
-        <div class="field"><label>A/C Reg</label><input type="text" id="f_acreg"></div>
-        <div class="field"><label>Gate (Spot)</label><input type="text" id="f_gate" placeholder="– (–)"></div>
-        <div class="field"><label>Schedule</label><input type="text" id="f_schedule" placeholder="ICN 10:00 (+9:00) > NRT +9:00"></div>
-        <div class="field"><label>PAX</label><input type="text" id="f_pax" placeholder="F 0 / C 0 / Y 0"></div>
+        <div class="field"><label>기종</label><input type="text" id="f_actype"></div>
+        <div class="field"><label>등록기호</label><input type="text" id="f_acreg"></div>
+        <div class="field"><label>게이트 (스팟)</label><input type="text" id="f_gate" placeholder="– (–)"></div>
+        <div class="field"><label>스케줄</label><input type="text" id="f_schedule" placeholder="ICN 10:00 (+9:00) > NRT +9:00"></div>
+        <div class="field"><label>승객 (PAX)</label><input type="text" id="f_pax" placeholder="F 0 / C 0 / Y 0"></div>
       </div>
     </div>
 
     <div class="panel">
-      <h2>4 · Weather</h2>
-      <p class="hint">각 항목당 한 줄에 <code>라벨 | 값</code> 형식으로 입력하세요. (skill 고정 5블록: Departure/Arrival/Alternate/Enroute/Turbulence)</p>
+      <h2>4 · 기상 (Weather)</h2>
+      <p class="hint">각 항목당 한 줄에 <code>라벨 | 값</code> 형식으로 입력하세요. (고정 5블록: 출발/도착/교체공항/항로/난기류)</p>
       <div id="wxBlocks"></div>
     </div>
 
     <div class="panel">
-      <h2>5 · Pilot Memo — Fuel &amp; Oil 원본값 (FPL에서 추출, 단위 LBS)</h2>
+      <h2>5 · 조종사 메모 — Fuel &amp; Oil 원본값 (FPL에서 추출, 단위 LBS)</h2>
       <p class="hint">여기 원본값만 넣으면 됩니다. Min Fuel / Divert Min / Buffer / Min Oil 계산 공식은 skill 스크립트가 그대로(수정 없이) 계산합니다.</p>
       <div class="grid3">
         <div class="field"><label>Final Reserve (LBS)</label><input type="number" id="p_finalres" value="0"></div>
@@ -283,8 +283,8 @@ ROUTE: RKSI → KLAX · FLT 11H20M
       </div>
       <hr>
       <h3>포함될 내용 미리보기</h3>
-      <p class="hint">Flight Information · Weather · Security · Sterile Cockpit · Emergency Procedure · Crew Coordination · Pilot Memo
-        · (NOTAM 요약이 있으면) NOTAM Briefing Summary</p>
+      <p class="hint">비행 정보 · 기상 · 보안 · Sterile Cockpit · 비상 절차 · 승무원 협조 · 조종사 메모
+        · (NOTAM 요약이 있으면) NOTAM 브리핑 요약</p>
       <div class="small" id="combinePreview">아직 데이터 없음. ①②탭을 먼저 채워주세요.</div>
       <div id="scriptPreviewWrap" style="display:none;margin-top:.8rem">
         <textarea id="scriptPreview" class="codebox" readonly></textarea>
@@ -435,11 +435,11 @@ document.getElementById('geminiKey').addEventListener('change', () => {
 
 // ============ WEATHER BLOCKS ============
 const WX_KEYS = [
-  {key:'departure', title:'Departure – ??? (City / Airport Name)', rows:[['Sky',''],['Temperature',''],['Wind',''],['Visibility',''],['QNH',''],['Conditions','VMC – Normal departure expected']]},
-  {key:'arrival',   title:'Arrival – ??? (City / Airport Name)',   rows:[['Sky',''],['Wind',''],['Visibility',''],['Conditions','']]},
-  {key:'alternate', title:'Alternate – ??? (City / Airport Name)', rows:[['Sky',''],['Wind',''],['Visibility',''],['Conditions','']]},
-  {key:'enroute',   title:'Enroute', rows:[['Altitude',''],['Route','']]},
-  {key:'turbulence',title:'Expected Turbulence', rows:[['Around +H:MM',''],['Near Arrival','Destination vicinity – recheck before descent'],['Pax Safety','Turn on Seat Belt Sign before entering CB areas – PA announcement required']]},
+  {key:'departure', title:'출발 – ??? (도시 / 공항명)', rows:[['운량',''],['기온',''],['바람',''],['시정',''],['QNH',''],['기상상태','VMC – 정상 출발 예상']]},
+  {key:'arrival',   title:'도착 – ??? (도시 / 공항명)',   rows:[['운량',''],['바람',''],['시정',''],['기상상태','']]},
+  {key:'alternate', title:'교체공항 – ??? (도시 / 공항명)', rows:[['운량',''],['바람',''],['시정',''],['기상상태','']]},
+  {key:'enroute',   title:'항로', rows:[['고도',''],['항로','']]},
+  {key:'turbulence',title:'예상 난기류', rows:[['Around +H:MM',''],['도착 부근','목적지 부근 – 강하 전 재확인'],['승객 안전','CB 진입 전 Seat Belt Sign ON – PA 방송 필요']]},
 ];
 function rowsToText(rows){ return rows.map(r=>`${r[0]} | ${r[1]}`).join('\n'); }
 function textToRows(txt){
@@ -450,11 +450,12 @@ function textToRows(txt){
 }
 function renderWxBlocks(){
   const box = document.getElementById('wxBlocks');
+  const wxLabel = {departure:'출발',arrival:'도착',alternate:'교체공항',enroute:'항로',turbulence:'난기류'};
   box.innerHTML = WX_KEYS.map(w=>`
     <div class="wxblock">
-      <label>${w.key.toUpperCase()} — Title</label>
+      <label>${wxLabel[w.key]||w.key} — 제목</label>
       <input type="text" id="wxtitle_${w.key}" value="${w.title.replace(/"/g,'&quot;')}">
-      <label style="margin-top:.5rem">${w.key.toUpperCase()} — Rows (라벨 | 값, 한 줄씩)</label>
+      <label style="margin-top:.5rem">${wxLabel[w.key]||w.key} — 행 (라벨 | 값, 한 줄씩)</label>
       <textarea id="wxrows_${w.key}" rows="${Math.max(3,w.rows.length)}">${rowsToText(w.rows)}</textarea>
     </div>`).join('');
 }
@@ -587,24 +588,26 @@ async function handlePDF(input){
 // ============ GEMINI EXTRACTION ============
 function geminiUrl(){ return `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`; }
 
-const EXTRACT_PROMPT_SPEC = `Extract Joint Briefing data from this flight package (FPL/OFP/Dispatch Release) as JSON with EXACTLY this shape:
+const EXTRACT_PROMPT_SPEC = `Extract Joint Briefing data from this flight package (FPL/OFP/Dispatch Release) as JSON with EXACTLY this shape.
+IMPORTANT: weather titles, weather row labels, and descriptive weather condition text MUST be in Korean.
+Keep METAR/TAF codes, ICAO/IATA, flight numbers, and numeric values as-is.
 {
- "airline":"", "flight_no":"", "date":"YYYY-MM-DD", "date_label":"YYYY.MM.DD, Day",
+ "airline":"", "flight_no":"", "date":"YYYY-MM-DD", "date_label":"YYYY.MM.DD, 요일(한글 또는 영문)",
  "dep":"IATA", "arr":"IATA", "ac_type":"", "ac_reg":"",
  "flight_time_suggested":"H:MM", "gate_spot":"– (–)", "schedule":"", "pax":"F 0 / C 0 / Y 0",
  "taxi_time_suggested":"",
  "weather":{
-   "departure":{"title":"Departure – ICAO (City/Airport)","rows":[["Sky","..."],["Temperature","..."],["Wind","..."],["Visibility","..."],["QNH","..."],["Conditions","..."]]},
-   "arrival":{"title":"Arrival – ICAO (City/Airport)","rows":[["Sky","..."],["Wind","..."],["Visibility","..."],["Conditions","..."]]},
-   "alternate":{"title":"Alternate – ICAO (City/Airport)","rows":[["Sky","..."],["Wind","..."],["Visibility","..."],["Conditions","..."]]},
-   "enroute":{"title":"Enroute","rows":[["Altitude","FL... -> FL..."],["Route","geographic names only, NO waypoint codes"]]},
-   "turbulence":{"title":"Expected Turbulence","rows":[["Around +H:MM","area – severity, FL range (source)"]]}
+   "departure":{"title":"출발 – ICAO (도시/공항)","rows":[["운량","..."],["기온","..."],["바람","..."],["시정","..."],["QNH","..."],["기상상태","..."]]},
+   "arrival":{"title":"도착 – ICAO (도시/공항)","rows":[["운량","..."],["바람","..."],["시정","..."],["기상상태","..."]]},
+   "alternate":{"title":"교체공항 – ICAO (도시/공항)","rows":[["운량","..."],["바람","..."],["시정","..."],["기상상태","..."]]},
+   "enroute":{"title":"항로","rows":[["고도","FL... -> FL..."],["항로","지리적 지역명만, 웨이포인트 코드 금지"]]},
+   "turbulence":{"title":"예상 난기류","rows":[["Around +H:MM","지역 – 강도, FL 범위 (출처)"]]}
  },
  "fuel":{"final_res_lbs":0,"altn_fuel_lbs":0,"trip_fuel_lbs":0,"tof_lbs":0},
  "oat_cruise_c":0
 }
-Rules: flight_time_suggested from FPL total flight time. taxi_time_suggested from TAXI block, else "– (refer to ground crew)".
-Enroute route must use geographic area names only (e.g. "Tokyo Narita -> central Japan -> Yellow Sea -> Korean Peninsula -> Incheon"), never raw waypoint codes.
+Rules: flight_time_suggested from FPL total flight time. taxi_time_suggested from TAXI block, else "– (지상조업 확인)".
+Enroute route must use geographic area names in Korean when possible (e.g. "인천 → 대한해협 → 규슈 → 일본 태평양 연안 → 나리타"), never raw waypoint codes.
 fuel values must be in LBS (convert from KG or x100LBS units if needed). oat_cruise_c = cruise OAT in Celsius from wind/temp summary.
 Return ONLY valid JSON, no markdown fences.
 TEXT:
@@ -731,16 +734,16 @@ function applyExtracted(d){
 // ============ SAMPLE DATA (for testing without a real FPL) ============
 function loadSample(){
   applyExtracted({
-    airline:"ASIANA AIRLINES", flight_no:"OZ 101", date:"2026-08-15", date_label:"2026.08.15, Sat",
+    airline:"ASIANA AIRLINES", flight_no:"OZ 101", date:"2026-08-15", date_label:"2026.08.15, 토",
     dep:"ICN", arr:"NRT", ac_type:"A21N", ac_reg:"HL8901",
     flight_time_suggested:"2:20", gate_spot:"118 (–)", schedule:"ICN 10:00 (+9:00) > NRT 12:20 (+9:00)",
-    pax:"F 0 / C 12 / Y 156", taxi_time_suggested:"0:18 (block-out to airborne)",
+    pax:"F 0 / C 12 / Y 156", taxi_time_suggested:"0:18 (블록아웃~이륙)",
     weather:{
-      departure:{title:"Departure – RKSI (Seoul Incheon)", rows:[["Sky","FEW020 SCT100"],["Temperature","28°C / Dew 22°C"],["Wind","210/08KT"],["Visibility","9999m"],["QNH","1008 hPa"],["Conditions","VMC – Normal departure expected"]]},
-      arrival:{title:"Arrival – RJAA (Tokyo Narita)", rows:[["Sky","BKN030"],["Wind","090/12KT"],["Visibility","8000m"],["Conditions","TEMPO shower, monitor RVR before descent"]]},
-      alternate:{title:"Alternate – RJTT (Tokyo Haneda)", rows:[["Sky","SCT025"],["Wind","080/10KT"],["Visibility","9999m"],["Conditions","No significant TEMPO"]]},
-      enroute:{title:"Enroute", rows:[["Altitude","FL360 -> FL340 (step climb if applicable)"],["Route","Seoul Incheon -> Korea Strait -> Kyushu -> Pacific coast of Japan -> Tokyo Narita"]]},
-      turbulence:{title:"Expected Turbulence", rows:[["Around +1:10","Kyushu vicinity – LGT-MOD, FL320-360 (PIREP)"],["Near Arrival","Destination vicinity – recheck before descent"],["Pax Safety","Turn on Seat Belt Sign before entering CB areas – PA announcement required"]]}
+      departure:{title:"출발 – RKSI (서울/인천)", rows:[["운량","FEW020 SCT100"],["기온","28°C / Dew 22°C"],["바람","210/08KT"],["시정","9999m"],["QNH","1008 hPa"],["기상상태","VMC – 정상 출발 예상"]]},
+      arrival:{title:"도착 – RJAA (도쿄/나리타)", rows:[["운량","BKN030"],["바람","090/12KT"],["시정","8000m"],["기상상태","TEMPO 소나기, 강하 전 RVR 모니터링"]]},
+      alternate:{title:"교체공항 – RJTT (도쿄/하네다)", rows:[["운량","SCT025"],["바람","080/10KT"],["시정","9999m"],["기상상태","유의 TEMPO 없음"]]},
+      enroute:{title:"항로", rows:[["고도","FL360 -> FL340 (필요 시 step climb)"],["항로","인천 → 대한해협 → 규슈 → 일본 태평양 연안 → 나리타"]]},
+      turbulence:{title:"예상 난기류", rows:[["Around +1:10","규슈 부근 – LGT-MOD, FL320-360 (PIREP)"],["도착 부근","목적지 부근 – 강하 전 재확인"],["승객 안전","CB 진입 전 Seat Belt Sign ON – PA 방송 필요"]]}
     },
     fuel:{final_res_lbs:4200, altn_fuel_lbs:3100, trip_fuel_lbs:14800, tof_lbs:29500},
     oat_cruise_c:-48
@@ -776,15 +779,15 @@ function recalc(){
 
   CALC = { finalRes, altn, trip, tof, oat, ftHours, MIN_FUEL, DIVERT_MIN_FUEL, BUF_10, BUF_20, BUF_30, OIL_MIN,
     EMERGENCY_FUEL: finalRes,
-    OIL_RULE: (oat < 0 && ftHours < 14) ? 'OAT < 0°C & Flight Time < 14h → 13 qts'
-      : (oat < 0 && ftHours >= 14) ? `OAT < 0°C & Flight Time ≥ 14h → 6 + 0.5×${ftHours.toFixed(1)}h`
-      : (oat >= 0 && ftHours < 8) ? 'OAT ≥ 0°C & Flight Time < 8h → 10 qts'
-      : `OAT ≥ 0°C & Flight Time ≥ 8h → 6 + 0.5×${ftHours.toFixed(1)}h`
+    OIL_RULE: (oat < 0 && ftHours < 14) ? 'OAT < 0°C & 비행시간 < 14h → 13 qts'
+      : (oat < 0 && ftHours >= 14) ? `OAT < 0°C & 비행시간 ≥ 14h → 6 + 0.5×${ftHours.toFixed(1)}h`
+      : (oat >= 0 && ftHours < 8) ? 'OAT ≥ 0°C & 비행시간 < 8h → 10 qts'
+      : `OAT ≥ 0°C & 비행시간 ≥ 8h → 6 + 0.5×${ftHours.toFixed(1)}h`
   };
   document.getElementById('calcPreview').innerHTML =
-    `(미리보기) Min Fuel <b>${MIN_FUEL.toLocaleString()}</b> · Divert Min <b>${DIVERT_MIN_FUEL.toLocaleString()}</b> LBS
+    `(미리보기) 최소연료 <b>${MIN_FUEL.toLocaleString()}</b> · Divert Min <b>${DIVERT_MIN_FUEL.toLocaleString()}</b> LBS
      (+10m ${BUF_10.toLocaleString()} / +20m ${BUF_20.toLocaleString()} / +30m ${BUF_30.toLocaleString()})
-     &nbsp;·&nbsp; Min Oil <b>${Math.round(OIL_MIN)} qts</b> — ③탭 PDF에 동일 공식으로 반영됩니다.`;
+     &nbsp;·&nbsp; 최소오일 <b>${Math.round(OIL_MIN)} qts</b> — ③탭 PDF에 동일 공식으로 반영됩니다.`;
   return CALC;
 }
 document.addEventListener('input', (e)=>{
@@ -795,15 +798,15 @@ document.addEventListener('input', (e)=>{
 function gatherFlightData(){
   const g = id => document.getElementById(id).value;
   return {
-    airline: g('f_airline')||'AIRLINE NAME', flight_no: g('f_flightno')||'OZ 0000',
-    date: g('f_date')||'YYYY-MM-DD', date_label: g('f_datelabel')||'YYYY.MM.DD, Day',
+    airline: g('f_airline')||'항공사명', flight_no: g('f_flightno')||'OZ 0000',
+    date: g('f_date')||'YYYY-MM-DD', date_label: g('f_datelabel')||'YYYY.MM.DD, 요일',
     dep: g('f_dep')||'???', arr: g('f_arr')||'???',
     route_label: `${g('f_dep')||'???'} > ${g('f_arr')||'???'}`,
     ac_type: g('f_actype')||'A21N', ac_reg: g('f_acreg')||'HL????',
     flight_time: g('q_flightTime')||'0:00', gate_spot: g('f_gate')||'– (–)',
     schedule: g('f_schedule')||'??? HH:MM (+9:00) > ??? +tz', pax: g('f_pax')||'F 0 / C 0 / Y 0',
     alert_level: selectedAlert,
-    taxi_time: g('q_taxiTime')||'– (refer to ground crew)',
+    taxi_time: g('q_taxiTime')||'– (지상조업 확인)',
     ready_signal: g('q_readySignal')||'N/A'
   };
 }
@@ -894,23 +897,24 @@ ALERT_TEXT_COLORS = {
 
 # ── STYLES ───────────────────────────────────────────────
 pdfmetrics.registerFont(UnicodeCIDFont("HYSMyeongJo-Medium"))
+KR = "HYSMyeongJo-Medium"
 S = lambda name, **kw: ParagraphStyle(name, **kw)
 
-small_style        = S("small",    fontSize=8,  fontName="Helvetica",           textColor=GRAY, leading=12)
-body_style         = S("body",     fontSize=9,  fontName="Helvetica",           textColor=DARK, leading=14)
-bold_body_style    = S("bbody",    fontSize=9,  fontName="Helvetica-Bold",      textColor=DARK, leading=14)
-section_hdr_style  = S("sec_hdr", fontSize=11, fontName="Helvetica-Bold",      textColor=BLUE, spaceBefore=4, spaceAfter=4)
-flight_num_style   = S("flt_num", fontSize=22, fontName="Helvetica-Bold",      textColor=BLUE, leading=26)
-flight_date_style  = S("flt_dt",  fontSize=9,  fontName="Helvetica",           textColor=GRAY, leading=13)
-flight_route_style = S("flt_rt",  fontSize=15, fontName="Helvetica-Bold",      textColor=DARK, leading=20)
-wx_subhdr_style    = S("wx_sub",  fontSize=9,  fontName="Helvetica-Bold",      textColor=WHITE, leading=14)
-wx_label_style     = S("wx_lbl",  fontSize=9,  fontName="Helvetica-Bold",      textColor=GRAY,  leading=13)
-wx_value_style     = S("wx_val",  fontSize=9,  fontName="Helvetica",           textColor=DARK,  leading=13)
-memo_note_style    = S("memo_note",fontSize=8, fontName="Helvetica-Oblique",   textColor=GRAY,  leading=12)
+small_style        = S("small",    fontSize=8,  fontName=KR, textColor=GRAY, leading=12)
+body_style         = S("body",     fontSize=9,  fontName=KR, textColor=DARK, leading=14)
+bold_body_style    = S("bbody",    fontSize=9,  fontName=KR, textColor=DARK, leading=14)
+section_hdr_style  = S("sec_hdr", fontSize=11, fontName=KR, textColor=BLUE, spaceBefore=4, spaceAfter=4)
+flight_num_style   = S("flt_num", fontSize=22, fontName=KR, textColor=BLUE, leading=26)
+flight_date_style  = S("flt_dt",  fontSize=9,  fontName=KR, textColor=GRAY, leading=13)
+flight_route_style = S("flt_rt",  fontSize=15, fontName=KR, textColor=DARK, leading=20)
+wx_subhdr_style    = S("wx_sub",  fontSize=9,  fontName=KR, textColor=WHITE, leading=14)
+wx_label_style     = S("wx_lbl",  fontSize=9,  fontName=KR, textColor=GRAY,  leading=13)
+wx_value_style     = S("wx_val",  fontSize=9,  fontName=KR, textColor=DARK,  leading=13)
+memo_note_style    = S("memo_note",fontSize=8, fontName=KR, textColor=GRAY,  leading=12)
 
 # ── HELPERS ──────────────────────────────────────────────
 class TitleText(Flowable):
-    def __init__(self, text, font="Helvetica-Bold", size=18, color=BLUE):
+    def __init__(self, text, font=KR, size=18, color=BLUE):
         super().__init__()
         self.text = text; self.font = font
         self.size = size; self.color = color
@@ -975,12 +979,12 @@ def alert_level_buttons(selected):
         bg = ALERT_COLORS[lvl]
         tc = ALERT_TEXT_COLORS[lvl]
         if is_active:
-            w  = 46*mm; h = 13*mm; fs = 13; fn = "Helvetica-Bold"
+            w  = 46*mm; h = 13*mm; fs = 13; fn = KR
             box = ("BOX", (0,0),(-1,-1), 2, WHITE)
         else:
             bg = colors.Color(bg.red*0.4, bg.green*0.4, bg.blue*0.4)
             tc = colors.HexColor("#AAAAAA")
-            w  = 26*mm; h = 7*mm; fs = 6; fn = "Helvetica"
+            w  = 26*mm; h = 7*mm; fs = 6; fn = KR
             box = ("BOX", (0,0),(-1,-1), 0, bg)
         sty = ParagraphStyle(f"al_{lvl}", fontSize=fs, fontName=fn, textColor=tc)
         btn = Table([[Paragraph(lvl, sty)]], colWidths=[w], rowHeights=[h])
@@ -1005,7 +1009,7 @@ def alert_level_buttons(selected):
         ("BOTTOMPADDING", (0,0),(-1,-1), 0),
     ]))
     wrapper = Table(
-        [[Paragraph("• Alert Level", body_style), row]],
+        [[Paragraph("• 경보 단계", body_style), row]],
         colWidths=[28*mm, 152*mm]
     )
     wrapper.setStyle(TableStyle([
@@ -1017,21 +1021,21 @@ def alert_level_buttons(selected):
     return wrapper
 
 def pa_signal_table():
-    hdr  = ParagraphStyle("pth", fontSize=8, fontName="Helvetica-Bold", textColor=WHITE, leading=11)
-    cell = ParagraphStyle("ptc", fontSize=8, fontName="Helvetica",      textColor=DARK,  leading=11)
+    hdr  = ParagraphStyle("pth", fontSize=8, fontName=KR, textColor=WHITE, leading=11)
+    cell = ParagraphStyle("ptc", fontSize=8, fontName=KR, textColor=DARK,  leading=11)
     data = [
-        [Paragraph("PIC Announcement", hdr),
-         Paragraph("Cabin Crew Judgment", hdr),
-         Paragraph("Cabin Crew Procedures", hdr)],
+        [Paragraph("기장 방송", hdr),
+         Paragraph("객실승무원 판단", hdr),
+         Paragraph("객실승무원 조치", hdr)],
         [Paragraph('"This is the Captain"\\n"Remain seated, remain seated."', cell),
-         Paragraph("Not necessary to execute emergency evacuation.", cell),
-         Paragraph("Hold each original position to prepare subsequent mission.", cell)],
+         Paragraph("비상탈출 실행 불필요.", cell),
+         Paragraph("각자 원래 위치에서 후속 임무 준비.", cell)],
         [Paragraph('"Attention, crew at station."', cell),
-         Paragraph("Expected to execute emergency evacuation.", cell),
-         Paragraph("Prepare emergency evacuation at each original position.", cell)],
+         Paragraph("비상탈출 실행 예상.", cell),
+         Paragraph("각자 원래 위치에서 비상탈출 준비.", cell)],
         [Paragraph('"This is the Captain. Evacuate, evacuate!"', cell),
-         Paragraph("Mandatory to execute emergency evacuation.", cell),
-         Paragraph("Conduct passenger's emergency evacuation.", cell)],
+         Paragraph("비상탈출 필수 실행.", cell),
+         Paragraph("승객 비상탈출 실시.", cell)],
     ]
     t = Table(data, colWidths=[55*mm, 62*mm, 63*mm])
     t.setStyle(TableStyle([
@@ -1050,16 +1054,16 @@ def pa_signal_table():
     return t
 
 def brace_signal_table():
-    hdr  = ParagraphStyle("bth", fontSize=8, fontName="Helvetica-Bold", textColor=WHITE, leading=11)
-    cell = ParagraphStyle("btc", fontSize=8, fontName="Helvetica",      textColor=DARK,  leading=11)
+    hdr  = ParagraphStyle("bth", fontSize=8, fontName=KR, textColor=WHITE, leading=11)
+    cell = ParagraphStyle("btc", fontSize=8, fontName=KR, textColor=DARK,  leading=11)
     data = [
-        [Paragraph("Flight Crew", hdr),
-         Paragraph("Cabin Crew", hdr)],
-        [Paragraph('Brace Signal: Cycle the seat belt sign (4 times chime bell)\\nPA: "Brace for impact, Brace for impact."', cell),
-         Paragraph('Shouting "Brace" – Fasten seat belt and harness, brace for impact until aircraft completely stopped.', cell)],
+        [Paragraph("운항승무원", hdr),
+         Paragraph("객실승무원", hdr)],
+        [Paragraph('Brace 신호: Seat Belt Sign 사이클 (차임벨 4회)\\nPA: "Brace for impact, Brace for impact."', cell),
+         Paragraph('"Brace" 외침 – 좌석벨트·하네스 체결, 항공기 완전 정지까지 brace', cell)],
         [Paragraph("Emergency Light / Emergency Exit Light: ON", cell),
-         Paragraph("Passenger Cabin Emergency Light: ON (at the appropriate time)", cell)],
-        [Paragraph("Turn on the emergency light to assist in passenger evacuation.", cell),
+         Paragraph("객실 Emergency Light: ON (적절한 시점에)", cell)],
+        [Paragraph("승객 탈출을 돕기 위해 비상등을 켠다.", cell),
          Paragraph("", cell)],
     ]
     t = Table(data, colWidths=[90*mm, 90*mm])
@@ -1080,22 +1084,22 @@ def brace_signal_table():
     return t
 
 def pilot_memo_fuel_table():
-    hdr  = ParagraphStyle("fmh", fontSize=8.5, fontName="Helvetica-Bold", textColor=WHITE, leading=12)
-    cell = ParagraphStyle("fmc", fontSize=8.5, fontName="Helvetica",      textColor=DARK,  leading=12)
-    bold = ParagraphStyle("fmb", fontSize=8.5, fontName="Helvetica-Bold", textColor=DARK,  leading=12)
-    red  = ParagraphStyle("fmr", fontSize=8.5, fontName="Helvetica-Bold",
+    hdr  = ParagraphStyle("fmh", fontSize=8.5, fontName=KR, textColor=WHITE, leading=12)
+    cell = ParagraphStyle("fmc", fontSize=8.5, fontName=KR, textColor=DARK,  leading=12)
+    bold = ParagraphStyle("fmb", fontSize=8.5, fontName=KR, textColor=DARK,  leading=12)
+    red  = ParagraphStyle("fmr", fontSize=8.5, fontName=KR,
                            textColor=colors.HexColor("#B71C1C"), leading=12)
     data = [
-        [Paragraph("Item", hdr), Paragraph("Formula", hdr), Paragraph("Value (LBS)", hdr)],
-        [Paragraph("Final Reserve",    cell), Paragraph("From FPL",               cell), Paragraph(f"{FINAL_RES_LBS:,}",   bold)],
+        [Paragraph("항목", hdr), Paragraph("공식", hdr), Paragraph("값 (LBS)", hdr)],
+        [Paragraph("Final Reserve",    cell), Paragraph("FPL 기준",               cell), Paragraph(f"{FINAL_RES_LBS:,}",   bold)],
         [Paragraph("Emergency Fuel",   cell), Paragraph("= Final Reserve",         cell), Paragraph(f"{EMERGENCY_FUEL:,}",  bold)],
         [Paragraph("Min Fuel",         cell), Paragraph("= 1.3 × Final Reserve",   cell), Paragraph(f"{MIN_FUEL:,}",        bold)],
-        [Paragraph("ALTN Fuel",        cell), Paragraph("From FPL",               cell), Paragraph(f"{ALTN_FUEL_LBS:,}",   bold)],
+        [Paragraph("ALTN Fuel",        cell), Paragraph("FPL 기준",               cell), Paragraph(f"{ALTN_FUEL_LBS:,}",   bold)],
         [Paragraph("Divert Min Fuel",  red),  Paragraph("= ALTN Fuel + Min Fuel", cell), Paragraph(f"{DIVERT_MIN_FUEL:,}", red)],
-        [Paragraph("Divert Min +10min",cell), Paragraph("= Divert Min + ~10min burn", cell), Paragraph(f"{BUF_10:,}",     bold)],
-        [Paragraph("Divert Min +20min",cell), Paragraph("= Divert Min + ~20min burn", cell), Paragraph(f"{BUF_20:,}",     bold)],
-        [Paragraph("Divert Min +30min",cell), Paragraph("= Divert Min + ~30min burn", cell), Paragraph(f"{BUF_30:,}",     bold)],
-        [Paragraph("Planned T/O Fuel", cell), Paragraph("From FPL",               cell), Paragraph(f"{TOF_LBS:,}",        bold)],
+        [Paragraph("Divert Min +10min",cell), Paragraph("= Divert Min + 약 10분 burn", cell), Paragraph(f"{BUF_10:,}",     bold)],
+        [Paragraph("Divert Min +20min",cell), Paragraph("= Divert Min + 약 20분 burn", cell), Paragraph(f"{BUF_20:,}",     bold)],
+        [Paragraph("Divert Min +30min",cell), Paragraph("= Divert Min + 약 30분 burn", cell), Paragraph(f"{BUF_30:,}",     bold)],
+        [Paragraph("Planned T/O Fuel", cell), Paragraph("FPL 기준",               cell), Paragraph(f"{TOF_LBS:,}",        bold)],
     ]
     col_w = [58*mm, 72*mm, 50*mm]
     t = Table(data, colWidths=col_w)
@@ -1121,19 +1125,19 @@ def pilot_memo_fuel_table():
     return t
 
 def pilot_memo_oil_table():
-    hdr  = ParagraphStyle("omh", fontSize=8.5, fontName="Helvetica-Bold", textColor=WHITE,  leading=12)
-    cell = ParagraphStyle("omc", fontSize=8.5, fontName="Helvetica",      textColor=DARK,   leading=12)
-    bold = ParagraphStyle("omb", fontSize=8.5, fontName="Helvetica-Bold", textColor=DARK,   leading=12)
-    grn  = ParagraphStyle("omg", fontSize=8.5, fontName="Helvetica-Bold",
+    hdr  = ParagraphStyle("omh", fontSize=8.5, fontName=KR, textColor=WHITE,  leading=12)
+    cell = ParagraphStyle("omc", fontSize=8.5, fontName=KR, textColor=DARK,   leading=12)
+    bold = ParagraphStyle("omb", fontSize=8.5, fontName=KR, textColor=DARK,   leading=12)
+    grn  = ParagraphStyle("omg", fontSize=8.5, fontName=KR,
                            textColor=colors.HexColor("#1B5E20"), leading=12)
     data = [
-        [Paragraph("Condition", hdr), Paragraph("Rule", hdr), Paragraph("Min Oil", hdr)],
-        [Paragraph("OAT < 0°C & F/T < 14h",  cell), Paragraph("13 qts flat",   cell), Paragraph("13 qts",   cell)],
-        [Paragraph("OAT < 0°C & F/T ≥ 14h",  cell), Paragraph("6 + 0.5 qt/h", cell), Paragraph("variable", cell)],
-        [Paragraph("OAT ≥ 0°C & F/T < 8h",   cell), Paragraph("10 qts flat",  cell), Paragraph("10 qts",   cell)],
-        [Paragraph("OAT ≥ 0°C & F/T ≥ 8h",   cell), Paragraph("6 + 0.5 qt/h", cell), Paragraph("variable", cell)],
-        [Paragraph("THIS FLIGHT", bold),
-         Paragraph(f"OAT {OAT_CRUISE}°C / F/T {FT_HOURS:.2f}h → {OIL_RULE}", cell),
+        [Paragraph("조건", hdr), Paragraph("규칙", hdr), Paragraph("최소 오일", hdr)],
+        [Paragraph("OAT < 0°C & 비행시간 < 14h",  cell), Paragraph("13 qts 고정",   cell), Paragraph("13 qts",   cell)],
+        [Paragraph("OAT < 0°C & 비행시간 ≥ 14h",  cell), Paragraph("6 + 0.5 qt/h", cell), Paragraph("가변", cell)],
+        [Paragraph("OAT ≥ 0°C & 비행시간 < 8h",   cell), Paragraph("10 qts 고정",  cell), Paragraph("10 qts",   cell)],
+        [Paragraph("OAT ≥ 0°C & 비행시간 ≥ 8h",   cell), Paragraph("6 + 0.5 qt/h", cell), Paragraph("가변", cell)],
+        [Paragraph("본 비행", bold),
+         Paragraph(f"OAT {OAT_CRUISE}°C / 비행시간 {FT_HOURS:.2f}h → {OIL_RULE}", cell),
          Paragraph(f"{int(OIL_MIN)} qts", grn)],
     ]
     col_w = [52*mm, 90*mm, 38*mm]
@@ -1151,7 +1155,7 @@ def pilot_memo_oil_table():
         ("TOPPADDING",    (0,0),(-1,-1), 4),
         ("BOTTOMPADDING", (0,0),(-1,-1), 4),
         ("LEFTPADDING",   (0,0),(-1,-1), 6),
-        ("FONTNAME",      (0,5),(-1,5),  "Helvetica-Bold"),
+        ("FONTNAME",      (0,5),(-1,5),  KR),
     ]))
     return t
 
@@ -1167,14 +1171,14 @@ def build_pdf():
     story = []
 
     # ── Header
-    story.append(TitleText("Joint Briefing"))
+    story.append(TitleText("합동 브리핑"))
     story.append(Paragraph(
-        f"{fd['airline']} – Joint Briefing System | For Internal Use Only | Generated: {fd['date']}",
+        f"{fd['airline']} – 합동 브리핑 시스템 | 내부용 | 생성일: {fd['date']}",
         small_style))
     story.append(Spacer(1, 4*mm))
 
     search = Table(
-        [[Paragraph("<b>Date</b>",      small_style), Paragraph("<b>Flight No</b>", small_style),
+        [[Paragraph("<b>날짜</b>",      small_style), Paragraph("<b>편명</b>", small_style),
           Paragraph("<b>DEP</b>",       small_style), Paragraph("<b>ARR</b>",       small_style)],
          [Paragraph(fd["date"],         body_style),  Paragraph(fd["flight_no"].split()[-1], body_style),
           Paragraph(fd["dep"],          body_style),  Paragraph(fd["arr"],          body_style)]],
@@ -1192,7 +1196,7 @@ def build_pdf():
     story.append(Spacer(1, 5*mm))
 
     # ── Flight Information
-    story.append(section_header("Flight Information"))
+    story.append(section_header("비행 정보"))
     story.append(Spacer(1, 3*mm))
     dr_inner = Table(
         [[Paragraph(fd["date_label"], flight_date_style)],
@@ -1217,9 +1221,9 @@ def build_pdf():
     story.append(fi_top)
     story.append(Spacer(1, 3*mm))
     fi_detail = Table(
-        [[Paragraph("<b>A/C</b>",         small_style), Paragraph("<b>Flight Time</b>", small_style), Paragraph("<b>Gate(Spot)</b>", small_style)],
+        [[Paragraph("<b>항공기</b>",         small_style), Paragraph("<b>비행시간</b>", small_style), Paragraph("<b>게이트(스팟)</b>", small_style)],
          [Paragraph(f"{fd['ac_type']} / {fd['ac_reg']}", body_style), Paragraph(fd["flight_time"], body_style), Paragraph(fd["gate_spot"], body_style)],
-         [Paragraph("<b>Schedule</b>",    small_style), Paragraph("<b>PAX</b>",         small_style), Paragraph("", small_style)],
+         [Paragraph("<b>스케줄</b>",    small_style), Paragraph("<b>승객 (PAX)</b>",         small_style), Paragraph("", small_style)],
          [Paragraph(fd["schedule"],       body_style),  Paragraph(fd["pax"],            body_style),  Paragraph("", body_style)]],
         colWidths=[65*mm, 70*mm, 45*mm]
     )
@@ -1235,7 +1239,7 @@ def build_pdf():
     story.append(Spacer(1, 5*mm))
 
     # ── Weather
-    story.append(section_header("Weather"))
+    story.append(section_header("기상"))
     story.append(Spacer(1, 3*mm))
     for key in ("departure","arrival","alternate","enroute","turbulence"):
         blk = wd[key]
@@ -1246,82 +1250,82 @@ def build_pdf():
     story.append(Spacer(1, 2*mm))
 
     # ── Security
-    story.append(section_header("Security"))
+    story.append(section_header("보안"))
     story.append(Spacer(1, 3*mm))
-    story.append(bullet("Emphasize that all crew are security staff."))
+    story.append(bullet("모든 승무원은 보안 요원임을 강조한다."))
     story.append(Spacer(1, 2*mm))
     story.append(alert_level_buttons(fd["alert_level"]))
     story.append(Spacer(1, 3*mm))
-    story.append(bold_bullet("Cockpit Entry Procedure (Two-Crew Rule)"))
-    story.append(sub_indent("Intercom call → Authorization by flight crew (pre-arranged code word if required by PIC)"))
-    story.append(sub_indent("Flight crew may request crew member's name if in doubt – names can be confirmed during Joint Briefing"))
-    story.append(sub_indent("Cabin crew must confirm no passenger is in the Clear Zone"))
-    story.append(sub_indent("Close curtain in front of cockpit door → pre-arranged knocks → enter normal access code on keypad"))
-    story.append(sub_indent("A cabin crew must be present at cockpit door to monitor entry/exit status"))
-    story.append(sub_indent("Cockpit door unlocked via Flight Deck Door Lock Panel (Boeing) / Cockpit Door Control Panel (Airbus), or manually after camera/peep hole check"))
+    story.append(bold_bullet("조종실 진입 절차 (Two-Crew Rule)"))
+    story.append(sub_indent("인터콤 호출 → 운항승무원 승인 (기장이 요구 시 사전 약속 코드워드)"))
+    story.append(sub_indent("의심 시 운항승무원이 승무원 성명을 확인할 수 있음 – 합동 브리핑 시 성명 확인 가능"))
+    story.append(sub_indent("객실승무원은 Clear Zone에 승객이 없음을 확인해야 함"))
+    story.append(sub_indent("조종실 문 앞 커튼 닫기 → 사전 약속 노크 → 키패드에 정상 출입 코드 입력"))
+    story.append(sub_indent("객실승무원 1명이 조종실 문에 대기하여 출입 상태를 감시해야 함"))
+    story.append(sub_indent("조종실 문 해제는 Flight Deck Door Lock Panel (Boeing) / Cockpit Door Control Panel (Airbus)로 하거나, 카메라/피프홀 확인 후 수동 해제"))
     story.append(Spacer(1, 3*mm))
-    story.append(bold_bullet("Emergency Alert Signal"))
-    story.append(sub_indent('Push "EMER" – Interphone call to cockpit is strictly prohibited during sterile phase'))
+    story.append(bold_bullet("비상 경보 신호"))
+    story.append(sub_indent('Push "EMER" – Sterile 단계 중 조종실로의 인터폰 호출은 엄격히 금지'))
     story.append(Spacer(1, 5*mm))
 
     # ── Sterile Cockpit
-    story.append(section_header("Sterile Cockpit Procedure"))
+    story.append(section_header("Sterile Cockpit 절차"))
     story.append(Spacer(1, 3*mm))
-    story.append(bullet("Below 10,000 feet – No non-essential communication"))
-    story.append(bullet("Emergency Alert Signal: Push EMER only for genuine emergencies"))
+    story.append(bullet("10,000 ft 미만 – 비필수 통신 금지"))
+    story.append(bullet("비상 경보 신호: 실제 비상 시에만 EMER 누름"))
     story.append(Spacer(1, 5*mm))
 
     # ── Emergency Procedure
-    story.append(section_header("Emergency Procedure"))
+    story.append(section_header("비상 절차"))
     story.append(Spacer(1, 3*mm))
-    story.append(bold_bullet("Rejected Takeoff"))
-    story.append(sub_indent("Remain at jump seat with harness fastened until aircraft completely stopped"))
-    story.append(sub_indent("Await PIC announcement before any action"))
+    story.append(bold_bullet("이륙 중단 (Rejected Takeoff)"))
+    story.append(sub_indent("항공기가 완전히 정지할 때까지 점프시트에서 하네스를 체결한 채 대기"))
+    story.append(sub_indent("기장 방송 전까지 어떠한 조치도 하지 않음"))
     story.append(Spacer(1, 3*mm))
-    story.append(bold_bullet("PA & Evacuation Signal"))
+    story.append(bold_bullet("PA 및 비상탈출 신호"))
     story.append(Spacer(1, 2*mm))
     story.append(pa_signal_table())
     story.append(Spacer(1, 3*mm))
-    story.append(bold_bullet("Brace Signal (Below 1,000 ft AGL – approx. 1 min before landing)"))
+    story.append(bold_bullet("Brace 신호 (1,000 ft AGL 미만 – 착륙 약 1분 전)"))
     story.append(Spacer(1, 2*mm))
     story.append(brace_signal_table())
     story.append(Spacer(1, 5*mm))
 
     # ── Crew Coordination
-    story.append(section_header("Crew Coordination"))
+    story.append(section_header("승무원 협조"))
     story.append(Spacer(1, 3*mm))
-    story.append(bullet("Temperature Control"))
+    story.append(bullet("온도 조절"))
     story.append(Spacer(1, 1*mm))
-    story.append(bullet(f"Taxi Time & Ready Signal – {TAXI_TIME}"))
+    story.append(bullet(f"택시 시간 & Ready Signal – {TAXI_TIME}"))
     story.append(Spacer(1, 1*mm))
-    story.append(bullet("PA Monitoring"))
+    story.append(bullet("PA 모니터링"))
     story.append(Spacer(1, 1*mm))
-    story.append(bullet("Unruly Passenger – Notify cockpit immediately"))
+    story.append(bullet("난동 승객 – 즉시 조종실에 통보"))
     story.append(Spacer(1, 1*mm))
-    story.append(bullet("CABIN LOG – Any item affecting airworthiness must be reported to PIC without exception"))
+    story.append(bullet("CABIN LOG – 감항성에 영향을 주는 사항은 예외 없이 기장에게 보고"))
     story.append(Spacer(1, 1*mm))
-    story.append(bullet("Timing of In-flight Services – To be conducted in coordination with PIC"))
+    story.append(bullet("기내 서비스 시기 – 기장과 협의하여 실시"))
     story.append(Spacer(1, 5*mm))
 
     # ── Pilot Memo
-    story.append(section_header("Pilot Memo"))
+    story.append(section_header("조종사 메모"))
     story.append(Spacer(1, 3*mm))
 
-    story.append(wx_section_title("A. Fuel Calculation  (Units: LBS, No Rounding Up)"))
+    story.append(wx_section_title("A. 연료 계산  (단위: LBS, 올림 없음)"))
     story.append(Spacer(1, 2*mm))
     story.append(pilot_memo_fuel_table())
     story.append(Spacer(1, 2*mm))
     story.append(Paragraph(
-        "※ Buffer values (+10/+20/+30 min) estimated from actual trip fuel burn rate. Verify against actual fuel flow.",
+        "※ Buffer 값(+10/+20/+30분)은 실제 Trip Fuel 소모율로 추정. 실제 Fuel Flow와 대조 확인할 것.",
         memo_note_style))
     story.append(Spacer(1, 4*mm))
 
-    story.append(wx_section_title("B. Required Minimum Oil"))
+    story.append(wx_section_title("B. 필요 최소 오일"))
     story.append(Spacer(1, 2*mm))
     story.append(pilot_memo_oil_table())
     story.append(Spacer(1, 2*mm))
     story.append(Paragraph(
-        f"※ OAT at cruise = {OAT_CRUISE}°C (from FPL wind/temp summary). Flight Time = {FT_HOURS:.2f}h.",
+        f"※ 순항 OAT = {OAT_CRUISE}°C (FPL 바람/온도 요약). 비행시간 = {FT_HOURS:.2f}h.",
         memo_note_style))
     story.append(Spacer(1, 5*mm))
 `;
@@ -1330,11 +1334,11 @@ def build_pdf():
 // Does not alter any Joint Briefing section above (Flight Info / Weather / Security /
 // Sterile Cockpit / Emergency / Crew Coordination / Pilot Memo are untouched).
 const PART_C_FIXED = `
-    # ── NOTAM Briefing Summary (appended by Integrated Flight Ops Briefer — optional,
-    #    does not modify any Joint Briefing section above)
+    # ── NOTAM 브리핑 요약 (Integrated Flight Ops Briefer가 선택적으로 추가 —
+    #    위 Joint Briefing 섹션은 수정하지 않음)
     if NOTAM_SUMMARY_TEXT.strip():
         _notam_style = ParagraphStyle("notam_sum", fontSize=8.5, fontName="HYSMyeongJo-Medium", textColor=DARK, leading=13)
-        story.append(section_header("NOTAM Briefing Summary"))
+        story.append(section_header("NOTAM 브리핑 요약"))
         story.append(Spacer(1, 3*mm))
         for _line in NOTAM_SUMMARY_TEXT.strip().split("\\n"):
             _line = _html.escape(_line.strip())
@@ -1350,7 +1354,7 @@ const PART_D_FIXED = `
     story.append(HRFlowable(width="100%", thickness=0.5, color=colors.lightgrey))
     story.append(Spacer(1, 2*mm))
     story.append(Paragraph(
-        f"{fd['airline']} – Joint Briefing System | For Internal Use Only | Generated: {fd['date']}",
+        f"{fd['airline']} – 합동 브리핑 시스템 | 내부용 | 생성일: {fd['date']}",
         small_style))
 
     doc.build(story)
@@ -1374,7 +1378,7 @@ function buildScript(){
   const ftHours = m ? (parseInt(m[1],10) + parseInt(m[2],10)/60) : 2.0;
 
   const header = `"""
-Joint Briefing PDF Generator – Full Version with Pilot Memo
+합동 브리핑 PDF Generator – Full Version with Pilot Memo (한글)
 """
 
 from reportlab.lib.pagesizes import A4
@@ -1420,21 +1424,21 @@ FT_HOURS   = ${ftHours}     # actual flight time (hours)
 
 if OAT_CRUISE < 0 and FT_HOURS < 14:
     OIL_MIN  = 13
-    OIL_RULE = "OAT < 0°C & Flight Time < 14h → 13 qts"
+    OIL_RULE = "OAT < 0°C & 비행시간 < 14h → 13 qts"
 elif OAT_CRUISE < 0 and FT_HOURS >= 14:
     OIL_MIN  = 6 + 0.5 * FT_HOURS
-    OIL_RULE = f"OAT < 0°C & Flight Time ≥ 14h → 6 + 0.5×{FT_HOURS:.1f}h = {OIL_MIN:.1f} qts"
+    OIL_RULE = f"OAT < 0°C & 비행시간 ≥ 14h → 6 + 0.5×{FT_HOURS:.1f}h = {OIL_MIN:.1f} qts"
 elif OAT_CRUISE >= 0 and FT_HOURS < 8:
     OIL_MIN  = 10
-    OIL_RULE = "OAT ≥ 0°C & Flight Time < 8h → 10 qts"
+    OIL_RULE = "OAT ≥ 0°C & 비행시간 < 8h → 10 qts"
 else:
     OIL_MIN  = 6 + 0.5 * FT_HOURS
-    OIL_RULE = f"OAT ≥ 0°C & Flight Time ≥ 8h → 6 + 0.5×{FT_HOURS:.1f}h = {OIL_MIN:.1f} qts"
+    OIL_RULE = f"OAT ≥ 0°C & 비행시간 ≥ 8h → 6 + 0.5×{FT_HOURS:.1f}h = {OIL_MIN:.1f} qts"
 
 # ── OUTPUT PATH ──────────────────────────────────────────
 OUTPUT_PATH = f"JointBriefing_{FLIGHT_DATA['flight_no'].replace(' ','')}_{FLIGHT_DATA['date']}.pdf"
 
-# ── NOTAM BRIEFING SUMMARY (optional, appended as final section) ─
+# ── NOTAM 브리핑 요약 (선택, 마지막 섹션으로 추가) ─
 NOTAM_SUMMARY_TEXT = ${pyStr(notamText)}
 `;
 
@@ -1470,21 +1474,21 @@ function buildPdfHtml(){
   }).join('');
 
   const notamSec = notam ? `
-    <div class="pdf-sec">NOTAM Briefing Summary</div>
+    <div class="pdf-sec">NOTAM 브리핑 요약</div>
     <div class="pdf-notam">${escapeHtml(notam)}</div>` : '';
 
   return `<div class="pdfdoc">
-    <h1 class="pdf-title">Joint Briefing</h1>
-    <p class="pdf-sub">${escapeHtml(fd.airline)} – Joint Briefing System | For Internal Use Only | Generated: ${escapeHtml(fd.date)}</p>
+    <h1 class="pdf-title">합동 브리핑</h1>
+    <p class="pdf-sub">${escapeHtml(fd.airline)} – 합동 브리핑 시스템 | 내부용 | 생성일: ${escapeHtml(fd.date)}</p>
 
     <div class="pdf-grid">
-      <div><div class="lbl">Date</div>${escapeHtml(fd.date)}</div>
-      <div><div class="lbl">Flight No</div>${escapeHtml((fd.flight_no||'').split(' ').pop())}</div>
+      <div><div class="lbl">날짜</div>${escapeHtml(fd.date)}</div>
+      <div><div class="lbl">편명</div>${escapeHtml((fd.flight_no||'').split(' ').pop())}</div>
       <div><div class="lbl">DEP</div>${escapeHtml(fd.dep)}</div>
       <div><div class="lbl">ARR</div>${escapeHtml(fd.arr)}</div>
     </div>
 
-    <div class="pdf-sec">Flight Information</div>
+    <div class="pdf-sec">비행 정보</div>
     <div class="pdf-fi">
       <div class="fn">${escapeHtml(fd.flight_no)}</div>
       <div>
@@ -1493,91 +1497,91 @@ function buildPdfHtml(){
       </div>
     </div>
     <table class="pdf-table">
-      <tr><th>A/C</th><th>Flight Time</th><th>Gate (Spot)</th></tr>
+      <tr><th>항공기</th><th>비행시간</th><th>게이트 (스팟)</th></tr>
       <tr><td>${escapeHtml(fd.ac_type)} / ${escapeHtml(fd.ac_reg)}</td><td>${escapeHtml(fd.flight_time)}</td><td>${escapeHtml(fd.gate_spot)}</td></tr>
-      <tr><th>Schedule</th><th colspan="2">PAX</th></tr>
+      <tr><th>스케줄</th><th colspan="2">승객 (PAX)</th></tr>
       <tr><td>${escapeHtml(fd.schedule)}</td><td colspan="2">${escapeHtml(fd.pax)}</td></tr>
     </table>
 
-    <div class="pdf-sec">Weather</div>
+    <div class="pdf-sec">기상</div>
     ${wxBlocks}
 
-    <div class="pdf-sec">Security</div>
-    <div class="pdf-bullet">• Emphasize that all crew are security staff.</div>
-    <div class="pdf-bullet">• Alert Level</div>
+    <div class="pdf-sec">보안</div>
+    <div class="pdf-bullet">• 모든 승무원은 보안 요원임을 강조한다.</div>
+    <div class="pdf-bullet">• 경보 단계</div>
     <div class="pdf-alerts">${alerts}</div>
-    <div class="pdf-bullet"><b>• Cockpit Entry Procedure (Two-Crew Rule)</b></div>
-    <div class="pdf-indent">– Intercom call → Authorization by flight crew (pre-arranged code word if required by PIC)</div>
-    <div class="pdf-indent">– Flight crew may request crew member's name if in doubt – names can be confirmed during Joint Briefing</div>
-    <div class="pdf-indent">– Cabin crew must confirm no passenger is in the Clear Zone</div>
-    <div class="pdf-indent">– Close curtain in front of cockpit door → pre-arranged knocks → enter normal access code on keypad</div>
-    <div class="pdf-indent">– A cabin crew must be present at cockpit door to monitor entry/exit status</div>
-    <div class="pdf-indent">– Cockpit door unlocked via Flight Deck Door Lock Panel (Boeing) / Cockpit Door Control Panel (Airbus), or manually after camera/peep hole check</div>
-    <div class="pdf-bullet"><b>• Emergency Alert Signal</b></div>
-    <div class="pdf-indent">– Push "EMER" – Interphone call to cockpit is strictly prohibited during sterile phase</div>
+    <div class="pdf-bullet"><b>• 조종실 진입 절차 (Two-Crew Rule)</b></div>
+    <div class="pdf-indent">– 인터콤 호출 → 운항승무원 승인 (기장이 요구 시 사전 약속 코드워드)</div>
+    <div class="pdf-indent">– 의심 시 운항승무원이 승무원 성명을 확인할 수 있음 – 합동 브리핑 시 성명 확인 가능</div>
+    <div class="pdf-indent">– 객실승무원은 Clear Zone에 승객이 없음을 확인해야 함</div>
+    <div class="pdf-indent">– 조종실 문 앞 커튼 닫기 → 사전 약속 노크 → 키패드에 정상 출입 코드 입력</div>
+    <div class="pdf-indent">– 객실승무원 1명이 조종실 문에 대기하여 출입 상태를 감시해야 함</div>
+    <div class="pdf-indent">– 조종실 문 해제는 Flight Deck Door Lock Panel (Boeing) / Cockpit Door Control Panel (Airbus)로 하거나, 카메라/피프홀 확인 후 수동 해제</div>
+    <div class="pdf-bullet"><b>• 비상 경보 신호</b></div>
+    <div class="pdf-indent">– "EMER" 누름 – Sterile 단계 중 조종실로의 인터폰 호출은 엄격히 금지</div>
 
-    <div class="pdf-sec">Sterile Cockpit Procedure</div>
-    <div class="pdf-bullet">• Below 10,000 feet – No non-essential communication</div>
-    <div class="pdf-bullet">• Emergency Alert Signal: Push EMER only for genuine emergencies</div>
+    <div class="pdf-sec">Sterile Cockpit 절차</div>
+    <div class="pdf-bullet">• 10,000 ft 미만 – 비필수 통신 금지</div>
+    <div class="pdf-bullet">• 비상 경보 신호: 실제 비상 시에만 EMER 누름</div>
 
-    <div class="pdf-sec">Emergency Procedure</div>
-    <div class="pdf-bullet"><b>• Rejected Takeoff</b></div>
-    <div class="pdf-indent">– Remain at jump seat with harness fastened until aircraft completely stopped</div>
-    <div class="pdf-indent">– Await PIC announcement before any action</div>
-    <div class="pdf-bullet"><b>• PA &amp; Evacuation Signal</b></div>
+    <div class="pdf-sec">비상 절차</div>
+    <div class="pdf-bullet"><b>• 이륙 중단 (Rejected Takeoff)</b></div>
+    <div class="pdf-indent">– 항공기가 완전히 정지할 때까지 점프시트에서 하네스를 체결한 채 대기</div>
+    <div class="pdf-indent">– 기장 방송 전까지 어떠한 조치도 하지 않음</div>
+    <div class="pdf-bullet"><b>• PA 및 비상탈출 신호</b></div>
     <table class="pdf-table">
-      <tr><th>PIC Announcement</th><th>Cabin Crew Judgment</th><th>Cabin Crew Procedures</th></tr>
-      <tr><td>"This is the Captain"<br>"Remain seated, remain seated."</td><td>Not necessary to execute emergency evacuation.</td><td>Hold each original position to prepare subsequent mission.</td></tr>
-      <tr><td>"Attention, crew at station."</td><td>Expected to execute emergency evacuation.</td><td>Prepare emergency evacuation at each original position.</td></tr>
-      <tr><td>"This is the Captain. Evacuate, evacuate!"</td><td>Mandatory to execute emergency evacuation.</td><td>Conduct passenger's emergency evacuation.</td></tr>
+      <tr><th>기장 방송</th><th>객실승무원 판단</th><th>객실승무원 조치</th></tr>
+      <tr><td>"This is the Captain"<br>"Remain seated, remain seated."</td><td>비상탈출 실행 불필요.</td><td>각자 원래 위치에서 후속 임무 준비.</td></tr>
+      <tr><td>"Attention, crew at station."</td><td>비상탈출 실행 예상.</td><td>각자 원래 위치에서 비상탈출 준비.</td></tr>
+      <tr><td>"This is the Captain. Evacuate, evacuate!"</td><td>비상탈출 필수 실행.</td><td>승객 비상탈출 실시.</td></tr>
     </table>
-    <div class="pdf-bullet"><b>• Brace Signal (Below 1,000 ft AGL – approx. 1 min before landing)</b></div>
+    <div class="pdf-bullet"><b>• Brace 신호 (1,000 ft AGL 미만 – 착륙 약 1분 전)</b></div>
     <table class="pdf-table">
-      <tr><th>Flight Crew</th><th>Cabin Crew</th></tr>
-      <tr><td>Brace Signal: Cycle the seat belt sign (4 times chime bell)<br>PA: "Brace for impact, Brace for impact."</td><td>Shouting "Brace" – Fasten seat belt and harness, brace for impact until aircraft completely stopped.</td></tr>
-      <tr><td>Emergency Light / Emergency Exit Light: ON</td><td>Passenger Cabin Emergency Light: ON (at the appropriate time)</td></tr>
-      <tr><td colspan="2">Turn on the emergency light to assist in passenger evacuation.</td></tr>
+      <tr><th>운항승무원</th><th>객실승무원</th></tr>
+      <tr><td>Brace 신호: Seat Belt Sign 사이클 (차임벨 4회)<br>PA: "Brace for impact, Brace for impact."</td><td>"Brace" 외침 – 좌석벨트·하네스 체결, 항공기 완전 정지까지 brace</td></tr>
+      <tr><td>Emergency Light / Emergency Exit Light: ON</td><td>객실 Emergency Light: ON (적절한 시점에)</td></tr>
+      <tr><td colspan="2">승객 탈출을 돕기 위해 비상등을 켠다.</td></tr>
     </table>
 
-    <div class="pdf-sec">Crew Coordination</div>
-    <div class="pdf-bullet">• Temperature Control</div>
-    <div class="pdf-bullet">• Taxi Time &amp; Ready Signal – ${escapeHtml(fd.taxi_time)}</div>
-    <div class="pdf-bullet">• PA Monitoring</div>
-    <div class="pdf-bullet">• Unruly Passenger – Notify cockpit immediately</div>
-    <div class="pdf-bullet">• CABIN LOG – Any item affecting airworthiness must be reported to PIC without exception</div>
-    <div class="pdf-bullet">• Timing of In-flight Services – To be conducted in coordination with PIC</div>
+    <div class="pdf-sec">승무원 협조</div>
+    <div class="pdf-bullet">• 온도 조절</div>
+    <div class="pdf-bullet">• 택시 시간 &amp; Ready Signal – ${escapeHtml(fd.taxi_time)}</div>
+    <div class="pdf-bullet">• PA 모니터링</div>
+    <div class="pdf-bullet">• 난동 승객 – 즉시 조종실에 통보</div>
+    <div class="pdf-bullet">• CABIN LOG – 감항성에 영향을 주는 사항은 예외 없이 기장에게 보고</div>
+    <div class="pdf-bullet">• 기내 서비스 시기 – 기장과 협의하여 실시</div>
 
-    <div class="pdf-sec">Pilot Memo</div>
-    <div class="pdf-subsec">A. Fuel Calculation  (Units: LBS, No Rounding Up)</div>
+    <div class="pdf-sec">조종사 메모</div>
+    <div class="pdf-subsec">A. 연료 계산  (단위: LBS, 올림 없음)</div>
     <table class="pdf-table">
-      <tr><th>Item</th><th>Formula</th><th class="num">Value (LBS)</th></tr>
-      <tr><td>Final Reserve</td><td>From FPL</td><td class="num">${fmtLbs(c.finalRes)}</td></tr>
+      <tr><th>항목</th><th>공식</th><th class="num">값 (LBS)</th></tr>
+      <tr><td>Final Reserve</td><td>FPL 기준</td><td class="num">${fmtLbs(c.finalRes)}</td></tr>
       <tr><td>Emergency Fuel</td><td>= Final Reserve</td><td class="num">${fmtLbs(c.EMERGENCY_FUEL)}</td></tr>
       <tr><td>Min Fuel</td><td>= 1.3 × Final Reserve</td><td class="num">${fmtLbs(c.MIN_FUEL)}</td></tr>
-      <tr><td>ALTN Fuel</td><td>From FPL</td><td class="num">${fmtLbs(c.altn)}</td></tr>
+      <tr><td>ALTN Fuel</td><td>FPL 기준</td><td class="num">${fmtLbs(c.altn)}</td></tr>
       <tr class="hi"><td>Divert Min Fuel</td><td>= ALTN Fuel + Min Fuel</td><td class="num">${fmtLbs(c.DIVERT_MIN_FUEL)}</td></tr>
-      <tr><td>Divert Min +10min</td><td>= Divert Min + ~10min burn</td><td class="num">${fmtLbs(c.BUF_10)}</td></tr>
-      <tr><td>Divert Min +20min</td><td>= Divert Min + ~20min burn</td><td class="num">${fmtLbs(c.BUF_20)}</td></tr>
-      <tr><td>Divert Min +30min</td><td>= Divert Min + ~30min burn</td><td class="num">${fmtLbs(c.BUF_30)}</td></tr>
-      <tr><td>Planned T/O Fuel</td><td>From FPL</td><td class="num">${fmtLbs(c.tof)}</td></tr>
+      <tr><td>Divert Min +10min</td><td>= Divert Min + 약 10분 burn</td><td class="num">${fmtLbs(c.BUF_10)}</td></tr>
+      <tr><td>Divert Min +20min</td><td>= Divert Min + 약 20분 burn</td><td class="num">${fmtLbs(c.BUF_20)}</td></tr>
+      <tr><td>Divert Min +30min</td><td>= Divert Min + 약 30분 burn</td><td class="num">${fmtLbs(c.BUF_30)}</td></tr>
+      <tr><td>Planned T/O Fuel</td><td>FPL 기준</td><td class="num">${fmtLbs(c.tof)}</td></tr>
     </table>
-    <p class="pdf-note">※ Buffer values (+10/+20/+30 min) estimated from actual trip fuel burn rate. Verify against actual fuel flow.</p>
+    <p class="pdf-note">※ Buffer 값(+10/+20/+30분)은 실제 Trip Fuel 소모율로 추정. 실제 Fuel Flow와 대조 확인할 것.</p>
 
-    <div class="pdf-subsec">B. Required Minimum Oil</div>
+    <div class="pdf-subsec">B. 필요 최소 오일</div>
     <table class="pdf-table">
-      <tr><th>Condition</th><th>Rule</th><th>Min Oil</th></tr>
-      <tr><td>OAT &lt; 0°C &amp; F/T &lt; 14h</td><td>13 qts flat</td><td>13 qts</td></tr>
-      <tr><td>OAT &lt; 0°C &amp; F/T ≥ 14h</td><td>6 + 0.5 qt/h</td><td>variable</td></tr>
-      <tr><td>OAT ≥ 0°C &amp; F/T &lt; 8h</td><td>10 qts flat</td><td>10 qts</td></tr>
-      <tr><td>OAT ≥ 0°C &amp; F/T ≥ 8h</td><td>6 + 0.5 qt/h</td><td>variable</td></tr>
-      <tr class="ok"><td>THIS FLIGHT</td><td>OAT ${c.oat}°C / F/T ${c.ftHours.toFixed(2)}h → ${escapeHtml(c.OIL_RULE)}</td><td>${Math.round(c.OIL_MIN)} qts</td></tr>
+      <tr><th>조건</th><th>규칙</th><th>최소 오일</th></tr>
+      <tr><td>OAT &lt; 0°C &amp; 비행시간 &lt; 14h</td><td>13 qts 고정</td><td>13 qts</td></tr>
+      <tr><td>OAT &lt; 0°C &amp; 비행시간 ≥ 14h</td><td>6 + 0.5 qt/h</td><td>가변</td></tr>
+      <tr><td>OAT ≥ 0°C &amp; 비행시간 &lt; 8h</td><td>10 qts 고정</td><td>10 qts</td></tr>
+      <tr><td>OAT ≥ 0°C &amp; 비행시간 ≥ 8h</td><td>6 + 0.5 qt/h</td><td>가변</td></tr>
+      <tr class="ok"><td>본 비행</td><td>OAT ${c.oat}°C / 비행시간 ${c.ftHours.toFixed(2)}h → ${escapeHtml(c.OIL_RULE)}</td><td>${Math.round(c.OIL_MIN)} qts</td></tr>
     </table>
-    <p class="pdf-note">※ OAT at cruise = ${c.oat}°C (from FPL wind/temp summary). Flight Time = ${c.ftHours.toFixed(2)}h.</p>
+    <p class="pdf-note">※ 순항 OAT = ${c.oat}°C (FPL 바람/온도 요약). 비행시간 = ${c.ftHours.toFixed(2)}h.</p>
 
     ${notamSec}
 
     <hr style="border:none;border-top:1px solid #ccc;margin:18px 0 8px">
-    <p class="pdf-sub" style="margin:0">${escapeHtml(fd.airline)} – Joint Briefing System | For Internal Use Only | Generated: ${escapeHtml(fd.date)}</p>
+    <p class="pdf-sub" style="margin:0">${escapeHtml(fd.airline)} – 합동 브리핑 시스템 | 내부용 | 생성일: ${escapeHtml(fd.date)}</p>
   </div>`;
 }
 
@@ -1680,8 +1684,8 @@ function updateCombinePreview(){
   const fd = gatherFlightData();
   const notam = document.getElementById('notamSummary').value.trim();
   document.getElementById('combinePreview').innerHTML =
-    `Flight: <b>${escapeHtml(fd.flight_no || '(미입력)')}</b> ${escapeHtml(fd.route_label)} on ${escapeHtml(fd.date)} · Alert ${escapeHtml(fd.alert_level)}<br>
-     NOTAM 요약: ${notam ? escapeHtml(notam.length.toLocaleString()) + '자 · PDF 맨 뒤에 NOTAM Briefing Summary 포함' : '비어있음 — Joint Briefing 본문만 생성'}<br>
+    `편명: <b>${escapeHtml(fd.flight_no || '(미입력)')}</b> ${escapeHtml(fd.route_label)} · ${escapeHtml(fd.date)} · 경보 ${escapeHtml(fd.alert_level)}<br>
+     NOTAM 요약: ${notam ? escapeHtml(notam.length.toLocaleString()) + '자 · PDF 맨 뒤에 NOTAM 브리핑 요약 포함' : '비어있음 — 합동 브리핑 본문만 생성'}<br>
      다운로드 파일: <code>${escapeHtml(pdfFileName())}</code>`;
 }
 
