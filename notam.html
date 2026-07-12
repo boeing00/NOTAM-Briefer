@@ -752,28 +752,92 @@
         }
 
         // ============ PDF 처리 (원문은 화면에 표시하지 않음) ============
+        const PDFJS_VER = '3.11.174';
+        const PDFJS_CDN = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VER}`;
+        const PDFJS_DIST = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VER}`;
+
+        function waitForPdfJs(timeoutMs){
+            if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+            const limit = timeoutMs || 12000;
+            return new Promise((resolve, reject) => {
+                const t0 = Date.now();
+                const id = setInterval(() => {
+                    if (window.pdfjsLib){ clearInterval(id); resolve(window.pdfjsLib); }
+                    else if (Date.now() - t0 > limit){
+                        clearInterval(id);
+                        reject(new Error("PDF.js 라이브러리 로드 실패 — 네트워크/CDN을 확인하세요."));
+                    }
+                }, 40);
+            });
+        }
+        function pdfDocOptions(data, extra){
+            return Object.assign({
+                data,
+                cMapUrl: PDFJS_DIST + '/cmaps/',
+                cMapPacked: true,
+                standardFontDataUrl: PDFJS_DIST + '/standard_fonts/',
+                useSystemFonts: true
+            }, extra || {});
+        }
+        async function openPdfDocument(pdfjsLib, data){
+            pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_CDN + '/pdf.worker.min.js';
+            try {
+                return await pdfjsLib.getDocument(pdfDocOptions(data)).promise;
+            } catch (err) {
+                const msg = (err && err.message) ? err.message : String(err);
+                if (/worker|fetch|dynamically imported|cannot load|Failed to fetch/i.test(msg) ||
+                    (err && err.name === 'UnknownErrorException')){
+                    return await pdfjsLib.getDocument(pdfDocOptions(data, { disableWorker: true })).promise;
+                }
+                throw err;
+            }
+        }
+        function itemsToText(items){
+            let out = '';
+            for (let i = 0; i < items.length; i++){
+                const t = items[i];
+                out += t.str || '';
+                out += t.hasEOL ? '\n' : ' ';
+            }
+            return out;
+        }
+        function friendlyPdfError(err){
+            const msg = (err && err.message) ? err.message : String(err);
+            if (/password/i.test(msg)) return "암호로 보호된 PDF입니다. 암호 없는 복사본으로 다시 올려주세요.";
+            if (/Invalid PDF|Missing PDF|format Error|corrupted|PDFDocument/i.test(msg))
+                return "손상되었거나 PDF가 아닌 파일입니다.";
+            return msg;
+        }
         async function handlePDF(input){
             const file = input.files[0];
             if (!file) return;
             $('pdfStatus').innerHTML = `<span class="loading-spinner"></span> 추출 중…`;
             try {
-                const pdfjsLib = window.pdfjsLib;
-                if (!pdfjsLib) throw new Error("PDF.js 라이브러리 로드 실패");
-                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                if (file.type && file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name || '')){
+                    throw new Error("PDF 파일만 업로드할 수 있습니다.");
+                }
+                const pdfjsLib = await waitForPdfJs();
                 const arrayBuffer = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                const data = new Uint8Array(arrayBuffer);
+                const pdf = await openPdfDocument(pdfjsLib, data);
                 let fullText = "";
                 for (let i = 1; i <= pdf.numPages; i++){
                     const page = await pdf.getPage(i);
                     const content = await page.getTextContent();
-                    fullText += content.items.map(t => t.str).join(" ") + "\n";
+                    fullText += itemsToText(content.items) + "\n";
                 }
                 $('packageInput').value = fullText;                 // 내부 보관(숨김)
                 setDocCard(file.name, pdf.numPages, fullText.length); // 카드에는 요약만
-                $('pdfStatus').innerText = `✅ 로드 완료 · 분석 준비됨`;
-                $('btnAnalyze').disabled = fullText.trim().length === 0;
+                if (!fullText.trim()){
+                    $('pdfStatus').innerText = `⚠ 텍스트 0자 · ${pdf.numPages} pages — 스캔/이미지 PDF는 추출할 수 없습니다. 원문 붙여넣기를 사용하세요.`;
+                    $('btnAnalyze').disabled = true;
+                } else {
+                    $('pdfStatus').innerText = `✅ 로드 완료 · 분석 준비됨`;
+                    $('btnAnalyze').disabled = false;
+                }
             } catch (err){
-                $('pdfStatus').innerText = "❌ 오류: " + err.message;
+                $('pdfStatus').innerText = "❌ 오류: " + friendlyPdfError(err);
+                $('btnAnalyze').disabled = true;
             } finally {
                 input.value = "";
             }
