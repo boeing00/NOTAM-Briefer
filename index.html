@@ -257,6 +257,7 @@
         .raw-toggle>summary::-webkit-details-marker{display:none}
         .raw-toggle>summary::before{content:"▸ "}
         .raw-toggle[open]>summary::before{content:"▾ "}
+        .raw-src{color:#7fdcee;font-family:"IBM Plex Sans KR";font-weight:400}
         .raw-pre{font-family:"IBM Plex Mono";font-size:.62rem;line-height:1.45;color:#bfe9f2;background:#080e16;border:1px solid var(--line);border-radius:6px;padding:.55rem .65rem;margin:.4rem 0 0;white-space:pre-wrap;word-break:break-word;max-height:220px;overflow:auto}
 
         /* 사용 RWY/TWY 필터 */
@@ -1356,8 +1357,9 @@ TEXT:
                 ? `<div class="restore-note" style="color:var(--amber);border-color:rgba(242,169,59,.35);background:rgba(242,169,59,.06)">⚙ <b style="color:var(--amber)">로컬 파싱 모드</b> · API Key 없이 NOTAM <b>${notams.length}건</b> 추출 — AI 한글 요약 없음(원문 표시), 분류는 ☁공유 DB·로컬 규칙 적용. 상단에 Gemini Key를 입력하면 AI 분석을 사용합니다.</div>`
                 : "";
             const newTotal = notams.filter(n => n._new).length;
-            const newNote = (newTotal || d._cloudPurged)
-                ? `<div class="restore-note" style="color:var(--green);border-color:rgba(47,208,138,.35);background:rgba(47,208,138,.06)">${newTotal ? `🆕 공유 DB에 <b style="color:var(--green)">처음 등록되는 NOTAM ${newTotal}건</b> — 카드의 NEW 표시` : ''}${newTotal && d._cloudPurged ? ' · ' : ''}${d._cloudPurged ? `🧹 새 패키지에 없는(취소·만료) 공유 분류 <b>${d._cloudPurged}건</b> 자동 정리됨` : ''}</div>`
+            const skipNote = d._cloudStaleSkip ? `이 패키지보다 최신인 공유자료가 있는 공항 <b>${d._cloudStaleSkip}곳</b>은 덮어쓰지 않고 건너뜀` : '';
+            const newNote = (newTotal || d._cloudPurged || skipNote)
+                ? `<div class="restore-note" style="color:var(--green);border-color:rgba(47,208,138,.35);background:rgba(47,208,138,.06)">${newTotal ? `🆕 공유 DB에 <b style="color:var(--green)">처음 등록되는 NOTAM ${newTotal}건</b> — 카드의 NEW 표시` : ''}${newTotal && d._cloudPurged ? ' · ' : ''}${d._cloudPurged ? `🧹 새 패키지에 없는(취소·만료) 공유 분류 <b>${d._cloudPurged}건</b> 자동 정리됨` : ''}${(newTotal || d._cloudPurged) && skipNote ? ' · ' : ''}${skipNote}</div>`
                 : "";
             const cloudTotal = notams.filter(n => n._cloud).length;
             const cloudNote = cloudTotal
@@ -1419,14 +1421,16 @@ TEXT:
             if (n.reason) meta.push(escapeHtml(n.reason));
             const newChip = n._new ? `<span class="chip chip--new" title="공유 DB에 처음 등록되는 NOTAM">🆕 NEW</span>` : '';
             const cloudChip = n._cloudSet ? `<span class="chip chip--cloud" title="공유 DB의 분류가 적용됨">☁ 공유분류</span>` : '';
-            const cloudMeta = n._cloud
+            const cloudMeta = (n._cloud && (n._cloud.sev || n._cloud.comment))
                 ? `<span class="cloud-meta">☁ <b>${escapeHtml(n._cloud.by)}</b>${n._cloud.at ? ' · ' + escapeHtml(n._cloud.at.toISOString().slice(0,10)) : ''}${n._cloud.comment ? ' — ' + escapeHtml(n._cloud.comment) : ''}${n._userSet ? ' <span class="edited">(내 지정이 우선 적용됨)</span>' : ''}</span>`
                 : (n._userSet && n._myComment ? `<span class="cloud-meta">✎ 내 사유 — ${escapeHtml(n._myComment)}</span>` : '');
             const metaHtml = (meta.length || n._userSet || cloudMeta)
                 ? `<p class="alert__meta">${meta.join(' · ')}${n._userSet ? (meta.length ? ' ' : '') + '<span class="edited">· 중요도 수정됨</span>' : ''}${cloudMeta}</p>`
                 : '';
-            const rawText = rawFromSource(n);
-            const rawHtml = rawText ? `<details class="raw-toggle"><summary>원문 보기${n.notam_id ? ' · ' + escapeHtml(n.notam_id) : ''}</summary><pre class="raw-pre">${escapeHtml(rawText)}</pre></details>` : '';
+            const rawInfo = rawFromSource(n);
+            const rawText = rawInfo.text;
+            // 원문은 항상 토글을 노출(있으면 표시, 없으면 안내) — 카드마다 있다없다 하지 않도록 일관성 유지
+            const rawHtml = `<details class="raw-toggle"><summary>원문 보기${n.notam_id ? ' · ' + escapeHtml(n.notam_id) : ''}${rawInfo.fromCloud ? ' <span class="raw-src">(☁ 공유자료)</span>' : ''}</summary><pre class="raw-pre">${rawText ? escapeHtml(rawText) : '이 NOTAM의 원문을 찾지 못했습니다 · 원문 문서에서 번호나 형식이 달라졌을 수 있습니다.'}</pre></details>`;
             const i = n._i;
             const sevSel = (typeof i === 'number') ? `<div class="sevsel" title="중요도 직접 변경">
                     <button class="sevsel__b ${sev==='warning'?'on on--warn':''}" onclick="setSeverity(${i},'warning')">W</button>
@@ -1445,19 +1449,40 @@ TEXT:
                 ${n.detail ? `<p class="alert__body">${escapeHtml(n.detail)}</p>` : ''}${metaHtml}${rawHtml}</div>`;
         }
 
-        // NOTAM 원문: 모델의 raw를 우선, 없으면 원문 텍스트에서 번호로 추출
-        function rawFromSource(n){
+        // NOTAM 원문 로컬 재구성: 원문에서 ID 정확매칭 → 관대매칭(공백 허용) → feature/title 단서
+        function _idToleranceRegex(id){
+            const esc = String(id).toUpperCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            return new RegExp(esc.split('').join('\\s*'));
+        }
+        function reconstructRawLocal(n){
             if (n.raw && String(n.raw).trim()) return String(n.raw).trim();
             const id = (n.notam_id || '').trim();
-            if (!id) return '';
             const src = ($('packageInput') && $('packageInput').value) || '';
-            const idx = src.indexOf(id);
+            let idx = -1;
+            if (id && src){
+                idx = src.toUpperCase().indexOf(id.toUpperCase());
+                if (idx < 0){
+                    try { const m = _idToleranceRegex(id).exec(src.toUpperCase()); if (m) idx = m.index; } catch(_){}
+                }
+            }
+            if (idx < 0 && src){
+                const hint = (n.feature || '').trim() || (n.title || '').split(' ').slice(0, 4).join(' ').trim();
+                if (hint && hint.length >= 4) idx = src.toUpperCase().indexOf(hint.toUpperCase());
+            }
             if (idx < 0) return '';
             const seg = src.slice(idx, idx + 900);
             const re = /[A-Z]\d{4}\/\d{2}/g;
             let mm, cut = seg.length, first = true;
             while ((mm = re.exec(seg))){ if (first){ first = false; continue; } cut = mm.index; break; }
             return seg.slice(0, cut).trim();
+        }
+        // NOTAM 원문 반환(렌더용): ①로컬 재구성 ②(로컬에 없으면) ☁공유 DB에 다른 사용자가 올려둔 원문으로 최후 폴백
+        function rawFromSource(n){
+            const local = reconstructRawLocal(n);
+            if (local) return { text: local, fromCloud: false };
+            const k = notamKey(n);
+            if (k){ const c = cloudCache[cloudDocId(k)]; if (c && c.raw) return { text: String(c.raw).trim(), fromCloud: true }; }
+            return { text: '', fromCloud: false };
         }
 
         // ============ ☁ 공유 NOTAM 분류 DB (Firebase Firestore) ============
@@ -1588,8 +1613,26 @@ TEXT:
             return String(key).replace(/::/g, '__').replace(/[\/\s#?%\[\]]+/g, '_').slice(0, 400); // 한글 3B×400 < 1500B 한도
         }
 
-        // 현재 NOTAM 목록의 공유 분류를 비동기 조회 → 도착하면 재렌더
-        // + 공항별 인덱스(airports/{ICAO}) 대조: 🆕 신규 표시, 새 패키지에서 사라진 번호의 분류는 자동 삭제(만료 정리)
+        // 항공사 패키지 특유의 발행 시각 표기에서 패키지 날짜(epoch ms) 추출 — 최신판 판별 기준
+        const MONTH3 = { JAN:0, FEB:1, MAR:2, APR:3, MAY:4, JUN:5, JUL:6, AUG:7, SEP:8, OCT:9, NOV:10, DEC:11 };
+        function extractPackageDate(text){
+            if (!text) return Date.now();
+            const U = String(text).toUpperCase();
+            const cands = [];
+            let m = U.match(/PRINTED\s*AT\s*(\d{1,2})([A-Z]{3})(\d{2})\s+(\d{2})(\d{2})Z/);
+            if (m && MONTH3[m[2]] !== undefined) cands.push(Date.UTC(2000 + (+m[3]), MONTH3[m[2]], +m[1], +m[4], +m[5]));
+            m = U.match(/(?:CREATED|GENERATED)\s*DATE\s*TIME:\s*(\d{1,2})\s+([A-Z]{3})[A-Z]*\s+(\d{4})\s+(\d{2}):(\d{2})/);
+            if (m && MONTH3[m[2]] !== undefined) cands.push(Date.UTC(+m[3], MONTH3[m[2]], +m[1], +m[4], +m[5]));
+            const re2 = /(?:CREATED|GENERATED)\s*DATE\s*TIME:\s*(\d{1,2})\s+([A-Z]{3})[A-Z]*\s+(\d{4})\s+(\d{2}):(\d{2})/g;
+            while ((m = re2.exec(U))){ if (MONTH3[m[2]] !== undefined) cands.push(Date.UTC(+m[3], MONTH3[m[2]], +m[1], +m[4], +m[5])); }
+            const valid = cands.filter(x => Number.isFinite(x));
+            return valid.length ? Math.max(...valid) : Date.now();
+        }
+
+        // 현재 NOTAM 목록의 공유 분류·원문을 비동기 조회 → 도착하면 재렌더
+        // + 공항별 인덱스(airports/{ICAO})를 "패키지 발행일" 기준으로 비교:
+        //   이번 패키지가 더 최신이면 → 인덱스 교체 + 원문 자동 업로드 + 사라진 번호 자동 삭제(만료 정리)
+        //   이번 패키지가 더 오래된 것이면 → 그 공항은 건드리지 않음(최신 공유자료 보호, 되돌리지 않음)
         function requestCloudSync(notams){
             if (!fbDb || !fbUser || !notams || !notams.length) return;
             const seq = ++_cloudSyncSeq;
@@ -1598,13 +1641,15 @@ TEXT:
             const kChunks = [];
             for (let i = 0; i < keys.length; i += 30) kChunks.push(keys.slice(i, i + 30));   // 'in' 쿼리 한도 30
 
-            // 이번 패키지의 공항별 NOTAM 번호 집합 (인덱스 갱신·비교용)
+            const pkgDate = extractPackageDate(($('packageInput') && $('packageInput').value) || '');
+
+            // 이번 패키지의 공항별 NOTAM 항목(번호→노드) 집합 (인덱스 갱신·원문 업로드·비교용)
             const byIcao = {};
             notams.forEach(n => {
                 const ic = (n.icao || '').toUpperCase();
                 const id = (n.notam_id || '').toUpperCase().replace(/\s+/g, '');
                 if (!/^[A-Z]{4}$/.test(ic) || !id) return;
-                (byIcao[ic] = byIcao[ic] || new Set()).add(id);
+                (byIcao[ic] = byIcao[ic] || new Map()).set(id, n);
             });
             const icaos = Object.keys(byIcao);
             const aChunks = [];
@@ -1618,9 +1663,12 @@ TEXT:
                 if (seq !== _cloudSyncSeq) return;   // 더 새 요청이 있으면 폐기
                 clsSnaps.forEach(s => s.forEach(doc => { cloudCache[doc.id] = doc.data(); }));
 
-                // 이전에 공유된 공항별 번호 집합
+                // 이전에 공유된 공항별 정보(번호 집합 + 그 인덱스를 마지막으로 갱신한 패키지 날짜)
                 const prev = {};
-                apSnaps.forEach(s => s.forEach(doc => { prev[doc.id] = new Set((doc.data() || {}).ids || []); }));
+                apSnaps.forEach(s => s.forEach(doc => {
+                    const dd = doc.data() || {};
+                    prev[doc.id] = { ids: new Set(dd.ids || []), pkgDate: dd.pkgDate || 0 };
+                }));
 
                 // 🆕 신규: 인덱스가 있는 공항에서, 인덱스에 없던 번호 (최초 등록 공항은 전부 기준선 → NEW 아님)
                 let newN = 0;
@@ -1628,20 +1676,35 @@ TEXT:
                     delete n._new;
                     const ic = (n.icao || '').toUpperCase();
                     const id = (n.notam_id || '').toUpperCase().replace(/\s+/g, '');
-                    if (prev[ic] && id && !prev[ic].has(id)){ n._new = true; newN++; }
-                });
-                // 🧹 만료: 인덱스에는 있었는데 이번(최신) 패키지에 없는 번호 → 취소/기간만료로 보고 분류 삭제
-                const stale = [];
-                icaos.forEach(ic => {
-                    if (!prev[ic]) return;
-                    prev[ic].forEach(id => { if (!byIcao[ic].has(id)) stale.push({ ic, id }); });
+                    if (prev[ic] && id && !prev[ic].ids.has(id)){ n._new = true; newN++; }
                 });
 
-                // 쓰기: 공항 인덱스 전체 교체 + 만료 분류 문서 삭제 (배치, 500 한도 분할)
+                // 📅 이번 패키지가 그 공항의 기존 공유자료보다 "같거나 더 최신"인 공항만 갱신 대상
+                //    (더 오래된 패키지를 나중에 열어봐도 최신 공유자료를 덮어쓰거나 삭제하지 않도록 보호)
+                const freshIcaos = icaos.filter(ic => !prev[ic] || pkgDate >= prev[ic].pkgDate);
+                const staleSkipped = icaos.length - freshIcaos.length;
+
+                // 🧹 만료: 갱신 대상 공항에서, 인덱스엔 있었지만 이번(최신) 패키지엔 없는 번호 → 취소/기간만료로 보고 분류·원문 삭제
+                const stale = [];
+                freshIcaos.forEach(ic => {
+                    if (!prev[ic]) return;
+                    prev[ic].ids.forEach(id => { if (!byIcao[ic].has(id)) stale.push({ ic, id }); });
+                });
+
+                // 쓰기: ①공항 인덱스 교체(+패키지 날짜 기록) ②원문·유효기간 자동 업로드(분류는 건드리지 않고 merge) ③만료분 삭제 — 배치 500건 분할
                 try {
                     const ops = [];
-                    icaos.forEach(ic => ops.push(b => b.set(fbDb.collection('airports').doc(ic),
-                        { ids: [...byIcao[ic]], ts: Date.now(), by: fbUser.email || fbUser.uid })));
+                    freshIcaos.forEach(ic => {
+                        ops.push(b => b.set(fbDb.collection('airports').doc(ic),
+                            { ids: [...byIcao[ic].keys()], pkgDate, ts: Date.now(), by: fbUser.email || fbUser.uid }));
+                        byIcao[ic].forEach((n, id) => {
+                            const localRaw = reconstructRawLocal(n);
+                            if (!localRaw) return;   // 원문을 못 찾은 항목은 공유 원문을 훼손하지 않도록 건너뜀
+                            const did = cloudDocId(ic + '::' + id);
+                            ops.push(b => b.set(fbDb.collection('notams').doc(did),
+                                { icao: ic, notam_id: id, raw: localRaw, valid: n.valid || '', pkgDate }, { merge: true }));
+                        });
+                    });
                     stale.forEach(({ ic, id }) => {
                         const did = cloudDocId(ic + '::' + id);
                         delete cloudCache[did];
@@ -1657,6 +1720,7 @@ TEXT:
                 if (analysisData){
                     analysisData._cloudNew = newN;
                     analysisData._cloudPurged = stale.length;
+                    analysisData._cloudStaleSkip = staleSkipped;
                     renderAnalysis(analysisData);   // 분류·NEW 배지 반영 재렌더
                 }
             }).catch(e => {
@@ -1671,14 +1735,16 @@ TEXT:
             notams.forEach(n => {
                 const k = notamKey(n); if (!k) return;
                 const c = cloudCache[cloudDocId(k)];
-                if (!c || !c.sev){ delete n._cloud; delete n._cloudSet; return; }
+                if (!c){ delete n._cloud; delete n._cloudSet; return; }
                 n._cloud = {
-                    sev: c.sev,
+                    sev: c.sev || '',
                     comment: c.comment || '',
                     by: c.byName || (c.by || '').split('@')[0] || '동료',
-                    at: (c.at && c.at.toDate) ? c.at.toDate() : null
+                    at: (c.at && c.at.toDate) ? c.at.toDate() : null,
+                    raw: c.raw || ''
                 };
-                if (n._userSet){ n._cloudSet = false; return; }   // 내 수동 지정이 최우선
+                if (!c.sev){ n._cloudSet = false; return; }        // 분류 없이 원문만 공유된 문서 → 원문 폴백 용도로만 사용
+                if (n._userSet){ n._cloudSet = false; return; }    // 내 수동 지정이 최우선
                 if (n.severity !== c.sev) changed++;
                 n.severity = c.sev;
                 n._cloudSet = true;
@@ -2068,7 +2134,7 @@ TEXT:
             return toks;
         }
         function notamText(n){
-            return [(n.feature||''),(n.title||''),(n.detail||''),(n.reason||''),(rawFromSource(n)||'')].join(' \n ').toUpperCase();
+            return [(n.feature||''),(n.title||''),(n.detail||''),(n.reason||''),(rawFromSource(n).text||'')].join(' \n ').toUpperCase();
         }
         function isRunwayRelated(n){
             if ((n.category||'').toUpperCase() === 'RWY') return true;
