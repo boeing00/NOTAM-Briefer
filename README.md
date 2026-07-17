@@ -6,7 +6,7 @@
 ## 주요 기능
 - **NOTAM 분석** — PDF 업로드/원문 붙여넣기 → AI가 NOTAM을 추출·분류 (WARNING / CAUTION / ADVISORY)
 - **직접 관련만 RED** — 내 FPL 항로(웨이포인트·항로)·사용 활주로에 직접 적용되는 것만 WARNING, 나머지는 ADVISORY
-- **NOTAM 지도** — Q라인 좌표(예: `3728N12656E005`)를 해독해 Leaflet 지도에 위치·영향 반경(NM) 원으로 표시 (카드별 🗺 MAP · 전체 지도, [cavokator](https://github.com/Manuito83/cavokator_xamarin) 방식)
+- **NOTAM 지도** — Q라인 좌표(예: `3728N12656E005`)를 해독해 Leaflet 지도에 위치·영향 반경(NM) 원으로 표시 (카드별 🗺 MAP · 전체 지도, [cavokator](https://github.com/Manuito83/cavokator_xamarin) 방식). Q라인이 없는 패키지(LIDO·미국 국내 NOTAM)는 원문 자유 텍스트 좌표 → 내장 공항 좌표 DB(ourairports, 3,300여 공항) 순으로 폴백
 - **Joint Briefing PDF** — 브라우저에서 Joint Briefing PDF 바로 다운로드 (NOTAM 요약 선택 첨부)
 - **PDF 읽기** — 한글/CJK CMap 지원 · 워커 실패 시 폴백 · 스캔 PDF는 Gemini 멀티모달로 추출
 - **항로 대조** — Page 2 서술형 항로 ↔ ICAO FPL Field 15 자동 대조
