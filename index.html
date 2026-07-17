@@ -56,6 +56,9 @@
         .keystat{font-family:"IBM Plex Mono";font-size:.58rem;letter-spacing:.04em;color:var(--muted)}
         .keystat--lock{color:var(--green)}
         .keystat--open{color:var(--amber)}
+        .keymode{display:flex;align-items:center;gap:.3rem;font-family:"IBM Plex Sans KR";font-size:.62rem;color:var(--muted);cursor:pointer;user-select:none}
+        .keymode input{accent-color:var(--amber);cursor:pointer}
+        .keymode:hover{color:var(--text)}
         .modelsel{font-family:"IBM Plex Mono";font-size:.62rem;letter-spacing:.03em;background:#0a121c;color:var(--cyan);border:1px solid var(--line);border-radius:8px;padding:.4rem .5rem;outline:none}
         .modelsel:focus{border-color:var(--cyan)}
         .scope-row{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-top:.7rem}
@@ -308,6 +311,26 @@
         .site-footer a{color:var(--cyan);text-decoration:none}
         .site-footer a:hover{text-decoration:underline}
         .site-footer__copy{color:var(--dim)}
+        /* ── 공유 NOTAM DB (Firebase) ── */
+        .cloud-panel{padding:0;overflow:hidden}
+        .cloud-panel>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:.6rem;padding:.7rem .95rem;user-select:none}
+        .cloud-panel>summary::-webkit-details-marker{display:none}
+        .cloud-panel__title{font-family:"Chakra Petch";font-size:.78rem;font-weight:600;letter-spacing:.08em;color:var(--text)}
+        .cloud-panel__sub{font-family:"IBM Plex Sans KR";font-size:.66rem;color:var(--muted);font-weight:400}
+        .cloudstat{margin-left:auto;font-family:"IBM Plex Mono";font-size:.6rem;letter-spacing:.04em;padding:.16rem .5rem;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+        .cloudstat--on{color:var(--green);border-color:rgba(47,208,138,.45)}
+        .cloudstat--warn{color:var(--amber);border-color:rgba(242,169,59,.45)}
+        .cloud-body{padding:.2rem .95rem .95rem;border-top:1px solid var(--line)}
+        .cloud-hint{font-family:"IBM Plex Sans KR";font-size:.68rem;line-height:1.6;color:var(--muted);margin:.6rem 0}
+        .cloud-auth{display:flex;align-items:center;gap:.55rem;flex-wrap:wrap;margin:.5rem 0}
+        .clouduser{font-family:"IBM Plex Mono";font-size:.62rem;color:var(--cyan)}
+        .cloud-cfg{margin-top:.55rem}
+        .cloud-cfg>summary{cursor:pointer;font-family:"IBM Plex Sans KR";font-size:.68rem;color:var(--dim)}
+        .cloud-cfg textarea{margin:.5rem 0;width:100%}
+        .chip--cloud{color:#7fdcee;border-color:rgba(51,207,230,.45);background:rgba(51,207,230,.08)}
+        .chip--new{color:#5fe0a8;border-color:rgba(47,208,138,.55);background:rgba(47,208,138,.1);font-weight:700}
+        .cloud-meta{display:block;margin-top:.3rem;font-size:.64rem;color:#7fb8c9;line-height:1.55}
+        .cloud-meta b{color:#a9e2ef;font-weight:600}
     </style>
 </head>
 <body>
@@ -323,9 +346,12 @@
             <div class="hdr__right">
                 <div class="clock"><span class="clock__dot"></span><span class="clock__lbl">UTC</span><span id="zulu" class="clock__val">--:--:--Z</span></div>
                 <div class="keybox">
-                    <input type="password" id="apiKey" class="keyin" placeholder="GEMINI API KEY">
+                    <input type="password" id="apiKey" class="keyin" placeholder="GEMINI API KEY" onchange="autoSavePlainKey()" oninput="autoSavePlainKey()">
                     <button id="btnKey" class="btn btn--sm btn--cyan" onclick="keyLockAction()">🔒 PIN 저장</button>
                     <button id="btnKeyDel" class="linkbtn hidden" onclick="deleteVault()">삭제</button>
+                    <label class="keymode" title="PIN 없이 이 기기에 자동 저장 (편리하지만 기기 분실·공유 시 Key 노출 위험, 개인 전용 기기 권장)">
+                        <input type="checkbox" id="plainKeyToggle" onchange="togglePlainMode()"> 간편저장(PIN없음)
+                    </label>
                     <button id="btnTest" class="btn btn--sm btn--ghost" onclick="testConnection()">🔌 연결 테스트</button>
                     <select id="modelSel" class="modelsel" onchange="setModel(this.value)" title="모델 선택">
                         <option value="gemini-2.5-flash">2.5 Flash</option>
@@ -339,6 +365,36 @@
         <div id="envNotice" class="env-notice hidden"></div>
 
         <div class="stack">
+            <!-- 0) 공유 NOTAM 분류 DB (Firebase Firestore) -->
+            <details class="panel cloud-panel" id="cloudPanel">
+                <summary>
+                    <span class="cloud-panel__title">☁ SHARED NOTAM DB</span>
+                    <span class="cloud-panel__sub">여러 조종사의 분류를 공유</span>
+                    <span id="cloudStatus" class="cloudstat">미설정</span>
+                </summary>
+                <div class="cloud-body">
+                    <p class="cloud-hint">동료 조종사들이 지정한 NOTAM 분류(W/C/A)와 사유를 공유 DB에 저장합니다.
+                        분석 시 같은 NOTAM이 DB에 있으면 <b>AI 분류보다 우선 적용</b>되며,
+                        내가 분류를 바꾸면(사유 입력 필수) 다른 사용자에게도 반영됩니다.</p>
+                    <div class="cloud-auth">
+                        <button id="btnCloudLogin" class="btn btn--sm btn--cyan" onclick="cloudLogin()">🅶 Google 로그인</button>
+                        <button id="btnCloudLogout" class="btn btn--sm btn--ghost hidden" onclick="cloudLogout()">로그아웃</button>
+                        <span id="cloudUser" class="clouduser"></span>
+                    </div>
+                    <details class="cloud-cfg" id="cloudCfg">
+                        <summary>⚙ Firebase 설정 (최초 1회 · 붙여넣기)</summary>
+                        <textarea id="fbCfgInput" rows="7" class="cdu" spellcheck="false"
+                            placeholder='Firebase 콘솔 &gt; 프로젝트 설정 &gt; 내 앱 의 firebaseConfig 를 그대로 붙여넣으세요.&#10;예) const firebaseConfig = { apiKey: "...", authDomain: "...", projectId: "...", ... };'></textarea>
+                        <div class="btnrow">
+                            <button class="btn btn--sm btn--go" onclick="saveFbConfig()">저장 · 연결</button>
+                            <button class="btn btn--sm btn--ghost" onclick="clearFbConfig()">설정 해제</button>
+                        </div>
+                        <p class="cloud-hint">프로젝트 생성·보안규칙은 함께 배포된 <b>FIREBASE-SETUP.md</b> 참조.
+                            설정은 이 기기(localStorage)에만 저장됩니다.</p>
+                    </details>
+                </div>
+            </details>
+
             <!-- 1) Flight package -->
             <section class="panel">
                 <div class="panel__head">
@@ -878,6 +934,181 @@ EXCERPT:
             return kept.join('\n\n');
         }
 
+        // ============ ⚙ 로컬 파싱 모드 (Gemini Key 없이 정규식 파싱) ============
+        // 하이브리드: Key가 있으면 AI 분석, 없으면 이 모듈이 NOTAM 추출·분류를 대신함.
+        // 분류 우선순위는 동일: 내 수동지정 > ☁ 공유 DB > 로컬 규칙(directRed 포함)
+
+        // Q코드 → 카테고리 (ICAO Doc 8126 주요 코드만)
+        function qcodeCategory(q){
+            q = (q || '').toUpperCase();
+            if (/^QMR/.test(q)) return 'RWY';
+            if (/^QM[XY]/.test(q)) return 'TWY';
+            if (/^QM[NK]/.test(q)) return 'APRON';
+            if (/^QLR/.test(q)) return 'RWY';                    // RWY 등화
+            if (/^QN/.test(q)) return 'NAV';                     // 항행안전시설
+            if (/^QI/.test(q)) return 'APP';                     // 계기접근
+            if (/^QP[IADRU]/.test(q)) return 'APP';              // 절차
+            if (/^Q(R[ADMPRT]|A[CEFHLNPRTUWZ])/.test(q)) return 'AIRSPACE';
+            if (/^QOB/.test(q)) return 'OBST';
+            return '';
+        }
+        // E)본문 키워드 → 카테고리 (Q코드 없을 때)
+        function kwCategory(t){
+            if (/\bRWY\b|\bRUNWAY\b/.test(t)) return 'RWY';
+            if (/\bTWY\b|\bTAXIWAY\b|\bTWYS\b/.test(t)) return 'TWY';
+            if (/\bAPRON\b|\bSTAND\b|\bGATE\b|\bRAMP\b/.test(t)) return 'APRON';
+            if (/\bILS\b|\bVOR\b|\bVORTAC\b|\bDME\b|\bNDB\b|\bGNSS\b|\bGPS\b|\bGBAS\b|\bTACAN\b|\bPAPI\b|\bRAIM\b/.test(t)) return 'NAV';
+            if (/\bOBST\b|\bCRANE\b|\bOBSTACLE\b/.test(t)) return 'OBST';
+            if (/\bAIRSPACE\b|\bPROHIBITED\b|\bRESTRICTED\b|\bDANGER AREA\b|\bGPS JAMMING\b|\bINTERFERENCE\b/.test(t)) return 'AIRSPACE';
+            if (/\bAPCH\b|\bAPPROACH\b|\bSID\b|\bSTAR\b|\bIAP\b|\bDEPARTURE PROC/.test(t)) return 'APP';
+            return 'OTHER';
+        }
+        // 위치 특정 가능한 대상 추출 (차트 표시용 feature)
+        function extractFeatureLocal(t){
+            let m = t.match(/\bRWY\s*(\d{2}[LRC]?(?:\s*\/\s*\d{2}[LRC]?)?)/);
+            if (m) return 'RWY ' + m[1].replace(/\s+/g, '');
+            m = t.match(/\bTWY\s*([A-Z]{1,2}\d{0,2})\b/);
+            if (m) return 'TWY ' + m[1];
+            m = t.match(/\bAPRON\s*([A-Z0-9]{1,4})?\b/);
+            if (m) return ('APRON ' + (m[1] || '')).trim();
+            m = t.match(/\bSTAND\s*(?:NR\.?\s*)?([A-Z0-9]{1,5})/);
+            if (m) return 'STAND ' + m[1];
+            return '';
+        }
+        // B)/C) 필드 'YYMMDDHHMM' → 'MM-DD HHMM Z'
+        function fmtBC(s){
+            const m = String(s || '').match(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/);
+            if (m) return `${m[2]}-${m[3]} ${m[4]}${m[5]}Z`;
+            if (/PERM/i.test(s)) return 'PERM';
+            if (/UFN|EST/i.test(s)) return 'UFN';
+            return '';
+        }
+        // 로컬 기준 중요도: 폐쇄·고장류는 caution, 그 외 advisory (directRed가 항로/활주로 직접관련을 warning으로 승격)
+        function localBaseSeverity(cat, t){
+            const outage = /\bCLSD\b|\bCLOSED\b|U\/S\b|\bUNSERVICEABLE\b|\bOUT OF SERVICE\b|\bSUSPENDED\b|\bNOT AVBL\b|\bNOT AVAILABLE\b/.test(t);
+            if (outage && (cat === 'RWY' || cat === 'NAV' || cat === 'APP' || cat === 'AIRSPACE')) return 'caution';
+            if (cat === 'RWY') return 'caution';
+            return 'advisory';
+        }
+        // 본문에서 NOTAM 항목들을 정규식으로 추출 → AI 결과와 동일한 스키마 반환
+        // 지원 서식: ① ICAO 표준(Q) A) B) C) E))  ② 항공사 브리핑("13JUL26 07:30 - 15JUL26 13:30 KLAX A3750/26 E) …")
+        // PDF.js 추출은 페이지당 한 줄(무개행)이므로 모든 경계 판정은 개행 없이도 동작해야 함
+        const NOTAM_BOUNDARY = /\s(?=\d{2}[A-Z]{3}\d{2}\s+\d{2}:\d{2}\s*-)|\s(?=◼)|\s(?=\[(?:DEP|DEST|ALTN|REFILE|ETP|ERA|FIR)\b)|\s(?=Page\s*-?\s*\d)|\s(?=END OF\s)|\s(?=NOTAM PACKAGE)|\s(?=--\s*BY\b)|\n\s*\n|\n\s*[FG]\)\s|\n\s*CREATED|\n\s*SOURCE/;
+        function cutAtBoundary(s){
+            const m = NOTAM_BOUNDARY.exec(s);
+            let out = m ? s.slice(0, m.index) : s;
+            out = out.replace(/Page\s*-?\s*\d+(\s*of\s*\d+)?/g, ' ');   // 페이지 노이즈 제거
+            return out.replace(/\s+/g, ' ').trim();
+        }
+        function parseNotamsLocally(text){
+            // ID 수집: ①표준(A1234/26·COAD02/21) ②ICAO 뒤 무접두 번호(RJAA 1097/26)
+            const rawHits = []; let m;
+            const idRe = /\b(COAD\d{2}\/\d{2}|[A-Z]\d{4}\/\d{2})\b/g;
+            while ((m = idRe.exec(text))) rawHits.push({ id: m[1], at: m.index });
+            const bareRe = /\b[A-Z]{4}\s+(\d{4}\/\d{2})\b/g;
+            while ((m = bareRe.exec(text))){
+                const at = m.index + m[0].indexOf(m[1]);
+                if (!rawHits.some(h => h.at === at)) rawHits.push({ id: m[1], at });
+            }
+            rawHits.sort((a, b) => a.at - b.at);
+            // NOTAMR/NOTAMC 가 '대체하는' 옛 번호 참조는 항목이 아님 → 블록 경계 계산 전에 제거
+            const hits = rawHits.filter(h => !/NOTAM[RC]\s*$/.test(text.slice(Math.max(0, h.at - 12), h.at)));
+            const seen = new Set(); const out = [];
+            for (let i = 0; i < hits.length; i++){
+                const { id, at } = hits[i];
+                const end = Math.min(at + 2600, (i + 1 < hits.length) ? hits[i + 1].at : text.length);
+                const block = text.slice(at, end);
+                const U = block.toUpperCase();
+                const pre = text.slice(Math.max(0, at - 70), at).toUpperCase();   // ID 앞: "13JUL26 07:30 - 15JUL26 13:30 KLAX "
+                // 다른 NOTAM 본문 속 참조 목록("… MUST CHECK NOTAMS M0201/26, M0203/26 …")은 항목이 아님
+                if (/NOTAMS?\s*$/.test(pre) || /,\s*$/.test(pre)) continue;
+                // ICAO: ①블록의 E) 앞 구간에 있는 A)필드 ②ID 직전 토큰 ③직전 600자에서 줄 시작 4레터 헤더
+                const eAt = U.indexOf('E)');
+                const head = eAt > 0 ? U.slice(0, eAt) : U;
+                let icao = (head.match(/\bA\)\s*([A-Z]{4})\b/) || [])[1] || '';
+                if (!icao){ const t = pre.match(/([A-Z]{4})\s*$/); if (t) icao = t[1]; }
+                if (!icao){
+                    const back = text.slice(Math.max(0, at - 600), at).toUpperCase();
+                    const stop = new Set(['FROM','WITH','THIS','THAT','PERM','ONLY','OPEN','WORK','EAST','WEST','NOTE','INFO','TIME','DATE','PAGE','PLAN','FUEL','WIND','ITEM','TRIP','DEST','ALTN']);
+                    let hm; const hRe = /^\s*([A-Z]{4})(?:\s*\/\s*[A-Z]{3})?\b/gm;
+                    while ((hm = hRe.exec(back))){ if (!stop.has(hm[1])) icao = hm[1]; }
+                }
+                const dedupK = icao + '|' + id;
+                if (seen.has(dedupK)) continue;
+                seen.add(dedupK);
+                // 유효기간: ①B)/C)필드 ②ID 앞 날짜범위("13JUL26 07:30 - 15JUL26 13:30" / "- UFN")
+                const b = (U.match(/\bB\)\s*([0-9]{10}|[A-Z]{3,6})/) || [])[1] || '';
+                const c = (U.match(/\bC\)\s*([0-9]{10}|PERM|UFN|EST\.?)/) || [])[1] || '';
+                let valid = [fmtBC(b), fmtBC(c)].filter(Boolean).join(' ~ ');
+                if (!valid){
+                    const dm = pre.match(/(\d{2}[A-Z]{3}\d{2})\s+(\d{2}:\d{2})\s*-\s*(UFN|PERM|(\d{2}[A-Z]{3}\d{2})\s+(\d{2}:\d{2}))\s*[A-Z]{4}\s*$/);
+                    if (dm) valid = `${dm[1]} ${dm[2]}Z ~ ` + (dm[4] ? `${dm[4]} ${dm[5]}Z` : dm[3]);
+                }
+                // Q코드 · E)본문
+                const qcode = (U.match(/\bQ\)\s*[A-Z]{4}\/(Q[A-Z]{4})/) || [])[1] || '';
+                let etext = (block.match(/\bE\)\s*([\s\S]*)/) || [])[1] || '';
+                etext = etext ? cutAtBoundary(etext)
+                              : cutAtBoundary(block.slice(id.length).replace(/^\s*NOTAM[NRC]\b[^)]*?(?=Q\)|E\)|$)/, ''));
+                if (!etext || etext.length < 8) etext = cutAtBoundary(block.slice(id.length)).slice(0, 350);
+                const EU = etext.toUpperCase();
+                const cat = qcodeCategory(qcode) || kwCategory(EU);
+                out.push({
+                    icao, notam_id: id,
+                    category: cat,
+                    feature: (icao && cat !== 'AIRSPACE') ? extractFeatureLocal(EU) : '',
+                    severity: localBaseSeverity(cat, EU),
+                    valid,
+                    title: etext.slice(0, 70) + (etext.length > 70 ? '…' : ''),
+                    detail: etext.slice(0, 400),
+                    raw: block.trim().slice(0, 1600),
+                    reason: ''
+                });
+            }
+            return out;
+        }
+        // (FPL 전문에서 경로·시간을 로컬 추출 (AI route 스키마와 동일)
+        function extractRouteLocally(text){
+            const route = { departure:'', destination:'', alternates:[], etd_utc:'', eta_utc:'', flight_time:'', route_string:'', summary:'' };
+            const fpl = extractFplRoute(text);
+            if (!fpl) return route;
+            route.departure = fpl.adep; route.destination = fpl.ades; route.route_string = fpl.raw;
+            const i = text.indexOf('(FPL'); const j = text.indexOf(')', i);
+            const block = text.slice(i, j > i ? j + 1 : i + 4000);
+            const re = /-([A-Z]{4})(\d{4})/g;
+            const m1 = re.exec(block), m2 = re.exec(block);
+            if (m1) route.etd_utc = m1[2];
+            if (m2){
+                const eetH = +m2[2].slice(0, 2), eetM = +m2[2].slice(2);
+                route.flight_time = `${eetH}H${String(eetM).padStart(2,'0')}M`;
+                if (m1){
+                    const tot = (+m1[2].slice(0,2)) * 60 + (+m1[2].slice(2)) + eetH * 60 + eetM;
+                    route.eta_utc = String(Math.floor(tot / 60) % 24).padStart(2, '0') + String(tot % 60).padStart(2, '0');
+                }
+                // 교체공항: Field 16의 ADES 뒤 4레터 코드 (Field 18 '-XXX/' 시작 전까지)
+                const tail = block.slice(m2.index + m2[0].length);
+                const stop = tail.search(/-[A-Z]{1,4}\//);
+                const seg = stop >= 0 ? tail.slice(0, stop) : tail.slice(0, 60);
+                route.alternates = (seg.match(/\b[A-Z]{4}\b/g) || []).filter(x => x !== route.destination).slice(0, 4);
+            }
+            route.summary = `${route.departure}→${route.destination}` +
+                (route.etd_utc ? ` ETD ${route.etd_utc}Z` : '') + (route.eta_utc ? ` ETA ${route.eta_utc}Z` : '');
+            return route;
+        }
+        // Key 없이 즉시 분석 실행
+        function runLocalAnalysis(){
+            const fullText = $('packageInput').value.trim();
+            if (!fullText) return alert("분석할 문서가 없습니다. PDF를 열거나 원문을 붙여넣으세요.");
+            const scoped = buildScopedNotams(fullText);
+            const src = scoped || fullText;
+            const route = extractRouteLocally(fullText);
+            const notams = parseNotamsLocally(src);
+            const result = { route, notams, _local: true,
+                _reduced: !!scoped, _origLen: fullText.length, _usedLen: src.length };
+            currentBriefingId = null;
+            renderAnalysis(result, { fresh: true });
+            saveBriefing(result);
+        }
+
         async function runChunkedAnalysis(key, routeText, notamText, meta){
             const setLoad = (msg) => { $('criticalNotams').innerHTML = `<div class="load-block"><span class="loading-spinner"></span><p>${escapeHtml(msg)}</p></div>`; };
             const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -905,7 +1136,11 @@ EXCERPT:
         async function runAnalysis(){
             const key = $('apiKey').value.trim();
             const fullText = $('packageInput').value.trim();
-            if (!key) return alert(hasVault() ? "헤더의 [🔓 잠금해제]로 PIN을 입력해 저장된 키를 먼저 불러오세요." : "API Key를 입력하세요.");
+            if (!key){
+                // 하이브리드: Key 없으면 로컬 파싱 모드로 자동 전환
+                if (hasVault() && !confirm("저장된 API Key가 잠겨 있습니다.\n\n[확인] Key 없이 로컬 파싱 모드로 분석 (AI 한글요약 없음)\n[취소] 취소하고 헤더의 🔓 잠금해제로 Key 불러오기")) return;
+                return runLocalAnalysis();
+            }
             if (!fullText) return alert("분석할 문서가 없습니다. PDF를 열거나 원문을 붙여넣으세요.");
 
             // 범위: '대상 공항만'이면 NOTAM 항목만 추려 대폭 축소 (무료 등급 절약)
@@ -1004,6 +1239,8 @@ TEXT:
             notams.forEach((n, i) => { n._i = i; }); // 수동 중요도 변경용 안정 인덱스
             if (fresh) notams.forEach(n => { if (n._ai === undefined) n._ai = n.severity; }); // AI 원본 보관
             const restored = applyStoredOverrides(notams); // 이전에 내가 지정한 분류 복원
+            const cloudN = applyCloudOverrides(notams);    // ☁ 공유 DB 분류 적용 (내 수동지정 다음 우선순위)
+            if (fresh) requestCloudSync(notams);           // 공유 DB 비동기 조회 → 도착 시 자동 재렌더
             const r = (d.route = d.route || {});
             if (fresh){
                 if (!d._routeAI) d._routeAI = { departure: r.departure || '', destination: r.destination || '' }; // AI 원본 경로 보관
@@ -1053,6 +1290,7 @@ TEXT:
             let directWarnN = 0;
             notams.forEach(n => {
                 if (n._userSet){ n._direct = ''; return; }              // 내가 수동 지정한 분류는 유지
+                if (n._cloudSet){ n._direct = ''; return; }             // ☁ 공유 DB 분류도 유지
                 if (!directMode){ if (n._ai !== undefined) n.severity = n._ai; n._direct = ''; return; }
                 const dd = deriveDirectSeverity(n, n._phase, routeTokset);
                 n.severity = dd.sev; n._direct = dd.why;
@@ -1114,10 +1352,21 @@ TEXT:
             const directNote = (directMode && notams.length)
                 ? `<div class="restore-note" style="color:#ff9a94;border-color:rgba(240,85,79,.35);background:rgba(240,85,79,.06)">⤳ <b style="color:#ff9a94">직접 관련만 RED</b> · 내 FPL 항로/사용 활주로에 직접 적용되는 <b>${directWarnN}건</b>만 WARNING, 나머지는 ADVISORY로 낮췄습니다. <button class="linkbtn" onclick="disableDirectRed()">전체 표시</button></div>`
                 : "";
+            const localNote = d._local
+                ? `<div class="restore-note" style="color:var(--amber);border-color:rgba(242,169,59,.35);background:rgba(242,169,59,.06)">⚙ <b style="color:var(--amber)">로컬 파싱 모드</b> · API Key 없이 NOTAM <b>${notams.length}건</b> 추출 — AI 한글 요약 없음(원문 표시), 분류는 ☁공유 DB·로컬 규칙 적용. 상단에 Gemini Key를 입력하면 AI 분석을 사용합니다.</div>`
+                : "";
+            const newTotal = notams.filter(n => n._new).length;
+            const newNote = (newTotal || d._cloudPurged)
+                ? `<div class="restore-note" style="color:var(--green);border-color:rgba(47,208,138,.35);background:rgba(47,208,138,.06)">${newTotal ? `🆕 공유 DB에 <b style="color:var(--green)">처음 등록되는 NOTAM ${newTotal}건</b> — 카드의 NEW 표시` : ''}${newTotal && d._cloudPurged ? ' · ' : ''}${d._cloudPurged ? `🧹 새 패키지에 없는(취소·만료) 공유 분류 <b>${d._cloudPurged}건</b> 자동 정리됨` : ''}</div>`
+                : "";
+            const cloudTotal = notams.filter(n => n._cloud).length;
+            const cloudNote = cloudTotal
+                ? `<div class="restore-note" style="color:#7fdcee;border-color:rgba(51,207,230,.35);background:rgba(51,207,230,.06)">☁ <b style="color:#7fdcee">공유 DB 분류</b> · 동료가 이미 분류한 NOTAM <b>${cloudTotal}건</b>${cloudN ? ` (그중 <b>${cloudN}건</b> AI 분류 대신 적용)` : ''} — 카드의 ☁ 표시 참조</div>`
+                : "";
             const rwyOnlyNote = rwyOnlyActive
                 ? `<div class="restore-note" style="color:var(--cyan);border-color:rgba(51,207,230,.35);background:rgba(51,207,230,.06)">🚩 <b style="color:var(--cyan)">관련만 보기</b> · 공항 NOTAM 중 내 RWY/TWY/택시루트 관련만 표시${rwyHiddenN?` (비관련 <b>${rwyHiddenN}건</b> 숨김)`:''}. <button class="linkbtn" onclick="disableRwyOnly()">전체 보기</button></div>`
                 : "";
-            $('criticalNotams').innerHTML = notams.length ? (scopeNote + directNote + rwyOnlyNote + restoreNote + banner + flagSec + html) : ((scopeNote + banner) || `<p class="empty-note">활성 NOTAM 없음 · NO ACTIVE NOTAMS</p>`);
+            $('criticalNotams').innerHTML = notams.length ? (localNote + scopeNote + newNote + cloudNote + directNote + rwyOnlyNote + restoreNote + banner + flagSec + html) : ((localNote + scopeNote + banner) || `<p class="empty-note">활성 NOTAM 없음 · NO ACTIVE NOTAMS</p>`);
             $('minorNotams').innerHTML = "";
 
             updateAirportDots();
@@ -1168,8 +1417,14 @@ TEXT:
             const meta = [];
             if (n.valid)  meta.push(`유효 ${escapeHtml(n.valid)}`);
             if (n.reason) meta.push(escapeHtml(n.reason));
-            const metaHtml = meta.length ? `<p class="alert__meta">${meta.join(' · ')}${n._userSet ? ' <span class="edited">· 중요도 수정됨</span>' : ''}</p>`
-                                         : (n._userSet ? `<p class="alert__meta"><span class="edited">중요도 수정됨</span></p>` : '');
+            const newChip = n._new ? `<span class="chip chip--new" title="공유 DB에 처음 등록되는 NOTAM">🆕 NEW</span>` : '';
+            const cloudChip = n._cloudSet ? `<span class="chip chip--cloud" title="공유 DB의 분류가 적용됨">☁ 공유분류</span>` : '';
+            const cloudMeta = n._cloud
+                ? `<span class="cloud-meta">☁ <b>${escapeHtml(n._cloud.by)}</b>${n._cloud.at ? ' · ' + escapeHtml(n._cloud.at.toISOString().slice(0,10)) : ''}${n._cloud.comment ? ' — ' + escapeHtml(n._cloud.comment) : ''}${n._userSet ? ' <span class="edited">(내 지정이 우선 적용됨)</span>' : ''}</span>`
+                : (n._userSet && n._myComment ? `<span class="cloud-meta">✎ 내 사유 — ${escapeHtml(n._myComment)}</span>` : '');
+            const metaHtml = (meta.length || n._userSet || cloudMeta)
+                ? `<p class="alert__meta">${meta.join(' · ')}${n._userSet ? (meta.length ? ' ' : '') + '<span class="edited">· 중요도 수정됨</span>' : ''}${cloudMeta}</p>`
+                : '';
             const rawText = rawFromSource(n);
             const rawHtml = rawText ? `<details class="raw-toggle"><summary>원문 보기${n.notam_id ? ' · ' + escapeHtml(n.notam_id) : ''}</summary><pre class="raw-pre">${escapeHtml(rawText)}</pre></details>` : '';
             const i = n._i;
@@ -1182,7 +1437,7 @@ TEXT:
                 <div class="alert__head">
                     <span class="chip ${chip}">${tag}</span>
                     <span class="chip chip--cat">${escapeHtml(n.category || 'NOTAM')}</span>
-                    ${flag}${onroute}${rel}${feat}
+                    ${newChip}${cloudChip}${flag}${onroute}${rel}${feat}
                     <span class="alert__spacer"></span>
                     ${sevSel}
                 </div>
@@ -1205,14 +1460,278 @@ TEXT:
             return seg.slice(0, cut).trim();
         }
 
+        // ============ ☁ 공유 NOTAM 분류 DB (Firebase Firestore) ============
+        // 구조: notams/{docId} = { key, icao, notam_id, sev, comment, by, byName, at, history[] }
+        // 우선순위: 내 수동지정(_userSet) > 공유 DB(_cloudSet) > AI 분류
+        let fbApp = null, fbAuth = null, fbDb = null, fbUser = null;
+        let cloudCache = {};          // docId -> Firestore 문서 데이터
+        let _cloudSyncSeq = 0;        // 늦게 도착한 이전 분석의 결과 무시용
+
+        function loadFbConfig(){ try { return JSON.parse(localStorage.getItem('fbConfig') || 'null'); } catch(_){ return null; } }
+
+        // firebaseConfig 스니펫을 관대하게 파싱 (JS 객체 리터럴 허용)
+        function parseFbConfig(text){
+            const m = String(text || '').match(/\{[\s\S]*\}/);
+            if (!m) return null;
+            let s = m[0];
+            try { return JSON.parse(s); } catch(_){}
+            try {
+                s = s.replace(/\/\/[^\n]*/g, '')                              // 주석 제거
+                     .replace(/'/g, '"')                                       // 홑따옴표 → 쌍따옴표
+                     .replace(/([,{]\s*)([A-Za-z_$][\w$]*)\s*:/g, '$1"$2":')   // 키 따옴표
+                     .replace(/,\s*([}\]])/g, '$1');                           // 트레일링 콤마
+                return JSON.parse(s);
+            } catch(_){ return null; }
+        }
+
+        function saveFbConfig(){
+            const cfg = parseFbConfig($('fbCfgInput').value);
+            if (!cfg || !cfg.apiKey || !cfg.projectId){
+                alert('firebaseConfig 를 인식하지 못했습니다.\napiKey 와 projectId 가 포함된 설정 전체를 붙여넣어 주세요.');
+                return;
+            }
+            try { localStorage.setItem('fbConfig', JSON.stringify(cfg)); } catch(_){}
+            setCloudStatus('연결 중…', 'warn');
+            loadFirebaseSdk(() => initFirebase(true));
+        }
+
+        function clearFbConfig(){
+            if (!confirm('Firebase 설정을 이 기기에서 삭제할까요? (공유 DB의 데이터는 유지됩니다)')) return;
+            try { localStorage.removeItem('fbConfig'); } catch(_){}
+            try { if (fbAuth) fbAuth.signOut(); } catch(_){}
+            fbApp = fbAuth = fbDb = fbUser = null; cloudCache = {};
+            $('fbCfgInput').value = '';
+            updateCloudUI();
+        }
+
+        // SDK는 설정이 있을 때만 동적 로드 (오프라인·미사용 시 부담 없음)
+        function loadFirebaseSdk(cb){
+            if (window.firebase && firebase.firestore && firebase.auth) return cb();
+            const V = '10.12.2';
+            const urls = ['firebase-app-compat.js','firebase-auth-compat.js','firebase-firestore-compat.js']
+                .map(f => `https://www.gstatic.com/firebasejs/${V}/${f}`);
+            (function next(i){
+                if (i >= urls.length) return cb();
+                const s = document.createElement('script');
+                s.src = urls[i];
+                s.onload = () => next(i + 1);
+                s.onerror = () => { setCloudStatus('SDK 로드 실패 · 네트워크 확인', 'warn'); };
+                document.head.appendChild(s);
+            })(0);
+        }
+
+        function initFirebase(userAction){
+            const cfg = loadFbConfig();
+            if (!cfg || !window.firebase){ updateCloudUI(); return; }
+            try {
+                fbApp = firebase.apps && firebase.apps.length ? firebase.app() : firebase.initializeApp(cfg);
+                fbAuth = firebase.auth();
+                fbDb = firebase.firestore();
+                fbAuth.onAuthStateChanged((u) => {
+                    fbUser = u || null;
+                    updateCloudUI();
+                    // 로그인 완료 시 현재 분석 결과에 공유 분류 즉시 반영
+                    if (fbUser && analysisData && analysisData.notams) requestCloudSync(analysisData.notams);
+                });
+                if (userAction) setCloudStatus('연결됨 · 로그인 필요', 'warn');
+            } catch(e){
+                console.warn('Firebase init 실패', e);
+                setCloudStatus('설정 오류 · ' + (e && e.message || '').slice(0, 40), 'warn');
+            }
+        }
+
+        function cloudLogin(){
+            if (!fbAuth){
+                const cfg = loadFbConfig();
+                if (!cfg){ $('cloudPanel').open = true; $('cloudCfg').open = true; alert('먼저 Firebase 설정을 붙여넣어 주세요.'); return; }
+                loadFirebaseSdk(() => { initFirebase(true); setTimeout(cloudLogin, 400); });
+                return;
+            }
+            const provider = new firebase.auth.GoogleAuthProvider();
+            fbAuth.signInWithPopup(provider).catch((e) => {
+                // iPad 홈화면 앱(PWA) 등 팝업 차단 환경 → 리다이렉트 방식으로 재시도
+                if (e && /popup|blocked|cancelled/i.test(String(e.code || e.message))){
+                    fbAuth.signInWithRedirect(provider).catch((e2) => alert('로그인 실패: ' + (e2 && e2.message || e2)));
+                } else {
+                    alert('로그인 실패: ' + (e && e.message || e));
+                }
+            });
+        }
+        function cloudLogout(){ if (fbAuth) fbAuth.signOut(); }
+
+        function setCloudStatus(txt, kind){
+            const el = $('cloudStatus'); if (!el) return;
+            el.textContent = txt;
+            el.className = 'cloudstat' + (kind === 'on' ? ' cloudstat--on' : kind === 'warn' ? ' cloudstat--warn' : '');
+        }
+
+        function updateCloudUI(){
+            const cfg = loadFbConfig();
+            const inBtn = $('btnCloudLogin'), outBtn = $('btnCloudLogout'), who = $('cloudUser');
+            if (!cfg){ setCloudStatus('미설정'); if (who) who.textContent = ''; if (inBtn) inBtn.classList.remove('hidden'); if (outBtn) outBtn.classList.add('hidden'); return; }
+            if (fbUser){
+                setCloudStatus('☁ 동기화 중 · ' + (fbUser.email || '').split('@')[0], 'on');
+                if (who) who.textContent = fbUser.displayName ? `${fbUser.displayName} <${fbUser.email}>` : (fbUser.email || '');
+                if (inBtn) inBtn.classList.add('hidden');
+                if (outBtn) outBtn.classList.remove('hidden');
+            } else {
+                setCloudStatus(window.firebase ? '로그인 필요' : '설정됨 · 연결 대기', 'warn');
+                if (who) who.textContent = '';
+                if (inBtn) inBtn.classList.remove('hidden');
+                if (outBtn) outBtn.classList.add('hidden');
+            }
+            if ($('fbCfgInput') && cfg && !$('fbCfgInput').value) $('fbCfgInput').value = JSON.stringify(cfg, null, 2);
+        }
+
+        // Firestore 문서 ID: notamKey 를 안전한 문자로 (예: RKSI::A1234/26 → RKSI__A1234_26)
+        function cloudDocId(key){
+            return String(key).replace(/::/g, '__').replace(/[\/\s#?%\[\]]+/g, '_').slice(0, 400); // 한글 3B×400 < 1500B 한도
+        }
+
+        // 현재 NOTAM 목록의 공유 분류를 비동기 조회 → 도착하면 재렌더
+        // + 공항별 인덱스(airports/{ICAO}) 대조: 🆕 신규 표시, 새 패키지에서 사라진 번호의 분류는 자동 삭제(만료 정리)
+        function requestCloudSync(notams){
+            if (!fbDb || !fbUser || !notams || !notams.length) return;
+            const seq = ++_cloudSyncSeq;
+            const keys = [...new Set(notams.map(n => notamKey(n)).filter(Boolean).map(cloudDocId))];
+            if (!keys.length) return;
+            const kChunks = [];
+            for (let i = 0; i < keys.length; i += 30) kChunks.push(keys.slice(i, i + 30));   // 'in' 쿼리 한도 30
+
+            // 이번 패키지의 공항별 NOTAM 번호 집합 (인덱스 갱신·비교용)
+            const byIcao = {};
+            notams.forEach(n => {
+                const ic = (n.icao || '').toUpperCase();
+                const id = (n.notam_id || '').toUpperCase().replace(/\s+/g, '');
+                if (!/^[A-Z]{4}$/.test(ic) || !id) return;
+                (byIcao[ic] = byIcao[ic] || new Set()).add(id);
+            });
+            const icaos = Object.keys(byIcao);
+            const aChunks = [];
+            for (let i = 0; i < icaos.length; i += 30) aChunks.push(icaos.slice(i, i + 30));
+
+            const FP = firebase.firestore.FieldPath.documentId();
+            Promise.all([
+                Promise.all(kChunks.map(ch => fbDb.collection('notams').where(FP, 'in', ch).get())),
+                Promise.all(aChunks.map(ch => fbDb.collection('airports').where(FP, 'in', ch).get()))
+            ]).then(([clsSnaps, apSnaps]) => {
+                if (seq !== _cloudSyncSeq) return;   // 더 새 요청이 있으면 폐기
+                clsSnaps.forEach(s => s.forEach(doc => { cloudCache[doc.id] = doc.data(); }));
+
+                // 이전에 공유된 공항별 번호 집합
+                const prev = {};
+                apSnaps.forEach(s => s.forEach(doc => { prev[doc.id] = new Set((doc.data() || {}).ids || []); }));
+
+                // 🆕 신규: 인덱스가 있는 공항에서, 인덱스에 없던 번호 (최초 등록 공항은 전부 기준선 → NEW 아님)
+                let newN = 0;
+                notams.forEach(n => {
+                    delete n._new;
+                    const ic = (n.icao || '').toUpperCase();
+                    const id = (n.notam_id || '').toUpperCase().replace(/\s+/g, '');
+                    if (prev[ic] && id && !prev[ic].has(id)){ n._new = true; newN++; }
+                });
+                // 🧹 만료: 인덱스에는 있었는데 이번(최신) 패키지에 없는 번호 → 취소/기간만료로 보고 분류 삭제
+                const stale = [];
+                icaos.forEach(ic => {
+                    if (!prev[ic]) return;
+                    prev[ic].forEach(id => { if (!byIcao[ic].has(id)) stale.push({ ic, id }); });
+                });
+
+                // 쓰기: 공항 인덱스 전체 교체 + 만료 분류 문서 삭제 (배치, 500 한도 분할)
+                try {
+                    const ops = [];
+                    icaos.forEach(ic => ops.push(b => b.set(fbDb.collection('airports').doc(ic),
+                        { ids: [...byIcao[ic]], ts: Date.now(), by: fbUser.email || fbUser.uid })));
+                    stale.forEach(({ ic, id }) => {
+                        const did = cloudDocId(ic + '::' + id);
+                        delete cloudCache[did];
+                        ops.push(b => b.delete(fbDb.collection('notams').doc(did)));
+                    });
+                    for (let i = 0; i < ops.length; i += 450){
+                        const b = fbDb.batch();
+                        ops.slice(i, i + 450).forEach(f => f(b));
+                        b.commit().catch(e => console.warn('공유 DB 인덱스 갱신 실패', e));
+                    }
+                } catch(e){ console.warn('공유 DB 인덱스 갱신 실패', e); }
+
+                if (analysisData){
+                    analysisData._cloudNew = newN;
+                    analysisData._cloudPurged = stale.length;
+                    renderAnalysis(analysisData);   // 분류·NEW 배지 반영 재렌더
+                }
+            }).catch(e => {
+                console.warn('공유 DB 조회 실패', e);
+                setCloudStatus('조회 실패 · 보안규칙 확인', 'warn');
+            });
+        }
+
+        // cloudCache 를 NOTAM 목록에 적용 (동기) — 반환: 실제 분류가 바뀐 건수
+        function applyCloudOverrides(notams){
+            let changed = 0;
+            notams.forEach(n => {
+                const k = notamKey(n); if (!k) return;
+                const c = cloudCache[cloudDocId(k)];
+                if (!c || !c.sev){ delete n._cloud; delete n._cloudSet; return; }
+                n._cloud = {
+                    sev: c.sev,
+                    comment: c.comment || '',
+                    by: c.byName || (c.by || '').split('@')[0] || '동료',
+                    at: (c.at && c.at.toDate) ? c.at.toDate() : null
+                };
+                if (n._userSet){ n._cloudSet = false; return; }   // 내 수동 지정이 최우선
+                if (n.severity !== c.sev) changed++;
+                n.severity = c.sev;
+                n._cloudSet = true;
+            });
+            return changed;
+        }
+
+        // 내 분류 변경을 공유 DB에 기록 (사유 포함, 이력 누적)
+        function pushCloudOverride(n, sev, comment){
+            if (!fbDb || !fbUser) return false;
+            const k = notamKey(n); if (!k) return false;
+            const id = cloudDocId(k);
+            const entry = { sev, comment, by: fbUser.email || fbUser.uid, at: new Date().toISOString() };
+            const doc = {
+                key: k,
+                icao: n.icao || '',
+                notam_id: n.notam_id || '',
+                title: n.title || '',
+                sev, comment,
+                by: fbUser.email || fbUser.uid,
+                byName: fbUser.displayName || '',
+                at: firebase.firestore.FieldValue.serverTimestamp(),
+                history: firebase.firestore.FieldValue.arrayUnion(entry)
+            };
+            fbDb.collection('notams').doc(id).set(doc, { merge: true })
+                .then(() => { cloudCache[id] = { ...doc, at: { toDate: () => new Date() } }; })
+                .catch(e => {
+                    console.warn('공유 DB 저장 실패', e);
+                    alert('공유 DB 저장 실패: ' + (e && e.message || e) + '\n(내 기기에는 저장되었습니다)');
+                });
+            return true;
+        }
+
         // 사용자가 NOTAM 중요도를 직접 변경
         function setSeverity(i, sev){
             if (!analysisData || !analysisData.notams || !analysisData.notams[i]) return;
             const n = analysisData.notams[i];
+            if ((n.severity || '') === sev && n._userSet) return;
+            // 분류 변경 시 사유(주석) 입력 필수 — 공유 DB에 함께 기록됨
+            const prev = (n.severity || '').toUpperCase().slice(0, 1) || '?';
+            const cur  = sev.toUpperCase().slice(0, 1);
+            const raw = prompt(`분류 변경 사유를 입력하세요 (필수)\n${n.notam_id || n.title || 'NOTAM'} : ${prev} → ${cur}`,
+                               (n._cloud && n._cloud.comment) || '');
+            if (raw === null) return;                       // 취소
+            const comment = raw.trim();
+            if (!comment){ alert('사유를 입력해야 분류를 변경할 수 있습니다.'); return; }
             n.severity = sev;
             n._userSet = true;
+            n._myComment = comment;
             const k = notamKey(n);
             if (k) saveOverride(k, sev);   // 같은 내용은 다음 분석에서도 재사용
+            const shared = pushCloudOverride(n, sev, comment);   // 로그인 상태면 공유 DB에도 기록
+            if (!shared && loadFbConfig()) setCloudStatus('로그인하면 변경이 공유됩니다', 'warn');
             renderAnalysis(analysisData);
             persistCurrentBriefing();      // 오프라인 저장본에도 반영
         }
@@ -1785,7 +2304,9 @@ Features to locate: ${JSON.stringify(features)}`;
             $('mapOverlay').innerHTML = "";
         }
 
-        // ============ API 키 보안 저장 (PIN 암호화, AES-GCM) ============
+        // ============ API 키 보안 저장 (PIN 암호화, AES-GCM / 간편 평문 저장 택1) ============
+        function getKeyStoreMode(){ try { return localStorage.getItem('keyStoreMode') || 'pin'; } catch(_){ return 'pin'; } }
+        function hasPlainKey(){ try { return !!localStorage.getItem('geminiKeyPlain'); } catch(_){ return false; } }
         function _b64(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))); }
         function _unb64(s){ return Uint8Array.from(atob(s), c => c.charCodeAt(0)); }
         async function _deriveKey(pin, salt){
@@ -1808,8 +2329,45 @@ Features to locate: ${JSON.stringify(features)}`;
             return new TextDecoder().decode(pt);
         }
         function hasVault(){ try { return !!localStorage.getItem('keyVault'); } catch(_){ return false; } }
+        // 간편모드: PIN 없이 이 기기에 평문 저장 — 입력창 변경 시 자동 저장(버튼 클릭 불필요)
+        function autoSavePlainKey(){
+            if (getKeyStoreMode() !== 'plain') return;
+            const v = $('apiKey').value.trim();
+            try { if (v) localStorage.setItem('geminiKeyPlain', v); else localStorage.removeItem('geminiKeyPlain'); } catch(_){}
+            updateKeyUI();
+        }
+        // PIN 모드 ↔ 간편모드 전환 (전환 시 이전 저장 방식은 정리하고 다시 저장하도록 안내)
+        function togglePlainMode(){
+            const toPlain = $('plainKeyToggle').checked;
+            const curKey = $('apiKey').value.trim();
+            if (toPlain){
+                if (!confirm('PIN 없이 이 기기에 자동 저장할까요?\n\n이 기기를 다른 사람이 사용하거나 분실하면 API Key가 그대로 노출됩니다.\n개인 전용 기기에서만 사용하세요.')){
+                    $('plainKeyToggle').checked = false; return;
+                }
+                try { localStorage.removeItem('keyVault'); } catch(_){}
+                try { localStorage.setItem('keyStoreMode', 'plain'); } catch(_){}
+                if (curKey){ try { localStorage.setItem('geminiKeyPlain', curKey); } catch(_){} }
+                updateKeyUI();
+            } else {
+                try { localStorage.removeItem('geminiKeyPlain'); } catch(_){}
+                try { localStorage.setItem('keyStoreMode', 'pin'); } catch(_){}
+                updateKeyUI();
+                if (curKey) alert('PIN 모드로 전환했습니다. [🔒 PIN 저장] 버튼을 눌러 PIN을 설정해 저장하세요.');
+            }
+        }
         function updateKeyUI(){
-            const btn = $('btnKey'), del = $('btnKeyDel'), st = $('keyStatus');
+            const btn = $('btnKey'), del = $('btnKeyDel'), st = $('keyStatus'), toggle = $('plainKeyToggle');
+            const mode = getKeyStoreMode();
+            if (toggle) toggle.checked = (mode === 'plain');
+            if (mode === 'plain'){
+                btn.classList.add('hidden');
+                const has = hasPlainKey();
+                del.classList.toggle('hidden', !has);
+                st.textContent = has ? '💾 자동저장됨(PIN없음)' : '';
+                st.className = 'keystat' + (has ? ' keystat--open' : '');
+                return;
+            }
+            btn.classList.remove('hidden');
             const vault = hasVault(), keyed = !!$('apiKey').value.trim();
             del.classList.toggle('hidden', !vault);
             if (vault && !keyed){ btn.textContent = '🔓 잠금해제'; st.textContent = '🔒 암호화 저장됨'; st.className = 'keystat keystat--lock'; }
@@ -1839,6 +2397,12 @@ Features to locate: ${JSON.stringify(features)}`;
             alert('먼저 API 키를 입력하세요.');
         }
         function deleteVault(){
+            if (getKeyStoreMode() === 'plain'){
+                if (!confirm('저장된 API 키를 삭제할까요?')) return;
+                try { localStorage.removeItem('geminiKeyPlain'); } catch(_){}
+                $('apiKey').value = ''; updateKeyUI();
+                return;
+            }
             if (!confirm('저장된 암호화 키를 삭제할까요?')) return;
             try { localStorage.removeItem('keyVault'); } catch(_){}
             $('apiKey').value = ''; updateKeyUI();
@@ -1886,6 +2450,8 @@ Features to locate: ${JSON.stringify(features)}`;
             renderButtons(); tickZulu(); setInterval(tickZulu, 1000);
             // 레거시 평문키가 있고 금고가 없으면 이관용으로 채워줌(이후 PIN 저장 권장)
             try { if (!hasVault()){ const k = localStorage.getItem('geminiKey'); if (k) $('apiKey').value = k; } } catch(e){}
+            // 간편모드(PIN없음)면 저장된 키를 프롬프트 없이 바로 불러옴
+            try { if (getKeyStoreMode() === 'plain'){ const k = localStorage.getItem('geminiKeyPlain'); if (k) $('apiKey').value = k; } } catch(e){}
             updateKeyUI();
             try { const mdl = localStorage.getItem('geminiModel'); if (mdl){ GEMINI_MODEL = mdl; const sel = $('modelSel'); if (sel) sel.value = mdl; } } catch(e){}
             const inFrame = (function(){ try { return window.self !== window.top; } catch(_){ return true; } })();
@@ -1908,6 +2474,12 @@ Features to locate: ${JSON.stringify(features)}`;
             loadScope();
             if ($('directRed')) $('directRed').checked = getDirectRed();
             ['xcheckA','xcheckB'].forEach(id => { const e = $(id); if (e) e.addEventListener('input', () => { e.dataset.auto = '0'; }); });
+
+            // ☁ 공유 NOTAM DB: 설정이 저장돼 있으면 SDK 로드 후 자동 연결(자동 로그인 복원 포함)
+            updateCloudUI();
+            if (loadFbConfig() && location.protocol !== 'file:'){
+                loadFirebaseSdk(() => initFirebase(false));
+            }
 
             // 오프라인 지원: 앱 셸 캐시(sw.js가 함께 배포된 경우) + 저장소 영속화 요청
             if ('serviceWorker' in navigator && location.protocol === 'https:'){
