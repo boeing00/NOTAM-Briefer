@@ -15,6 +15,8 @@
     <title>Pilot Ops Center · EFB</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -332,6 +334,24 @@
         .chip--new{color:#5fe0a8;border-color:rgba(47,208,138,.55);background:rgba(47,208,138,.1);font-weight:700}
         .cloud-meta{display:block;margin-top:.3rem;font-size:.64rem;color:#7fb8c9;line-height:1.55}
         .cloud-meta b{color:#a9e2ef;font-weight:600}
+        /* --- NOTAM 위치 지도 (cavokator 방식) --- */
+        .mapbtn{font-family:"IBM Plex Mono";font-size:.6rem;color:var(--cyan);background:#0e1a26;border:1px solid var(--cyan-dim);border-radius:6px;padding:.15rem .5rem;cursor:pointer;letter-spacing:.04em;white-space:nowrap}
+        .mapbtn:hover{background:#12283a}
+        .nmap-modal{position:fixed;inset:0;z-index:1000;background:rgba(4,7,12,.78);display:flex;align-items:center;justify-content:center;padding:1rem}
+        .nmap-box{width:min(880px,96vw);background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 18px 60px rgba(0,0,0,.6);display:flex;flex-direction:column}
+        .nmap-head{display:flex;align-items:center;justify-content:space-between;gap:.8rem;padding:.65rem .9rem;border-bottom:1px solid var(--line);background:var(--surface)}
+        .nmap-title{font-family:"Chakra Petch",sans-serif;font-weight:600;font-size:.85rem;color:var(--cyan);letter-spacing:.06em}
+        .nmap-close{background:none;border:1px solid var(--line);color:var(--muted);border-radius:6px;width:1.7rem;height:1.7rem;cursor:pointer;font-size:.8rem;line-height:1}
+        .nmap-close:hover{color:var(--text);border-color:var(--cyan-dim)}
+        .nmap-canvas{height:min(62vh,540px);background:#0a121c}
+        .nmap-foot{padding:.5rem .9rem;font-family:"IBM Plex Mono";font-size:.62rem;color:var(--muted);border-top:1px solid var(--line)}
+        .leaflet-container{font-family:"IBM Plex Sans KR",system-ui,sans-serif;background:#0a121c}
+        .nmap-pop{font-size:.72rem;line-height:1.5}
+        .nmap-pop b{color:var(--cyan)}
+        .nmap-pop .nmap-pop__meta{color:var(--muted);font-family:"IBM Plex Mono";font-size:.62rem}
+        .nmap-popup .leaflet-popup-content-wrapper{background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:8px}
+        .nmap-popup .leaflet-popup-tip{background:var(--surface);border:1px solid var(--line)}
+        .nmap-popup a.leaflet-popup-close-button{color:var(--muted)}
     </style>
 </head>
 <body>
@@ -447,6 +467,7 @@
                     <span class="lg-item"><i class="dot dot--caut"></i>CAUTION · 관련·중간</span>
                     <span class="lg-item"><i class="dot dot--adv"></i>ADVISORY · 해당 없음/참고</span>
                     <label class="legend__toggle" title="내 FPL 항로/사용 활주로에 직접 관련된 것만 WARNING(RED). 나머지는 ADVISORY로 낮춤."><input type="checkbox" id="directRed" onchange="toggleDirectRed()"> 직접 관련만 RED</label>
+                    <button class="mapbtn" id="btnAllMap" onclick="openAllNotamMap()" title="Q라인 좌표가 있는 모든 NOTAM을 지도에 표시">🗺 전체 지도</button>
                     <button class="linkbtn" onclick="resetOverrides()">분류 초기화</button>
                 </div>
                 <div id="rwyFilter" class="rwyfilter hidden">
@@ -503,6 +524,18 @@
         <p class="site-footer__copy">© 2026 Moon-Sik Yim. All rights reserved.</p>
         <p>For inquiries or suggestions, please contact <a href="mailto:moonsikyim@gmail.com">moonsikyim@gmail.com</a>.</p>
     </footer>
+
+    <!-- NOTAM 위치 지도 모달 (cavokator 방식: Q라인 좌표 + 반경 원) -->
+    <div id="notamMapModal" class="nmap-modal hidden" onclick="if(event.target===this)closeNotamMap()">
+        <div class="nmap-box">
+            <div class="nmap-head">
+                <span id="nmapTitle" class="nmap-title">NOTAM MAP</span>
+                <button class="nmap-close" onclick="closeNotamMap()" title="닫기">✕</button>
+            </div>
+            <div id="nmapCanvas" class="nmap-canvas"></div>
+            <div id="nmapFoot" class="nmap-foot"></div>
+        </div>
+    </div>
 
     <script>
         // ============ 설정/상태 ============
@@ -1268,6 +1301,8 @@ TEXT:
             prefillXcheck(routeChk, fresh);
 
             $('legend').classList.toggle('hidden', notams.length === 0);
+            const bm = $('btnAllMap');
+            if (bm) bm.classList.toggle('hidden', !notams.some(n => geoFromNotam(n)));
 
             // 사용 RWY/TWY 필터 표시 + 프리필
             const rf = $('rwyFilter');
@@ -1432,6 +1467,8 @@ TEXT:
             // 원문은 항상 토글을 노출(있으면 표시, 없으면 안내) — 카드마다 있다없다 하지 않도록 일관성 유지
             const rawHtml = `<details class="raw-toggle"><summary>원문 보기${n.notam_id ? ' · ' + escapeHtml(n.notam_id) : ''}${rawInfo.fromCloud ? ' <span class="raw-src">(☁ 공유자료)</span>' : ''}</summary><pre class="raw-pre">${rawText ? escapeHtml(rawText) : '이 NOTAM의 원문을 찾지 못했습니다 · 원문 문서에서 번호나 형식이 달라졌을 수 있습니다.'}</pre></details>`;
             const i = n._i;
+            const geo = geoFromNotam(n);
+            const mapBtn = (geo && typeof i === 'number') ? `<button class="mapbtn" onclick="openNotamMap(${i})" title="Q라인 좌표 ${geo.lat.toFixed(2)}, ${geo.lon.toFixed(2)} · 반경 ${geo.radiusNm} NM">🗺 MAP</button>` : '';
             const sevSel = (typeof i === 'number') ? `<div class="sevsel" title="중요도 직접 변경">
                     <button class="sevsel__b ${sev==='warning'?'on on--warn':''}" onclick="setSeverity(${i},'warning')">W</button>
                     <button class="sevsel__b ${sev==='caution'?'on on--caut':''}" onclick="setSeverity(${i},'caution')">C</button>
@@ -1443,7 +1480,7 @@ TEXT:
                     <span class="chip chip--cat">${escapeHtml(n.category || 'NOTAM')}</span>
                     ${newChip}${cloudChip}${flag}${onroute}${rel}${feat}
                     <span class="alert__spacer"></span>
-                    ${sevSel}
+                    ${mapBtn}${sevSel}
                 </div>
                 ${n.title ? `<p class="alert__title">${escapeHtml(n.title)}</p>` : ''}
                 ${n.detail ? `<p class="alert__body">${escapeHtml(n.detail)}</p>` : ''}${metaHtml}${rawHtml}</div>`;
@@ -1483,6 +1520,117 @@ TEXT:
             const k = notamKey(n);
             if (k){ const c = cloudCache[cloudDocId(k)]; if (c && c.raw) return { text: String(c.raw).trim(), fromCloud: true }; }
             return { text: '', fromCloud: false };
+        }
+
+        // ============ NOTAM 위치 지도 (cavokator_xamarin 방식 포팅) ============
+        // Q라인 좌표부(예: Q) RKRR/QMRLC/IV/NBO/A/000/999/3728N12656E005)에서
+        // 위도(도+분/60)·경도·영향 반경(NM)을 해독해 Leaflet 지도에 원으로 표시
+        function parseQlineGeo(text){
+            if (!text) return null;
+            // cavokator 와 동일하게 공백을 전부 제거한 뒤 매칭 (줄바꿈·간격 변형 허용)
+            const s = String(text).toUpperCase().replace(/\s+/g, '');
+            const m = s.match(/Q\)([A-Z]{4})\/(Q[A-Z]{4})\/(?:IV|I|V|K)?\/[A-Z]{0,3}\/[A-Z]{0,2}\/(?:\d{3})?\/(?:\d{3})?\/(\d{4})([NS])(\d{5})([EW])(\d{3})/);
+            if (!m) return null;
+            const lat = (+m[3].slice(0, 2)) + (+m[3].slice(2, 4)) / 60;
+            const lon = (+m[5].slice(0, 3)) + (+m[5].slice(3, 5)) / 60;
+            const latF = m[4] === 'S' ? -lat : lat;
+            const lonF = m[6] === 'W' ? -lon : lon;
+            if (!isFinite(latF) || !isFinite(lonF) || Math.abs(latF) > 90 || Math.abs(lonF) > 180) return null;
+            return { lat: latF, lon: lonF, radiusNm: parseInt(m[7], 10) || 0, fir: m[1], qcode: m[2] };
+        }
+        const _geoCache = new WeakMap();
+        function geoFromNotam(n){
+            const raw = rawFromSource(n).text || '';
+            const hit = _geoCache.get(n);
+            if (hit && hit.raw === raw) return hit.geo;
+            const geo = parseQlineGeo(raw);
+            _geoCache.set(n, { raw, geo });
+            return geo;
+        }
+
+        let _nmap = null, _nmapLayer = null;
+        const SEV_COLOR = { warning: '#f0554f', caution: '#f2a93b', advisory: '#33cfe6' };
+        function _nmapReady(){
+            if (typeof L === 'undefined'){
+                alert('지도 라이브러리를 아직 불러오지 못했습니다. 네트워크 연결 후 다시 시도하세요.');
+                return false;
+            }
+            return true;
+        }
+        function ensureNotamMap(){
+            if (_nmap) return _nmap;
+            _nmap = L.map('nmapCanvas', { worldCopyJump: true });
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                subdomains: 'abcd', maxZoom: 19
+            }).addTo(_nmap);
+            _nmapLayer = L.layerGroup().addTo(_nmap);
+            return _nmap;
+        }
+        function _nmapOpen(title, foot){
+            $('nmapTitle').textContent = title;
+            $('nmapFoot').innerHTML = foot || '';
+            $('notamMapModal').classList.remove('hidden');
+            const map = ensureNotamMap();
+            _nmapLayer.clearLayers();
+            setTimeout(() => map.invalidateSize(), 60);
+            return map;
+        }
+        function closeNotamMap(){ const el = $('notamMapModal'); if (el) el.classList.add('hidden'); }
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeNotamMap(); });
+        function _nmapPopupHtml(n, g){
+            const parts = [`<b>${escapeHtml(n.notam_id || 'NOTAM')}</b>${n.icao ? ' · ' + escapeHtml(n.icao) : ''}`];
+            if (n.title) parts.push(escapeHtml(n.title));
+            parts.push(`<span class="nmap-pop__meta">${g.lat.toFixed(3)}, ${g.lon.toFixed(3)} · 반경 ${g.radiusNm} NM${g.radiusNm >= 999 ? ' (FIR 전역)' : ''}</span>`);
+            return `<div class="nmap-pop">${parts.join('<br>')}</div>`;
+        }
+        function _nmapPlot(n, g, withCircle){
+            const col = SEV_COLOR[(n.severity || 'warning').toLowerCase()] || SEV_COLOR.warning;
+            const mk = L.circleMarker([g.lat, g.lon], { radius: 6, color: col, weight: 2, fillColor: col, fillOpacity: .75 });
+            mk.bindPopup(_nmapPopupHtml(n, g), { className: 'nmap-popup' });
+            mk.addTo(_nmapLayer);
+            if (withCircle && g.radiusNm > 0){
+                // cavokator 와 동일: 반경 NM × 1852 = 미터
+                L.circle([g.lat, g.lon], { radius: g.radiusNm * 1852, color: col, weight: 1.5, fillColor: col, fillOpacity: .08 }).addTo(_nmapLayer);
+            }
+            return mk;
+        }
+        // 카드의 🗺 버튼 → NOTAM 1건 지도 (cavokator 의 NotamDialogMap 에 해당)
+        function openNotamMap(i){
+            if (!_nmapReady()) return;
+            const n = analysisData && analysisData.notams && analysisData.notams[i];
+            if (!n) return;
+            const g = geoFromNotam(n);
+            if (!g) return;
+            const map = _nmapOpen(
+                `NOTAM ${n.notam_id || ''}${n.icao ? ' · ' + n.icao : ''}`.trim(),
+                `${g.lat.toFixed(4)}, ${g.lon.toFixed(4)} · 반경 ${g.radiusNm} NM (Q라인)${g.radiusNm >= 999 ? ' · FIR 전역 NOTAM' : ''}`);
+            const mk = _nmapPlot(n, g, true);
+            if (g.radiusNm > 0 && g.radiusNm < 999){
+                map.fitBounds(L.latLng(g.lat, g.lon).toBounds(g.radiusNm * 1852 * 2), { padding: [30, 30] });
+            } else {
+                map.setView([g.lat, g.lon], 7);
+            }
+            setTimeout(() => mk.openPopup(), 150);
+        }
+        // 범례의 🗺 전체 지도 버튼 → 좌표 있는 모든 NOTAM 표시 (중요도 색상)
+        function openAllNotamMap(){
+            if (!_nmapReady()) return;
+            const notams = (analysisData && analysisData.notams) || [];
+            const pts = [];
+            notams.forEach(n => { const g = geoFromNotam(n); if (g) pts.push({ n, g }); });
+            if (!pts.length){
+                alert('Q라인 좌표가 있는 NOTAM이 없습니다.\n원문에 "Q) …/3728N12656E005" 형식의 좌표부가 포함돼야 합니다.');
+                return;
+            }
+            const map = _nmapOpen(`NOTAM MAP · ${pts.length}건`,
+                '● 색 = 중요도 (RED WARNING · AMBER CAUTION · CYAN ADVISORY) · 원 = 영향 반경(NM) · FIR 전역(999NM)은 원 생략');
+            const bounds = L.latLngBounds([]);
+            pts.forEach(({ n, g }) => {
+                _nmapPlot(n, g, g.radiusNm > 0 && g.radiusNm < 999);
+                bounds.extend([g.lat, g.lon]);
+            });
+            map.fitBounds(bounds.pad(0.25), { maxZoom: 9 });
         }
 
         // ============ ☁ 공유 NOTAM 분류 DB (Firebase Firestore) ============
