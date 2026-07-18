@@ -15,8 +15,6 @@
     <title>Pilot Ops Center · EFB</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1279,7 +1277,6 @@ TEXT:
 
             // 각 NOTAM에 내 RWY/TWY 관련 플래그 부여
             notams.forEach(n => { n._flag = flagKind(n); });
-            attachCoords(notams); // 📍 지도 좌표: Q)줄 파싱 → 실패 시 공항 좌표로 근사 표시
 
             positionalByIcao = {};
             notams.forEach(n => { if (n.feature && n.icao && n.icao !== 'ENROUTE'){ (positionalByIcao[n.icao] = positionalByIcao[n.icao] || []).push(n); } });
@@ -1409,254 +1406,6 @@ TEXT:
             </section>`;
         }
 
-        // ── 📍 NOTAM 지도 좌표/모달 (세션4 신규) ──────────────────────
-        // Q)줄 끝의 좌표+반경 토큰(예: 3728N12627E005)을 십진 좌표로 변환. 없으면 null.
-        function parseQCoordFromRaw(raw){
-            if (!raw) return null;
-            const m = /\bQ\)\s*[A-Z]{4}\/Q[A-Z]{4}\/[A-Z0-9\/\s]{0,30}?(\d{2})(\d{2})([NS])(\d{3})(\d{2})([EW])(\d{3})(?=\s|A\)|$)/
-                .exec(String(raw).toUpperCase());
-            if (!m) return null;
-            const latDeg = +m[1], latMin = +m[2], latSign = m[3] === 'S' ? -1 : 1;
-            const lonDeg = +m[4], lonMin = +m[5], lonSign = m[6] === 'W' ? -1 : 1;
-            const radiusNm = +m[7];
-            if (latDeg > 90 || lonDeg > 180 || latMin > 59 || lonMin > 59) return null; // 오탐 방지
-            return { lat: latSign * (latDeg + latMin / 60), lon: lonSign * (lonDeg + lonMin / 60), radiusNm, src: 'qline' };
-        }
-        // 공항 좌표 3단계: ①내 추가분(aptCoordExtra) ②내장 주요공항 ③전세계 DB(aptCoordDb, 최초 1회 자동 다운로드 후 캐시)
-        const AIRPORT_COORDS_BASE = {
-            RKSI:[37.4692,126.4505], RKSS:[37.5587,126.7906], RKPC:[33.5113,126.4930],
-            RKPK:[35.1795,128.9382], RKNY:[38.0964,127.4869], RKJJ:[35.1264,126.8090],
-            KLAX:[33.9425,-118.4081], KJFK:[40.6413,-73.7781], KSFO:[37.6213,-122.3790],
-            KORD:[41.9742,-87.9073], KSEA:[47.4502,-122.3088], KATL:[33.6407,-84.4277],
-            KDFW:[32.8998,-97.0403], KIAH:[29.9902,-95.3368], KDEN:[39.8561,-104.6737],
-            RJAA:[35.7647,140.3864], RJTT:[35.5494,139.7798], RJBB:[34.4347,135.2440],
-            RJGG:[34.8584,136.8048], RJFF:[33.5859,130.4507],
-            ZBAA:[40.0801,116.5846], ZSPD:[31.1443,121.8083], ZGGG:[23.3924,113.2988],
-            ZUUU:[30.5785,103.9471], VHHH:[22.3080,113.9185],
-            RCTP:[25.0797,121.2342], RCSS:[25.0694,121.5514],
-            WSSS:[1.3644,103.9915], WMKK:[2.7456,101.7099], VTBS:[13.6900,100.7501],
-            VVTS:[10.8188,106.6520], VVNB:[21.2212,105.8073], WIII:[-6.1256,106.6559],
-            RPLL:[14.5086,121.0198], VABB:[19.0887,72.8679], VIDP:[28.5562,77.1000],
-            OMDB:[25.2532,55.3657], OTHH:[25.2609,51.6138], OERK:[24.9576,46.6988],
-            EGLL:[51.4700,-0.4543], EDDF:[50.0379,8.5622], LFPG:[49.0097,2.5479],
-            EHAM:[52.3105,4.7683], LEMD:[40.4936,-3.5668], LIRF:[41.8003,12.2389],
-            EDDM:[48.3538,11.7861], LSZH:[47.4647,8.5492], EKCH:[55.6180,12.6560],
-            ESSA:[59.6519,17.9186], EIDW:[53.4213,-6.2701], LOWW:[48.1103,16.5697],
-            LTFM:[41.2753,28.7519], UUEE:[55.9736,37.4125],
-            YSSY:[-33.9461,151.1772], YMML:[-37.6733,144.8433], NZAA:[-37.0082,174.7850],
-            OPKC:[24.9065,67.1608], HECA:[30.1219,31.4056], FAOR:[-26.1392,28.2460],
-            CYYZ:[43.6772,-79.6306], CYVR:[49.1939,-123.1844], SBGR:[-23.4356,-46.4731],
-            SCEL:[-33.3930,-70.7858], MMMX:[19.4363,-99.0721], PANC:[61.1743,-149.9963]
-        };
-        let _aptDbMem = null, _aptDbLoading = false;
-        function getAirportDb(){
-            if (_aptDbMem) return _aptDbMem;
-            try { _aptDbMem = JSON.parse(localStorage.getItem('aptCoordDb') || 'null'); } catch(e){ _aptDbMem = null; }
-            return _aptDbMem;
-        }
-        // 전세계 공항 좌표 DB(mwgg/Airports, ICAO ~2.8만 곳) 최초 1회 다운로드 → localStorage 캐시(이후 오프라인 재사용)
-        function ensureAirportDb(){
-            if (getAirportDb() || _aptDbLoading || location.protocol === 'file:') return;
-            _aptDbLoading = true;
-            fetch('https://cdn.jsdelivr.net/gh/mwgg/Airports@master/airports.json')
-                .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-                .then(all => {
-                    const db = {};
-                    Object.keys(all).forEach(k => {
-                        const a = all[k];
-                        if (/^[A-Z]{4}$/.test(k) && a && isFinite(a.lat) && isFinite(a.lon))
-                            db[k] = [Math.round(a.lat * 1e4) / 1e4, Math.round(a.lon * 1e4) / 1e4];
-                    });
-                    if (Object.keys(db).length < 1000) return; // 이상 응답 방어
-                    _aptDbMem = db;
-                    try { localStorage.setItem('aptCoordDb', JSON.stringify(db)); } catch(e){} // 용량 초과 시 메모리로만 사용
-                    if (analysisData && Array.isArray(analysisData.notams)){
-                        attachCoords(analysisData.notams);
-                        renderAnalysis(analysisData, {});   // 좌표 보강 후 재렌더(📍 버튼 갱신)
-                    }
-                })
-                .catch(() => {})
-                .finally(() => { _aptDbLoading = false; });
-        }
-        function getAirportCoord(icao){
-            if (!icao || !/^[A-Z]{4}$/.test(icao)) return null;
-            let extra = {};
-            try { extra = JSON.parse(localStorage.getItem('aptCoordExtra') || '{}'); } catch(e){}
-            const db = getAirportDb() || {};
-            const hit = extra[icao] || AIRPORT_COORDS_BASE[icao] || db[icao];
-            return hit ? { lat: hit[0], lon: hit[1], radiusNm: null, src: 'airport' } : null;
-        }
-        // NOTAM 배열에 _coord 부여: Q)줄 파싱 우선, 실패 시 공항 좌표로 근사
-        // 📌 내 핀 저장소(localStorage pinOverrides): docId → {lat, lon, rad?}
-        function getPinOverride(did){
-            try { const all = JSON.parse(localStorage.getItem('pinOverrides') || '{}'); return all[did] || null; } catch(e){ return null; }
-        }
-        function setPinOverride(did, pin){
-            let all = {}; try { all = JSON.parse(localStorage.getItem('pinOverrides') || '{}'); } catch(e){}
-            if (pin) all[did] = pin; else delete all[did];
-            try { localStorage.setItem('pinOverrides', JSON.stringify(all)); } catch(e){}
-        }
-        // E)본문 속 좌표 파싱 — 예: "A CIRCLE RADIUS 2NM CENTERED ON 373523N1265832E" (도분초/도분 + 반경)
-        // FIR NOTAM(RKRR 등)처럼 Q)줄도 없고 공항 좌표표에도 없는 경우의 폴백. 좌표가 여럿(폴리곤)이면 첫 좌표 기준.
-        function parseBodyCoordFromRaw(raw){
-            if (!raw) return null;
-            const U = String(raw).toUpperCase();
-            let lat = null, lon = null;
-            let m = /\b(\d{2})([0-5]\d)([0-5]\d)([NS])\s*(\d{3})([0-5]\d)([0-5]\d)([EW])\b/.exec(U);   // DDMMSS(N/S)DDDMMSS(E/W)
-            if (m){
-                lat = (+m[1] + m[2] / 60 + m[3] / 3600) * (m[4] === 'S' ? -1 : 1);
-                lon = (+m[5] + m[6] / 60 + m[7] / 3600) * (m[8] === 'W' ? -1 : 1);
-            } else {
-                m = /\b(\d{2})([0-5]\d)([NS])\s*(\d{3})([0-5]\d)([EW])/.exec(U);                        // DDMM(N/S)DDDMM(E/W)
-                if (!m) return null;
-                lat = (+m[1] + m[2] / 60) * (m[3] === 'S' ? -1 : 1);
-                lon = (+m[4] + m[5] / 60) * (m[6] === 'W' ? -1 : 1);
-            }
-            if (!isFinite(lat) || !isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
-            const r = /RADIUS\s*(?:OF\s*)?(\d+(?:\.\d+)?)\s*NM/.exec(U);
-            return { lat: lat, lon: lon, radiusNm: r ? +r[1] : null, src: 'body' };
-        }
-        // NOTAM 배열에 _coord 부여 — 우선순위: 내 핀 > ☁ 공유 핀 > Q)줄 좌표 > E)본문 좌표 > 공항 근사
-        function attachCoords(notams){
-            let missing = false;
-            notams.forEach(n => {
-                const k = notamKey(n);
-                const did = k ? cloudDocId(k) : '';
-                const my = did ? getPinOverride(did) : null;
-                const c = did ? cloudCache[did] : null;
-                const cp = (c && c.pin && isFinite(c.pin.lat) && isFinite(c.pin.lon)) ? c.pin : null;
-                if (my){ n._coord = { lat: +my.lat, lon: +my.lon, radiusNm: my.rad || null, src: 'mypin' }; return; }
-                if (cp){ n._coord = { lat: +cp.lat, lon: +cp.lon, radiusNm: cp.rad || null, src: 'cloudpin', by: c.pinByName || c.pinBy || '' }; return; }
-                const rawInfo = rawFromSource(n);
-                const t = rawInfo && rawInfo.text;
-                n._coord = parseQCoordFromRaw(t) || parseBodyCoordFromRaw(t) || getAirportCoord(n.icao);
-                if (!n._coord && n.icao && n.icao !== 'ENROUTE') missing = true;
-            });
-            if (missing) ensureAirportDb(); // 커버 안 되는 공항이 있으면 전세계 DB 확보(완료 시 자동 재렌더)
-        }
-        // 지도 모달(Leaflet) — 최초 호출 시 DOM/CSS 동적 생성
-        let _notamMapInstance = null;
-        function ensureMapModal(){
-            if ($('notamMapModal')) return;
-            const style = document.createElement('style');
-            style.textContent = `
-                .maplink{margin-top:.3rem}
-                .pin-dot{width:18px;height:18px;border-radius:50%;background:rgba(240,85,79,.35);border:2px solid #f0554f;box-shadow:0 0 10px rgba(240,85,79,.8)}
-                .notam-map-modal{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(4,10,16,.78);backdrop-filter:blur(2px)}
-                .notam-map-modal.hidden{display:none}
-                .notam-map-box{width:min(92vw,640px);max-height:88vh;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6)}
-                .notam-map-hd{display:flex;align-items:center;gap:.6rem;padding:.7rem .9rem;border-bottom:1px solid var(--line)}
-                .notam-map-hd b{font-family:"Chakra Petch";font-size:.75rem;letter-spacing:.06em;color:var(--cyan);flex:1}
-                .notam-map-note{font-family:"IBM Plex Mono";font-size:.62rem;color:var(--muted);padding:.5rem .9rem;border-top:1px solid var(--line)}
-                #notamMapCanvas{flex:1;min-height:320px;background:#0a121c}
-            `;
-            document.head.appendChild(style);
-            const div = document.createElement('div');
-            div.id = 'notamMapModal';
-            div.className = 'notam-map-modal hidden';
-            div.innerHTML = `<div class="notam-map-box">
-                <div class="notam-map-hd"><b id="notamMapTitle">NOTAM 위치</b>
-                    <button class="linkbtn" onclick="saveNotamPin()">💾 핀 저장·공유</button>
-                    <button class="linkbtn" onclick="resetNotamPin()">↺ 핀 삭제</button>
-                    <button class="linkbtn" onclick="closeNotamMap()">✕ 닫기</button></div>
-                <div id="notamMapCanvas"></div>
-                <div class="notam-map-note" id="notamMapNote"></div>
-            </div>`;
-            div.addEventListener('click', (e) => { if (e.target === div) closeNotamMap(); });
-            document.body.appendChild(div);
-        }
-        let _mapEdit = null; // { i, marker, moved } — 현재 열린 지도의 편집 상태
-        function updatePinNote(n, moved){
-            const el = $('notamMapNote'); if (!el || !n._coord) return;
-            const srcTxt = n._coord.src === 'qline' ? 'Q)필드 좌표(정확)'
-                : n._coord.src === 'body' ? 'E)본문 좌표(첫 좌표 기준)'
-                : n._coord.src === 'mypin' ? '내가 저장한 핀'
-                : n._coord.src === 'cloudpin' ? ('☁ 공유 핀' + (n._coord.by ? ' · ' + n._coord.by : ''))
-                : '공항 좌표 기준 근사 표시 — 정확한 NOTAM 위치 아님';
-            const ll = (_mapEdit && _mapEdit.marker) ? _mapEdit.marker.getLatLng() : { lat: n._coord.lat, lng: n._coord.lon };
-            el.textContent = `${(+ll.lat).toFixed(4)}, ${(+ll.lng).toFixed(4)}${n._coord.radiusNm ? ` · 반경 ${n._coord.radiusNm}NM` : ''} · ${srcTxt}` +
-                (moved ? ' · 🔴 이동됨 — [💾 핀 저장·공유]를 눌러야 반영됩니다' : ' · 핀을 끌어서 위치 조정 가능');
-        }
-        function showNotamMap(i){
-            const n = (analysisData && analysisData.notams) ? analysisData.notams[i] : null;
-            if (!n || !n._coord) return;
-            if (typeof L === 'undefined'){ alert('지도 라이브러리를 불러오지 못했습니다. 네트워크 연결을 확인하세요.'); return; }
-            ensureMapModal();
-            _mapEdit = { i: i, marker: null, moved: false };
-            $('notamMapModal').classList.remove('hidden');
-            $('notamMapTitle').textContent = `${n.icao || ''} ${n.notam_id || ''}`.trim() || 'NOTAM 위치';
-            updatePinNote(n, false);
-            if (_notamMapInstance){ _notamMapInstance.remove(); _notamMapInstance = null; }
-            setTimeout(() => {
-                const map = _notamMapInstance = L.map('notamMapCanvas');
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom: 18 }).addTo(map);
-                const pt = [n._coord.lat, n._coord.lon];
-                const icon = L.divIcon({ className: '', html: '<div class="pin-dot"></div>', iconSize: [18, 18], iconAnchor: [9, 9] });
-                const mk = L.marker(pt, { icon: icon, draggable: true, autoPan: true }).addTo(map);
-                mk.on('dragend', () => { if (_mapEdit){ _mapEdit.moved = true; updatePinNote(n, true); } });
-                _mapEdit.marker = mk;
-                if (n._coord.radiusNm){
-                    const c = L.circle(pt, { radius: n._coord.radiusNm * 1852, color: '#f0554f', weight: 1.5, fillOpacity: .08 }).addTo(map);
-                    map.fitBounds(c.getBounds().pad(0.4));
-                } else {
-                    map.setView(pt, 9);
-                }
-                map.invalidateSize();
-            }, 30);
-        }
-        // 💾 핀 저장: 항상 내 기기(localStorage) + 로그인 시 ☁ 공유 DB에도 기록
-        function saveNotamPin(){
-            if (!_mapEdit || !_mapEdit.marker || !analysisData) return;
-            const n = analysisData.notams[_mapEdit.i]; if (!n) return;
-            const k = notamKey(n);
-            if (!k){ alert('이 NOTAM은 공항코드/번호가 없어 핀을 저장할 수 없습니다.'); return; }
-            const ll = _mapEdit.marker.getLatLng();
-            const pin = { lat: Math.round(ll.lat * 1e5) / 1e5, lon: Math.round((((ll.lng + 540) % 360) - 180) * 1e5) / 1e5 };
-            if (n._coord && n._coord.radiusNm) pin.rad = n._coord.radiusNm;   // 기존 반경 유지
-            const did = cloudDocId(k);
-            setPinOverride(did, pin);
-            let msg = '내 기기에 저장됨';
-            if (fbUser && fbDb){
-                const doc = { key: k, icao: n.icao || '', notam_id: n.notam_id || '',
-                    pin: pin, pinBy: fbUser.email || '', pinByName: fbUser.displayName || '',
-                    pinAt: firebase.firestore.FieldValue.serverTimestamp() };
-                const rw = rawFromSource(n).text;   // 보안규칙(원문 쓰기 조건) 충족용
-                if (rw) doc.raw = rw;
-                fbDb.collection('notams').doc(did).set(doc, { merge: true })
-                    .then(() => { (cloudCache[did] = cloudCache[did] || {}).pin = pin; cloudCache[did].pinBy = doc.pinBy; cloudCache[did].pinByName = doc.pinByName; })
-                    .catch(e => alert('☁ 공유 저장 실패: ' + e.message + '\n(내 기기에는 저장되었습니다)'));
-                msg += ' + ☁ 공유 DB에 기록(다른 사용자에게 적용됨)';
-            } else {
-                msg += ' — 로그인하면 다른 사용자와도 공유됩니다';
-            }
-            attachCoords(analysisData.notams);
-            renderAnalysis(analysisData, {});
-            closeNotamMap();
-            alert('📍 핀 저장 완료 · ' + msg);
-        }
-        // ↺ 핀 삭제: 내 핀 제거(+원하면 공유 핀도 제거) → 원래 좌표(Q)줄/공항 근사)로 복귀
-        function resetNotamPin(){
-            if (!_mapEdit || !analysisData) return;
-            const n = analysisData.notams[_mapEdit.i]; if (!n) return;
-            const k = notamKey(n); if (!k) return;
-            const did = cloudDocId(k);
-            setPinOverride(did, null);
-            if (fbUser && fbDb && cloudCache[did] && cloudCache[did].pin){
-                if (confirm('☁ 공유 DB의 핀도 삭제할까요? (다른 사용자 화면에서도 사라집니다)\n[취소]하면 내 기기 핀만 삭제됩니다.')){
-                    const del = firebase.firestore.FieldValue.delete();
-                    fbDb.collection('notams').doc(did).set({ pin: del, pinBy: del, pinByName: del, pinAt: del }, { merge: true })
-                        .then(() => { delete cloudCache[did].pin; })
-                        .catch(e => alert('공유 핀 삭제 실패: ' + e.message));
-                }
-            }
-            attachCoords(analysisData.notams);
-            renderAnalysis(analysisData, {});
-            closeNotamMap();
-        }
-        function closeNotamMap(){
-            const m = $('notamMapModal'); if (m) m.classList.add('hidden');
-            if (_notamMapInstance){ _notamMapInstance.remove(); _notamMapInstance = null; }
-        }
         function alertCard(n){
             const sev = (n.severity || 'warning').toLowerCase();
             const cls  = sev === 'advisory' ? 'alert--adv' : (sev === 'caution' ? 'alert--caut' : 'alert--warn');
@@ -1682,9 +1431,6 @@ TEXT:
             const rawText = rawInfo.text;
             // 원문은 항상 토글을 노출(있으면 표시, 없으면 안내) — 카드마다 있다없다 하지 않도록 일관성 유지
             const rawHtml = `<details class="raw-toggle"><summary>원문 보기${n.notam_id ? ' · ' + escapeHtml(n.notam_id) : ''}${rawInfo.fromCloud ? ' <span class="raw-src">(☁ 공유자료)</span>' : ''}</summary><pre class="raw-pre">${rawText ? escapeHtml(rawText) : '이 NOTAM의 원문을 찾지 못했습니다 · 원문 문서에서 번호나 형식이 달라졌을 수 있습니다.'}</pre></details>`;
-            const mapBtn = n._coord
-                ? `<button class="linkbtn maplink" onclick="showNotamMap(${n._i})">📍 지도${n._coord.src === 'airport' ? ' <span class="raw-src">(공항 근사)</span>' : n._coord.src === 'mypin' ? ' <span class="raw-src">(내 핀)</span>' : n._coord.src === 'cloudpin' ? ' <span class="raw-src">(☁ 공유 핀)</span>' : n._coord.src === 'body' ? ' <span class="raw-src">(본문 좌표)</span>' : ''}</button>`
-                : '';
             const i = n._i;
             const sevSel = (typeof i === 'number') ? `<div class="sevsel" title="중요도 직접 변경">
                     <button class="sevsel__b ${sev==='warning'?'on on--warn':''}" onclick="setSeverity(${i},'warning')">W</button>
@@ -1700,7 +1446,7 @@ TEXT:
                     ${sevSel}
                 </div>
                 ${n.title ? `<p class="alert__title">${escapeHtml(n.title)}</p>` : ''}
-                ${n.detail ? `<p class="alert__body">${escapeHtml(n.detail)}</p>` : ''}${metaHtml}${mapBtn}${rawHtml}</div>`;
+                ${n.detail ? `<p class="alert__body">${escapeHtml(n.detail)}</p>` : ''}${metaHtml}${rawHtml}</div>`;
         }
 
         // NOTAM 원문 로컬 재구성: 원문에서 ID 정확매칭 → 관대매칭(공백 허용) → feature/title 단서
