@@ -15,6 +15,8 @@
     <title>Pilot Ops Center · EFB</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -332,6 +334,26 @@
         .chip--new{color:#5fe0a8;border-color:rgba(47,208,138,.55);background:rgba(47,208,138,.1);font-weight:700}
         .cloud-meta{display:block;margin-top:.3rem;font-size:.64rem;color:#7fb8c9;line-height:1.55}
         .cloud-meta b{color:#a9e2ef;font-weight:600}
+        /* ── ROUTE MAP (Leaflet) ───────────────────────────── */
+        .routemap{height:62vh;min-height:420px;border:1px solid var(--line);border-radius:12px;background:#0a1119;overflow:hidden;resize:vertical}
+        .routemap .leaflet-container{background:#0a1119;font-family:inherit}
+        .routemap .leaflet-control-attribution{background:rgba(8,11,18,.7);color:#5a6b80;font-size:.58rem}
+        .routemap .leaflet-control-attribution a{color:#7fdcee}
+        .routemap .leaflet-bar a{background:#0e1522;color:#cfe3f5;border-color:#22304a}
+        .routemap .leaflet-bar a:hover{background:#182338}
+        .routemap .leaflet-popup-content-wrapper,.routemap .leaflet-popup-tip{background:#0e1522;color:#dfe9f5;border:1px solid #2a3b58;box-shadow:0 6px 24px rgba(0,0,0,.6)}
+        .routemap .leaflet-popup-content{margin:.6rem .75rem;font-size:.74rem;line-height:1.45}
+        .rm-pop__sev{display:inline-block;padding:.05rem .4rem;border-radius:4px;font-weight:800;font-size:.62rem;letter-spacing:.06em;margin-right:.35rem}
+        .rm-pop__id{font-weight:700;color:#9fd7ff}
+        .rm-pop__ttl{margin:.25rem 0 .3rem;color:#e8f1fb}
+        .rm-apt{background:#0e1522;border:1px solid #33cfe6;color:#aef0fb;border-radius:5px;padding:.06rem .3rem;font-weight:800;font-size:.62rem;letter-spacing:.06em;white-space:nowrap;box-shadow:0 0 10px rgba(51,207,230,.35)}
+        .rm-apt--altn{border-color:#8fa3bd;color:#c6d4e6;box-shadow:none;opacity:.9}
+        .rm-legend{display:flex;flex-wrap:wrap;gap:.4rem .9rem;align-items:center;margin-top:.5rem;font-size:.64rem;color:#8ea3bd}
+        .rm-legend i{display:inline-block;width:.62rem;height:.62rem;border-radius:50%;margin-right:.28rem;vertical-align:-1px}
+        .rm-legend .rm-line{width:1.1rem;height:0;border-top:2px solid #e879f9;border-radius:0}
+        .rm-note{font-size:.68rem;color:#8ea3bd;margin:.2rem 0 .5rem}
+        .card-hi{outline:2px solid var(--cyan);outline-offset:2px;transition:outline-color 1.2s}
+        .card-hi--off{outline-color:transparent}
     </style>
 </head>
 <body>
@@ -462,6 +484,31 @@
                     <p class="empty-note">STANDBY · 분석 대기 중</p>
                 </div>
                 <div id="minorNotams"></div>
+            </section>
+
+            <!-- 2.3) ROUTE MAP — 항로 + NOTAM 위치 통합 지도 -->
+            <section class="panel hidden" id="routeMapSec">
+                <div class="panel__head">
+                    <h2 class="panel__title">🗺 ROUTE MAP <span class="brief-hint">· 항로 + NOTAM 위치</span></h2>
+                    <div class="doc-actions" style="display:flex;gap:.4rem;align-items:center">
+                        <select id="rmBaseSel" class="modelsel" onchange="setRmBase(this.value)" title="배경지도 선택">
+                            <option value="dark">지도: DARK (EN)</option>
+                            <option value="light">지도: LIGHT (EN)</option>
+                            <option value="gray">지도: GRAY (EN)</option>
+                            <option value="osm">지도: OSM</option>
+                        </select>
+                        <button class="btn btn--sm btn--ghost" onclick="fitRouteMap()">⤢ 전체보기</button>
+                    </div>
+                </div>
+                <p id="rmNote" class="rm-note"></p>
+                <div id="routeMap" class="routemap"></div>
+                <div class="rm-legend">
+                    <span><i style="background:#f0554f"></i>WARNING</span>
+                    <span><i style="background:#f2a93b"></i>CAUTION</span>
+                    <span><i style="background:#33cfe6"></i>ADVISORY</span>
+                    <span><i class="rm-line"></i>FPL 항로(대권)</span>
+                    <span>○ 원 = Q필드 영향반경 · ▱ 다각형 = 좌표목록 구역 · 점 클릭 → 카드 이동</span>
+                </div>
             </section>
 
             <!-- 2.5) 저장된 브리핑 (오프라인 열람·편집) -->
@@ -1278,6 +1325,9 @@ TEXT:
             // 각 NOTAM에 내 RWY/TWY 관련 플래그 부여
             notams.forEach(n => { n._flag = flagKind(n); });
 
+            // 🗺 지도용 좌표 파싱 (Q필드 좌표+반경 · E필드 좌표목록) — 카드의 [지도] 버튼 표시에도 사용
+            notams.forEach(n => { try{ n._geo = notamGeo(n); }catch(e){ n._geo = null; } });
+
             positionalByIcao = {};
             notams.forEach(n => { if (n.feature && n.icao && n.icao !== 'ENROUTE'){ (positionalByIcao[n.icao] = positionalByIcao[n.icao] || []).push(n); } });
 
@@ -1373,6 +1423,238 @@ TEXT:
 
             updateAirportDots();
             refreshAnnotateBtn();
+            try{ updateRouteMap(notams, r); }catch(e){ console.warn('routeMap', e); }
+        }
+
+        /* ═══════════ 🗺 ROUTE MAP — 항로 + NOTAM 위치 통합 지도 ═══════════ */
+        const RM_BASES = {
+            dark:  { url:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',            attr:'&copy; OpenStreetMap &copy; CARTO', sub:'abcd' },
+            light: { url:'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', attr:'&copy; OpenStreetMap &copy; CARTO', sub:'abcd' },
+            gray:  { url:'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', attr:'&copy; Esri', maxZoom:16 },
+            osm:   { url:'https://tile.openstreetmap.org/{z}/{x}/{y}.png', attr:'&copy; OpenStreetMap' }
+        };
+        const RM_SEVC = { warning:'#f0554f', caution:'#f2a93b', advisory:'#33cfe6' };
+        // 주요 공항 좌표(폴백) — 사전에 없으면 그 공항 NOTAM들의 Q필드 좌표 중앙값으로 자동 추정
+        const AIRPORT_LL = {
+            RKSI:[37.469,126.451], RKSS:[37.558,126.791], RKPC:[33.511,126.493], RKPK:[35.179,128.938],
+            RKTU:[36.716,127.499], RKTN:[35.894,128.659], RKNY:[38.061,128.669], RKJB:[34.991,126.383], RKJJ:[35.126,126.809],
+            RJAA:[35.765,140.386], RJTT:[35.549,139.780], RJBB:[34.434,135.244], RJCC:[42.775,141.692],
+            RJFF:[33.585,130.451], RJGG:[34.858,136.805], RJOO:[34.785,135.438], ROAH:[26.196,127.646],
+            ZBAA:[40.080,116.585], ZBAD:[39.509,116.410], ZSPD:[31.144,121.808], ZSSS:[31.198,121.336],
+            ZGGG:[23.392,113.299], ZGSZ:[22.639,113.811], ZUUU:[30.578,103.947], ZPPP:[25.102,102.929],
+            VHHH:[22.308,113.915], RCTP:[25.078,121.233], RCKH:[22.577,120.350],
+            VTBS:[13.690,100.750], VTBD:[13.913,100.607], WSSS:[1.364,103.991], WMKK:[2.746,101.710],
+            VVNB:[21.221,105.807], VVTS:[10.819,106.652], VVDN:[16.044,108.199], RPLL:[14.509,121.020], WIII:[-6.126,106.656],
+            VIDP:[28.556,77.100], OMDB:[25.253,55.365], OMAA:[24.433,54.651], OTHH:[25.273,51.608],
+            YSSY:[-33.946,151.177], YMML:[-37.673,144.843], NZAA:[-37.008,174.792], PHNL:[21.318,-157.922], PGUM:[13.484,144.797],
+            PANC:[61.174,-149.996], PAFA:[64.815,-147.856], CYVR:[49.194,-123.184], CYYZ:[43.677,-79.631],
+            KLAX:[33.942,-118.408], KSFO:[37.619,-122.375], KSEA:[47.450,-122.309], KSJC:[37.363,-121.929], KONT:[34.056,-117.601],
+            KLAS:[36.086,-115.153], KPDX:[45.589,-122.597], KDEN:[39.862,-104.673], KORD:[41.978,-87.905], KDFW:[32.897,-97.038],
+            KATL:[33.636,-84.428], KJFK:[40.640,-73.779], KEWR:[40.693,-74.169], KBOS:[42.363,-71.006], KIAD:[38.947,-77.460], KMSP:[44.882,-93.222],
+            EGLL:[51.470,-0.454], LFPG:[49.010,2.548], EDDF:[50.033,8.570], EHAM:[52.310,4.768],
+            LIRF:[41.800,12.239], LEMD:[40.472,-3.561], LTFM:[41.262,28.742], LOWW:[48.110,16.570], EPWA:[52.166,20.967],
+            UUEE:[55.973,37.413], UHWW:[43.399,132.148], UHHH:[48.528,135.188]
+        };
+        // ── 좌표 파싱 ──────────────────────────────────────────
+        function parseQGeo(raw){
+            const m = /Q\)[^\n]*?(\d{4})([NS])\s?(\d{5})([EW])(\d{3})?/.exec(raw || '');
+            if (!m) return null;
+            const lat = (+m[1].slice(0,2)) + (+m[1].slice(2))/60;
+            const lng = (+m[3].slice(0,3)) + (+m[3].slice(3))/60;
+            if (!isFinite(lat) || !isFinite(lng) || lat > 90 || lng > 180) return null;
+            return { lat: m[2] === 'S' ? -lat : lat, lng: m[4] === 'W' ? -lng : lng, rNm: m[5] ? +m[5] : null };
+        }
+        function parseCoordList(txt){
+            const pts = [];
+            if (!txt) return pts;
+            const push = (lat, lng) => { if (isFinite(lat) && isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) pts.push([lat, lng]); };
+            let m;
+            // ① DDMMSS[.s]N DDDMMSS[.s]E  (예: 372812N1262715E)
+            let re = /(^|[^\d.])(\d{2})(\d{2})(\d{2}(?:\.\d+)?)\s?([NS])\s*(\d{3})(\d{2})(\d{2}(?:\.\d+)?)\s?([EW])(?!\d)/g;
+            while ((m = re.exec(txt))) push((+m[2] + +m[3]/60 + +m[4]/3600) * (m[5]==='S'?-1:1), (+m[6] + +m[7]/60 + +m[8]/3600) * (m[9]==='W'?-1:1));
+            // ② N372812 E1262715 (반구 접두)
+            re = /([NS])\s?(\d{2})(\d{2})(\d{2}(?:\.\d+)?)[,\s]+([EW])\s?(\d{3})(\d{2})(\d{2}(?:\.\d+)?)(?!\d)/g;
+            while ((m = re.exec(txt))) push((+m[2] + +m[3]/60 + +m[4]/3600) * (m[1]==='S'?-1:1), (+m[6] + +m[7]/60 + +m[8]/3600) * (m[5]==='W'?-1:1));
+            // ③ DDMM[.m]N DDDMM[.m]E  (예: 3728.2N 12627.5E · 3728N12627E)
+            re = /(^|[^\d.])(\d{2})(\d{2}(?:\.\d+)?)\s?([NS])\s*(\d{3})(\d{2}(?:\.\d+)?)\s?([EW])(?![\d])/g;
+            while ((m = re.exec(txt))) push((+m[2] + +m[3]/60) * (m[4]==='S'?-1:1), (+m[5] + +m[6]/60) * (m[7]==='W'?-1:1));
+            // ④ 37 28 12N 126 27 15E (공백 구분)
+            re = /(\d{2})\s+(\d{2})\s+(\d{2})\s*([NS])[,\s]+(\d{3})\s+(\d{2})\s+(\d{2})\s*([EW])/g;
+            while ((m = re.exec(txt))) push((+m[1] + +m[2]/60 + +m[3]/3600) * (m[4]==='S'?-1:1), (+m[5] + +m[6]/60 + +m[7]/3600) * (m[8]==='W'?-1:1));
+            return pts;
+        }
+        function notamGeo(n){
+            try{
+                const raw = rawFromSource(n).text || '';
+                if (!raw) return null;
+                const q = parseQGeo(raw);
+                const eIdx = raw.search(/\bE\)\s?/);
+                const pts = parseCoordList(eIdx >= 0 ? raw.slice(eIdx) : raw);
+                const center = q ? [q.lat, q.lng] : (pts.length ? pts[0] : null);
+                if (!center) return null;
+                const near = (a, b) => Math.abs(a[0]-b[0]) < .02 && Math.abs(a[1]-b[1]) < .02;
+                const upts = [];
+                pts.forEach(p => { if (!(q && near(p, center)) && !upts.some(u => near(u, p))) upts.push(p); });
+                return { c: center, r: (q && q.rNm && q.rNm < 999) ? q.rNm : null, pts: upts };
+            }catch(e){ return null; }
+        }
+        function airportLL(icao, notams){
+            if (!icao) return null;
+            if (AIRPORT_LL[icao]) return AIRPORT_LL[icao];
+            const cs = [];
+            (notams || []).forEach(n => { if (n.icao === icao && n._geo && n._geo.c) cs.push(n._geo.c); });
+            if (!cs.length) return null;
+            const mid = a => { const s = a.slice().sort((x,y) => x-y); return s[Math.floor(s.length/2)]; };
+            return [mid(cs.map(c => c[0])), mid(cs.map(c => c[1]))];
+        }
+        // ── 대권항로 + 날짜변경선 처리 ─────────────────────────
+        function gcPath(a, b, seg){
+            const toR = x => x*Math.PI/180, toD = x => x*180/Math.PI;
+            const p1 = toR(a[0]), l1 = toR(a[1]), p2 = toR(b[0]), l2 = toR(b[1]);
+            const d = 2*Math.asin(Math.sqrt(Math.sin((p2-p1)/2)**2 + Math.cos(p1)*Math.cos(p2)*Math.sin((l2-l1)/2)**2));
+            if (!d || !isFinite(d)) return [a.slice(), b.slice()];
+            const pts = [];
+            for (let i = 0; i <= seg; i++){
+                const f = i/seg, A = Math.sin((1-f)*d)/Math.sin(d), B = Math.sin(f*d)/Math.sin(d);
+                const x = A*Math.cos(p1)*Math.cos(l1) + B*Math.cos(p2)*Math.cos(l2);
+                const y = A*Math.cos(p1)*Math.sin(l1) + B*Math.cos(p2)*Math.sin(l2);
+                const z = A*Math.sin(p1) + B*Math.sin(p2);
+                pts.push([toD(Math.atan2(z, Math.sqrt(x*x + y*y))), toD(Math.atan2(y, x))]);
+            }
+            return pts;
+        }
+        function rmUnwrap(path){ for (let i = 1; i < path.length; i++){ const d = path[i][1] - path[i-1][1]; if (d > 180) path[i][1] -= 360; else if (d < -180) path[i][1] += 360; } return path; }
+        function rmNormLng(lng, ref){ while (lng - ref > 180) lng -= 360; while (lng - ref < -180) lng += 360; return lng; }
+        // ── Leaflet 지도 ───────────────────────────────────────
+        let rmMap = null, rmBaseLayer = null, rmGroup = null, rmBounds = null, rmFeat = {};
+        function ensureRouteMap(){
+            if (!window.L) return null;
+            if (rmMap) return rmMap;
+            rmMap = L.map('routeMap', { worldCopyJump: false, zoomSnap: .5 });
+            rmGroup = L.layerGroup().addTo(rmMap);
+            rmMap.setView([37.5, 127], 5);
+            setRmBase(localStorage.getItem('rmBase') || 'dark');
+            if (window.ResizeObserver){ new ResizeObserver(() => { if (rmMap) rmMap.invalidateSize(); }).observe($('routeMap')); }
+            return rmMap;
+        }
+        function setRmBase(k){
+            if (!RM_BASES[k]) k = 'dark';
+            localStorage.setItem('rmBase', k);
+            if ($('rmBaseSel')) $('rmBaseSel').value = k;
+            if (!window.L || !rmMap) return;
+            if (rmBaseLayer) rmMap.removeLayer(rmBaseLayer);
+            const b = RM_BASES[k];
+            rmBaseLayer = L.tileLayer(b.url, { attribution: b.attr, subdomains: b.sub || 'abc', maxZoom: b.maxZoom || 19 });
+            rmBaseLayer.addTo(rmMap);
+            rmBaseLayer.bringToBack();
+        }
+        function fitRouteMap(){ if (rmMap && rmBounds) rmMap.fitBounds(rmBounds, { padding: [30, 30] }); }
+        function rmPopup(n){
+            const sev = (n.severity || 'advisory').toLowerCase();
+            const col = RM_SEVC[sev] || RM_SEVC.advisory;
+            const tag = sev === 'warning' ? 'WARNING' : (sev === 'caution' ? 'CAUTION' : 'ADVISORY');
+            const rr = (n._geo && n._geo.r) ? ` · 반경 ${n._geo.r}NM` : '';
+            return `<span class="rm-pop__sev" style="background:${col};color:#10161f">${tag}</span>`
+                + `<span class="rm-pop__id">${escapeHtml(n.icao || '')} ${escapeHtml(n.notam_id || '')}</span>${rr}`
+                + (n.title ? `<p class="rm-pop__ttl">${escapeHtml(n.title)}</p>` : '')
+                + (typeof n._i === 'number' ? `<button class="linkbtn" onclick="rmGoCard(${n._i})">▤ 카드 보기</button>` : '');
+        }
+        function rmGoCard(i){
+            const el = document.getElementById('nmcard-' + i);
+            if (!el) return;
+            // 접힌 참고(advisory) 목록·드롭다운 섹션 안이면 펼치기
+            let p = el.parentElement;
+            while (p){ if (p.tagName === 'DETAILS') p.open = true; p = p.parentElement; }
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('card-hi'); el.classList.remove('card-hi--off');
+            setTimeout(() => el.classList.add('card-hi--off'), 1400);
+            setTimeout(() => el.classList.remove('card-hi', 'card-hi--off'), 2800);
+        }
+        function showOnMap(i){
+            const sec = $('routeMapSec');
+            if (!sec || sec.classList.contains('hidden')) return;
+            sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const f = rmFeat[i];
+            if (rmMap && f){
+                rmMap.setView(f.ll, Math.max(rmMap.getZoom(), 8));
+                if (f.layer && f.layer.openPopup) setTimeout(() => f.layer.openPopup(), 350);
+            }
+        }
+        function updateRouteMap(notams, r){
+            const sec = $('routeMapSec');
+            if (!sec) return;
+            const geoN = (notams || []).filter(n => n._geo);
+            const depI = (r && r.departure || '').toUpperCase().trim();
+            const dstI = (r && r.destination || '').toUpperCase().trim();
+            const dep = airportLL(depI, notams), dst = airportLL(dstI, notams);
+            if (!geoN.length && !(dep && dst) && !(notams && notams.length)){ sec.classList.add('hidden'); return; }
+            sec.classList.remove('hidden');
+            if (!window.L){ $('rmNote').textContent = '지도 라이브러리를 아직 불러오지 못했습니다 — 네트워크 연결 상태에서 새로고침하면 이후 오프라인에서도 동작합니다.'; return; }
+            const map = ensureRouteMap();
+            rmGroup.clearLayers(); rmFeat = {};
+            if (!geoN.length && !(dep && dst)){
+                $('rmNote').innerHTML = `표시할 위치 없음 · 좌표(Q필드/E필드)가 있는 NOTAM이 없고, 출발·도착 공항(${escapeHtml(depI || '—')}/${escapeHtml(dstI || '—')}) 좌표도 확인하지 못했습니다. <b>✎ 경로수정</b>으로 ICAO를 지정하면 항로가 표시될 수 있습니다.`;
+                setTimeout(() => map.invalidateSize(), 60);
+                return;
+            }
+            const alls = [];
+            let ref = dep ? dep[1] : (dst ? dst[1] : geoN[0]._geo.c[1]);
+            // ① FPL 항로(대권) — 태평양 등 날짜변경선 통과 시 경도 연속화
+            if (dep && dst){
+                const path = rmUnwrap(gcPath(dep, dst, 96));
+                ref = path[Math.floor(path.length/2)][1];
+                const p2 = path.map(p => [p[0], rmNormLng(p[1], ref)]);
+                L.polyline(p2, { color: '#e879f9', weight: 2.5, opacity: .9 }).addTo(rmGroup);
+                p2.forEach(p => alls.push(p));
+            }
+            const aptMark = (icao, ll, altn) => {
+                if (!ll) return;
+                const p = [ll[0], rmNormLng(ll[1], ref)];
+                L.marker(p, { icon: L.divIcon({ className: '', html: `<span class="rm-apt${altn ? ' rm-apt--altn' : ''}">${escapeHtml(icao)}</span>`, iconAnchor: [16, 9] }) }).addTo(rmGroup);
+                alls.push(p);
+            };
+            aptMark(depI, dep, false);
+            aptMark(dstI, dst, false);
+            ((r && r.alternates) || []).forEach(a => {
+                const ic = String(a).toUpperCase().trim();
+                const ll = airportLL(ic, notams);
+                if (!ll) return;
+                aptMark(ic, ll, true);
+                if (dst){
+                    const path = rmUnwrap(gcPath(dst, ll, 24)).map(p => [p[0], rmNormLng(p[1], ref)]);
+                    L.polyline(path, { color: '#8fa3bd', weight: 1.4, dashArray: '4 6', opacity: .8 }).addTo(rmGroup);
+                }
+            });
+            // ② NOTAM 위치 (W/C/A EICAS 색)
+            let drawn = 0;
+            geoN.forEach(n => {
+                const g = n._geo;
+                const col = RM_SEVC[(n.severity || 'advisory').toLowerCase()] || RM_SEVC.advisory;
+                const pop = rmPopup(n);
+                const C = [g.c[0], rmNormLng(g.c[1], ref)];
+                let mainLayer = null;
+                if (g.pts.length >= 3){
+                    const poly = g.pts.map(p => [p[0], rmNormLng(p[1], ref)]);
+                    mainLayer = L.polygon(poly, { color: col, weight: 1.6, dashArray: '5 4', fillColor: col, fillOpacity: .10 }).addTo(rmGroup).bindPopup(pop);
+                    poly.forEach(p => alls.push(p));
+                } else {
+                    if (g.r && g.r <= 300) L.circle(C, { radius: g.r * 1852, color: col, weight: 1.2, opacity: .7, fillColor: col, fillOpacity: .08 }).addTo(rmGroup).bindPopup(pop);
+                    mainLayer = L.circleMarker(C, { radius: 5.5, color: '#0a1119', weight: 1.2, fillColor: col, fillOpacity: .95 }).addTo(rmGroup).bindPopup(pop);
+                    alls.push(C);
+                    g.pts.slice(0, 4).forEach(p => {
+                        const P = [p[0], rmNormLng(p[1], ref)];
+                        L.circleMarker(P, { radius: 4, color: '#0a1119', weight: 1, fillColor: col, fillOpacity: .85 }).addTo(rmGroup).bindPopup(pop);
+                        alls.push(P);
+                    });
+                }
+                if (typeof n._i === 'number') rmFeat[n._i] = { ll: C, layer: mainLayer };
+                drawn++;
+            });
+            const missApt = [depI && !dep ? depI : '', dstI && !dst ? dstI : ''].filter(Boolean);
+            $('rmNote').innerHTML = `위치 표시 <b>${drawn}건</b> / 전체 ${notams.length}건 · 좌표가 없는 NOTAM(행정·문서형 공지 등)은 지도에 표시되지 않습니다.`
+                + (missApt.length ? ` · <span style="color:var(--amber)">공항 좌표 미확인: ${missApt.join(', ')}</span>` : '');
+            if (alls.length){ rmBounds = L.latLngBounds(alls); map.fitBounds(rmBounds, { padding: [30, 30] }); }
+            setTimeout(() => map.invalidateSize(), 60);
         }
 
         function phaseSection([ph, ko, icon, collapse], items){
@@ -1437,13 +1719,14 @@ TEXT:
                     <button class="sevsel__b ${sev==='caution'?'on on--caut':''}" onclick="setSeverity(${i},'caution')">C</button>
                     <button class="sevsel__b ${sev==='advisory'?'on on--adv':''}" onclick="setSeverity(${i},'advisory')">A</button>
                 </div>` : '';
-            return `<div class="alert ${cls}">
+            const mapBtn = (n._geo && typeof i === 'number') ? `<button class="linkbtn" onclick="showOnMap(${i})" title="지도에서 위치 보기">🗺 지도</button>` : '';
+            return `<div class="alert ${cls}"${typeof i === 'number' ? ` id="nmcard-${i}"` : ''}>
                 <div class="alert__head">
                     <span class="chip ${chip}">${tag}</span>
                     <span class="chip chip--cat">${escapeHtml(n.category || 'NOTAM')}</span>
                     ${newChip}${cloudChip}${flag}${onroute}${rel}${feat}
                     <span class="alert__spacer"></span>
-                    ${sevSel}
+                    ${mapBtn}${sevSel}
                 </div>
                 ${n.title ? `<p class="alert__title">${escapeHtml(n.title)}</p>` : ''}
                 ${n.detail ? `<p class="alert__body">${escapeHtml(n.detail)}</p>` : ''}${metaHtml}${rawHtml}</div>`;
