@@ -1549,6 +1549,72 @@ TEXT:
             rmBaseLayer.bringToBack();
         }
         function fitRouteMap(){ if (rmMap && rmBounds) rmMap.fitBounds(rmBounds, { padding: [30, 30] }); }
+        // ── FPL 정밀 항로 해석 ─────────────────────────────────
+        // Field 15의 좌표형 웨이포인트: 46N078W · 4620N07805W · 462036N0780530W (뒤의 /M083F340 등 속도·고도 제거 후)
+        function parseFplLatLon(tok){
+            const m = /^(\d{2})(\d{2})?(\d{2})?([NS])(\d{3})(\d{2})?(\d{2})?([EW])$/.exec(tok);
+            if (!m) return null;
+            const lat = +m[1] + (+m[2] || 0)/60 + (+m[3] || 0)/3600;
+            const lng = +m[5] + (+m[6] || 0)/60 + (+m[7] || 0)/3600;
+            if (lat > 90 || lng > 180) return null;
+            return [m[4] === 'S' ? -lat : lat, m[8] === 'W' ? -lng : lng];
+        }
+        // OFP 항법일지·좌표목록에서 "픽스명 → 좌표" 사전 구축
+        function buildWptDict(text){
+            const dict = {};
+            if (!text) return dict;
+            const lines = String(text).toUpperCase().split(/\n/);
+            const put = (name, lat, lng) => {
+                if (!name || dict[name]) return;
+                if (!isFinite(lat) || !isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return;
+                dict[name] = [lat, lng];
+            };
+            for (const raw0 of lines){
+                const line = raw0.replace(/[°'"]/g, ' ');
+                const nm = /^\s*([A-Z]{2}[A-Z0-9]{0,3})\b/.exec(line);   // 행 선두의 픽스명(2~5자, VOR·5레터 픽스)
+                if (!nm) continue;
+                const name = nm[1];
+                if (/^(RWY|TWY|ILS|VOR|DME|NDB|FIR|UTC|ETA|ETD|EET|ALT|FL|TAS|GS|WPT|POS|LAT|LON|DIST|FUEL|WIND|TEMP|TIME|PAGE|DCT)$/.test(name)) continue;
+                const rest = line.slice(nm[0].length);
+                let c = null, m;
+                // ① N33 50.2 W118 28.4 · N3350.2 W11828.4 (Lido식 십진분)
+                if ((m = /([NS])\s?(\d{2})\s?(\d{2}(?:\.\d+)?)\s+([EW])\s?(\d{3})\s?(\d{2}(?:\.\d+)?)/.exec(rest)))
+                    c = [(+m[2] + +m[3]/60) * (m[1]==='S'?-1:1), (+m[5] + +m[6]/60) * (m[4]==='W'?-1:1)];
+                // ② 3350.2N 11828.4W · 335012N1182824W · N335012 E... 등 기존 패턴 재사용
+                if (!c){ const pts = parseCoordList(rest); if (pts.length) c = pts[0]; }
+                if (c) put(name, c[0], c[1]);
+            }
+            return dict;
+        }
+        function gcDistNm(a, b){
+            const toR = x => x*Math.PI/180;
+            const d = 2*Math.asin(Math.sqrt(Math.sin(toR(b[0]-a[0])/2)**2 + Math.cos(toR(a[0]))*Math.cos(toR(b[0]))*Math.sin(toR(b[1]-a[1])/2)**2));
+            return d * 3440.065;
+        }
+        // Field 15(우선순위: ①대조표 ①번 칸에 붙여넣은 값 ②(FPL 자동추출 ③AI route_string)를 좌표열로 해석
+        function buildExactRoute(srcText, r){
+            const xa = $('xcheckA') && $('xcheckA').value.trim();
+            const fpl = extractFplRoute(srcText || '');
+            const f15 = xa || (fpl && fpl.raw) || (r && r.route_string) || '';
+            if (!f15) return { pts: [], total: 0, src: '' };
+            const dict = buildWptDict(srcText || '');
+            const toks = f15.toUpperCase().split(/[\s.]+/).filter(Boolean);
+            const pts = []; let total = 0;
+            for (const t of toks){
+                const t0 = t.split('/')[0].trim();                       // MCKEY/N0480F360 → MCKEY
+                if (!t0 || t0 === 'DCT' || /^(FPL|IFR|VFR)$/.test(t0)) continue;
+                if (/^[A-Z]{4}\d{4}$/.test(t0)) continue;                // RKSI0100 (공항+시각)
+                total++;
+                const ll = parseFplLatLon(t0);
+                if (ll){ pts.push({ name: t0, ll }); continue; }
+                if (/^[A-Z]{2}[A-Z0-9]{0,3}$/.test(t0) && dict[t0]) pts.push({ name: t0, ll: dict[t0] });
+                // 그 외(항공로 A590·SID/STAR 등)는 좌표 DB가 없어 건너뜀 — 앞뒤 지점을 대권으로 연결
+            }
+            // 연속 중복(1NM 이내) 제거
+            const out = [];
+            pts.forEach(p => { if (!out.length || gcDistNm(out[out.length-1].ll, p.ll) > 1) out.push(p); });
+            return { pts: out, total, src: xa ? '대조표 입력' : (fpl ? 'FPL Field 15' : 'route_string') };
+        }
         function rmPopup(n){
             const sev = (n.severity || 'advisory').toLowerCase();
             const col = RM_SEVC[sev] || RM_SEVC.advisory;
@@ -1599,13 +1665,36 @@ TEXT:
             }
             const alls = [];
             let ref = dep ? dep[1] : (dst ? dst[1] : geoN[0]._geo.c[1]);
-            // ① FPL 항로(대권) — 태평양 등 날짜변경선 통과 시 경도 연속화
-            if (dep && dst){
-                const path = rmUnwrap(gcPath(dep, dst, 96));
+            // ① FPL 항로 — Field 15 웨이포인트(좌표형+OFP 픽스사전) 순서대로 경유, 구간은 대권 연결. 날짜변경선 경도 연속화
+            const srcText = ($('packageInput') && $('packageInput').value) || '';
+            const ex = buildExactRoute(srcText, r);
+            let routeInfo = '';
+            const anchors = [];
+            if (dep) anchors.push({ name: depI, ll: dep, apt: true });
+            ex.pts.forEach(p => anchors.push(p));
+            if (dst) anchors.push({ name: dstI, ll: dst, apt: true });
+            if (anchors.length >= 2){
+                let path = [];
+                for (let i = 0; i < anchors.length - 1; i++){
+                    const a = anchors[i].ll, b = anchors[i+1].ll;
+                    const seg = Math.min(64, Math.max(2, Math.round(gcDistNm(a, b) / 40)));
+                    const part = gcPath(a, b, seg);
+                    path = path.concat(i ? part.slice(1) : part);
+                }
+                rmUnwrap(path);
                 ref = path[Math.floor(path.length/2)][1];
                 const p2 = path.map(p => [p[0], rmNormLng(p[1], ref)]);
                 L.polyline(p2, { color: '#e879f9', weight: 2.5, opacity: .9 }).addTo(rmGroup);
                 p2.forEach(p => alls.push(p));
+                // 웨이포인트 점 + 이름(탭/호버 시 표시)
+                ex.pts.forEach(p => {
+                    const P = [p.ll[0], rmNormLng(p.ll[1], ref)];
+                    L.circleMarker(P, { radius: 2.6, color: '#e879f9', weight: 1, fillColor: '#e879f9', fillOpacity: .9 })
+                        .bindTooltip(p.name, { direction: 'top', opacity: .85 }).addTo(rmGroup);
+                });
+                routeInfo = ex.pts.length
+                    ? `항로: <b>${ex.src}</b> 웨이포인트 <b>${ex.pts.length}</b>/${ex.total}개 좌표 반영`
+                    : `항로: 웨이포인트 좌표 미검출 — 출발↔도착 <b>대권 근사</b>로 표시`;
             }
             const aptMark = (icao, ll, altn) => {
                 if (!ll) return;
@@ -1651,7 +1740,8 @@ TEXT:
                 drawn++;
             });
             const missApt = [depI && !dep ? depI : '', dstI && !dst ? dstI : ''].filter(Boolean);
-            $('rmNote').innerHTML = `위치 표시 <b>${drawn}건</b> / 전체 ${notams.length}건 · 좌표가 없는 NOTAM(행정·문서형 공지 등)은 지도에 표시되지 않습니다.`
+            $('rmNote').innerHTML = (routeInfo ? routeInfo + ' · ' : '')
+                + `위치 표시 <b>${drawn}건</b> / 전체 ${notams.length}건 · 좌표가 없는 NOTAM(행정·문서형 공지 등)은 지도에 표시되지 않습니다.`
                 + (missApt.length ? ` · <span style="color:var(--amber)">공항 좌표 미확인: ${missApt.join(', ')}</span>` : '');
             if (alls.length){ rmBounds = L.latLngBounds(alls); map.fitBounds(rmBounds, { padding: [30, 30] }); }
             setTimeout(() => map.invalidateSize(), 60);
