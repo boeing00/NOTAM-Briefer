@@ -1628,6 +1628,46 @@ TEXT:
                     const c = coord1(m[2]);
                     if (c) put(m[3], c);
                 }
+                // ③-0 한 줄 병합 서식(PDF 추출기가 두 행을 합친 경우): … N37 29.2 … EGOBA E127 22.8 …
+                const nl = /(^|[^A-Z0-9])([A-Z]{2}[A-Z0-9]{0,3})\s+([EW])\s?(\d{3})[\s-]?(\d{2}(?:\.\d+)?)(?![\d.])/g;
+                let nm2;
+                while ((nm2 = nl.exec(line))){
+                    const before = line.slice(0, nm2.index);
+                    let lastLat = null, lm2;
+                    const latRe = /([NS])\s?(\d{2})[\s-]?(\d{2}(?:\.\d+)?)(?![\d.])/g;
+                    while ((lm2 = latRe.exec(before))) lastLat = lm2;
+                    if (lastLat){
+                        put(nm2[2], [
+                            (+lastLat[2] + +lastLat[3]/60) * (lastLat[1]==='S'?-1:1),
+                            (+nm2[4] + +nm2[5]/60) * (nm2[3]==='W'?-1:1)
+                        ]);
+                    }
+                }
+                // ③ 2행 분리 서식(Lido 항법일지): 윗행에 위도, 이름행에 경도  — 예)
+                //    0065  N37 29.2  097 CLB ...
+                //    EGOBA E127 22.8 098 ...
+                const lonLead = /^\s*([A-Z]{2}[A-Z0-9]{0,3})\s+(?:([EW])\s?(\d{3})[\s-]?(\d{2}(?:\.\d+)?)(?![\d.])|([EW])\s?(\d{3})([0-5]\d)(\d)(?![\d.]))/.exec(line);
+                if (lonLead && li > 0){
+                    const lng0 = lonLead[2] ? (+lonLead[3] + +lonLead[4]/60) * (lonLead[2]==='W'?-1:1)
+                                            : (+lonLead[6] + (+lonLead[7] + +lonLead[8]/10)/60) * (lonLead[5]==='W'?-1:1);
+                    const pm = /([NS])\s?(\d{2})[\s-]?(\d{2}(?:\.\d+)?)(?![\d.])/.exec(lines[li-1])
+                            || /([NS])\s?(\d{2})([0-5]\d)(\d)(?![\d.])/.exec(lines[li-1]);
+                    if (pm){
+                        const lat0 = pm[4] !== undefined
+                            ? (+pm[2] + (+pm[3] + +pm[4]/10)/60) * (pm[1]==='S'?-1:1)
+                            : (+pm[2] + +pm[3]/60) * (pm[1]==='S'?-1:1);
+                        put(lonLead[1], [lat0, lng0]);
+                    }
+                }
+                // ③' 반대 배치: 이름행에 위도, 다음 행에 경도
+                const latLead = /^\s*([A-Z]{2}[A-Z0-9]{0,3})\s+([NS])\s?(\d{2})[\s-]?(\d{2}(?:\.\d+)?)(?![\d.])/.exec(line);
+                if (latLead && li + 1 < lines.length && !/[EW]\s?\d{3}/.test(line)){
+                    const lm = /([EW])\s?(\d{3})[\s-]?(\d{2}(?:\.\d+)?)(?![\d.])/.exec(lines[li + 1]);
+                    if (lm) put(latLead[1], [
+                        (+latLead[3] + +latLead[4]/60) * (latLead[2]==='S'?-1:1),
+                        (+lm[2] + +lm[3]/60) * (lm[1]==='W'?-1:1)
+                    ]);
+                }
                 // ② 픽스명만 있는 행 + 다음 행에 좌표가 있는 경우 (이름/좌표 분리 서식)
                 const solo = /^\s*([A-Z]{2}[A-Z0-9]{0,3})\s*$/.exec(line);
                 if (solo && li + 1 < lines.length){
