@@ -1569,61 +1569,195 @@ TEXT:
             if (lat > 90 || lng > 180) return null;
             return [m[4] === 'S' ? -lat : lat, m[8] === 'W' ? -lng : lng];
         }
-        // OFP 항법일지·좌표목록에서 "픽스명 → 좌표" 사전 구축
+        // 텍스트 조각에서 위·경도 한 쌍 추출 (LIDO/SimBrief/Jeppesen OFP 표기 대응)
+        function parseLatLonPair(s){
+            if (!s) return null;
+            const t = String(s).toUpperCase().replace(/[°'′″"]/g, ' ');
+            let m;
+            // ① N3356.1W11824.5 · N33 56.1 W118 24.5 · N3356.1 W11824.5 (반구 접두, 공백 유무)
+            if ((m = /([NS])\s*(\d{2})\s*(\d{2}(?:\.\d+)?)\s*([EW])\s*(\d{3})\s*(\d{2}(?:\.\d+)?)/.exec(t)))
+                return [(+m[2] + +m[3]/60) * (m[1]==='S'?-1:1), (+m[5] + +m[6]/60) * (m[4]==='W'?-1:1)];
+            // ② 3356.1N/11824.5W · 3356N 11824W · 2512N/05527E
+            if ((m = /(\d{2})\s*(\d{2}(?:\.\d+)?)\s*([NS])\s*[\/,\s]\s*(\d{3})\s*(\d{2}(?:\.\d+)?)\s*([EW])/.exec(t)))
+                return [(+m[1] + +m[2]/60) * (m[3]==='S'?-1:1), (+m[4] + +m[5]/60) * (m[6]==='W'?-1:1)];
+            // ③ 335612N1182424W · N335612E1182424 (초 포함 compact)
+            if ((m = /([NS])?\s*(\d{2})(\d{2})(\d{2}(?:\.\d+)?)\s*([NS])?\s*[\/,\s]?\s*([EW])?\s*(\d{3})(\d{2})(\d{2}(?:\.\d+)?)\s*([EW])?/.exec(t))){
+                const ns = m[1] || m[5], ew = m[6] || m[10];
+                if (ns && ew) return [(+m[2] + +m[3]/60 + +m[4]/3600) * (ns==='S'?-1:1), (+m[7] + +m[8]/60 + +m[9]/3600) * (ew==='W'?-1:1)];
+            }
+            // ④ ICAO Field 15 compact: 4620N07805W
+            const compact = parseFplLatLon(t.replace(/[^A-Z0-9]/g, ''));
+            if (compact) return compact;
+            // ⑤ 기존 parseCoordList 폴백
+            const pts = parseCoordList(t);
+            return pts.length ? pts[0] : null;
+        }
+        const _WPT_STOP = /^(RWY|TWY|ILS|VOR|DME|NDB|FIR|UTC|ETA|ETD|EET|ALT|FL|TAS|GS|WPT|POS|LAT|LON|LONG|DIST|FUEL|WIND|TEMP|TIME|PAGE|DCT|TOC|TOD|BOD|BOC|SID|STAR|ATC|FPL|IFR|VFR|AWY|TRK|MAG|TRUE|FROM|TO|VIA|AND|THE|FOR|NOT|END|AVG|MIN|MAX|MORA|MEF|MSA|ISA|OAT|TRO|ECON|CI|CRZ|CLB|DES|ATD|ATA|CTOT|WX|NOTAM|ENROUTE|AIRPORT|ROUTE|FLIGHT|PLAN|COMPANY)$/;
+        function isWptName(name){
+            if (!name || name.length < 2 || name.length > 6) return false;
+            if (_WPT_STOP.test(name)) return false;
+            if (/^\d+$/.test(name)) return false;
+            // 2~5자 픽스·VOR, 또는 공항 ICAO(4자), 또는 숫자 포함 픽스(DB451)
+            return /^[A-Z]{2,5}$/.test(name) || /^[A-Z]{4}$/.test(name) || /^[A-Z]{1,3}\d{1,3}[A-Z]?$/.test(name);
+        }
+        // OFP 항법일지·좌표목록에서 "픽스명 → 좌표" 사전 (줄 단위 — 줄바꿈 넘어 짝이 뒤바뀌지 않게)
         function buildWptDict(text){
             const dict = {};
             if (!text) return dict;
-            const lines = String(text).toUpperCase().split(/\n/);
-            const put = (name, lat, lng) => {
-                if (!name || dict[name]) return;
-                if (!isFinite(lat) || !isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return;
-                dict[name] = [lat, lng];
+            const put = (name, ll, force) => {
+                if (!isWptName(name) || !ll) return;
+                if (!isFinite(ll[0]) || !isFinite(ll[1]) || Math.abs(ll[0]) > 90 || Math.abs(ll[1]) > 180) return;
+                if (!dict[name] || force) dict[name] = ll;
             };
-            for (const raw0 of lines){
-                const line = raw0.replace(/[°'"]/g, ' ');
-                const nm = /^\s*([A-Z]{2}[A-Z0-9]{0,3})\b/.exec(line);   // 행 선두의 픽스명(2~5자, VOR·5레터 픽스)
-                if (!nm) continue;
-                const name = nm[1];
-                if (/^(RWY|TWY|ILS|VOR|DME|NDB|FIR|UTC|ETA|ETD|EET|ALT|FL|TAS|GS|WPT|POS|LAT|LON|DIST|FUEL|WIND|TEMP|TIME|PAGE|DCT)$/.test(name)) continue;
-                const rest = line.slice(nm[0].length);
-                let c = null, m;
-                // ① N33 50.2 W118 28.4 · N3350.2 W11828.4 (Lido식 십진분)
-                if ((m = /([NS])\s?(\d{2})\s?(\d{2}(?:\.\d+)?)\s+([EW])\s?(\d{3})\s?(\d{2}(?:\.\d+)?)/.exec(rest)))
-                    c = [(+m[2] + +m[3]/60) * (m[1]==='S'?-1:1), (+m[5] + +m[6]/60) * (m[4]==='W'?-1:1)];
-                // ② 3350.2N 11828.4W · 335012N1182824W · N335012 E... 등 기존 패턴 재사용
-                if (!c){ const pts = parseCoordList(rest); if (pts.length) c = pts[0]; }
-                if (c) put(name, c[0], c[1]);
+            // 같은 줄 안에서만 이름↔좌표 매칭 (공백·탭만 허용, 줄바꿈 금지)
+            const reNameCoord = /\b([A-Z]{2}[A-Z0-9]{0,4})[ \t]+([NS][ \t]*\d{2}[ \t]*\d{2}(?:\.\d+)?[ \t]*[EW][ \t]*\d{3}[ \t]*\d{2}(?:\.\d+)?|\d{2}[ \t]*\d{2}(?:\.\d+)?[ \t]*[NS][ \t]*[\/,]?[ \t]*\d{3}[ \t]*\d{2}(?:\.\d+)?[ \t]*[EW])/g;
+            const reCoordName = /([NS][ \t]*\d{2}[ \t]*\d{2}(?:\.\d+)?[ \t]*[EW][ \t]*\d{3}[ \t]*\d{2}(?:\.\d+)?|\d{2}[ \t]*\d{2}(?:\.\d+)?[ \t]*[NS][ \t]*[\/,]?[ \t]*\d{3}[ \t]*\d{2}(?:\.\d+)?[ \t]*[EW])[ \t]+([A-Z]{2}[A-Z0-9]{0,4})\b/g;
+            const reParen = /\b([A-Z]{2}[A-Z0-9]{0,4})[ \t]*\([ \t]*([NS]?\d{4,7}(?:\.\d+)?[NS]?[ \t]*[\/,][ \t]*[EW]?\d{5,8}(?:\.\d+)?[EW]?)[ \t]*\)/g;
+            for (const raw0 of String(text).toUpperCase().split(/\n/)){
+                const line = raw0.replace(/[°'′″"]/g, ' ').trim();
+                if (!line || line.length < 8) continue;
+                let m;
+                reNameCoord.lastIndex = 0;
+                while ((m = reNameCoord.exec(line))){ const ll = parseLatLonPair(m[2]); if (ll) put(m[1], ll, true); }
+                reCoordName.lastIndex = 0;
+                while ((m = reCoordName.exec(line))){ const ll = parseLatLonPair(m[1]); if (ll) put(m[2], ll, true); }
+                reParen.lastIndex = 0;
+                while ((m = reParen.exec(line))){ const ll = parseLatLonPair(m[2]); if (ll) put(m[1], ll, true); }
+                // compact: N3356.1W11824.5MCKEY / N3660.0W12500.1 BEBOP
+                const compact = /([NS]\d{4,6}(?:\.\d+)?[EW]\d{5,7}(?:\.\d+)?)[ \t]*([A-Z]{2}[A-Z0-9]{0,4})\b/g;
+                while ((m = compact.exec(line))){ const ll = parseLatLonPair(m[1]); if (ll) put(m[2], ll, true); }
             }
             return dict;
+        }
+        // OFP에서 좌표가 붙은 웨이포인트를 문서 등장 순서대로 추출 (= 실제 비행경로)
+        function extractNavlogRoute(text){
+            const out = [];
+            if (!text) return out;
+            const seen = new Set();
+            const reNameCoord = /\b([A-Z]{2}[A-Z0-9]{0,4})[ \t]+([NS][ \t]*\d{2}[ \t]*\d{2}(?:\.\d+)?[ \t]*[EW][ \t]*\d{3}[ \t]*\d{2}(?:\.\d+)?|\d{2}[ \t]*\d{2}(?:\.\d+)?[ \t]*[NS][ \t]*[\/,]?[ \t]*\d{3}[ \t]*\d{2}(?:\.\d+)?[ \t]*[EW])/g;
+            const reCoordName = /([NS][ \t]*\d{2}[ \t]*\d{2}(?:\.\d+)?[ \t]*[EW][ \t]*\d{3}[ \t]*\d{2}(?:\.\d+)?|\d{2}[ \t]*\d{2}(?:\.\d+)?[ \t]*[NS][ \t]*[\/,]?[ \t]*\d{3}[ \t]*\d{2}(?:\.\d+)?[ \t]*[EW])[ \t]+([A-Z]{2}[A-Z0-9]{0,4})\b/g;
+            const reCompact = /([NS]\d{4,6}(?:\.\d+)?[EW]\d{5,7}(?:\.\d+)?)[ \t]*([A-Z]{2}[A-Z0-9]{0,4})\b/g;
+            let lineAt = 0;
+            for (const raw0 of String(text).toUpperCase().split(/\n/)){
+                const line = raw0.replace(/[°'′″"]/g, ' ');
+                const hits = []; // {col, name, ll}
+                let m;
+                reNameCoord.lastIndex = 0;
+                while ((m = reNameCoord.exec(line))){ const ll = parseLatLonPair(m[2]); if (ll && isWptName(m[1])) hits.push({ col: m.index, name: m[1], ll }); }
+                reCoordName.lastIndex = 0;
+                while ((m = reCoordName.exec(line))){ const ll = parseLatLonPair(m[1]); if (ll && isWptName(m[2])) hits.push({ col: m.index, name: m[2], ll }); }
+                reCompact.lastIndex = 0;
+                while ((m = reCompact.exec(line))){ const ll = parseLatLonPair(m[1]); if (ll && isWptName(m[2])) hits.push({ col: m.index, name: m[2], ll }); }
+                hits.sort((a, b) => a.col - b.col);
+                // 같은 줄·같은 이름 중복 제거(패턴 중복 매칭)
+                const lineSeen = new Set();
+                for (const h of hits){
+                    if (lineSeen.has(h.name)) continue;
+                    lineSeen.add(h.name);
+                    const key = h.name + '@' + h.ll[0].toFixed(2) + ',' + h.ll[1].toFixed(2);
+                    if (seen.has(key)) continue;
+                    if (out.length && gcDistNm(out[out.length - 1].ll, h.ll) <= 1) continue;
+                    const prevSame = out.filter(p => p.name === h.name);
+                    if (prevSame.length && gcDistNm(prevSame[prevSame.length - 1].ll, h.ll) < 5) continue;
+                    seen.add(key);
+                    out.push({ name: h.name, ll: h.ll, at: lineAt + h.col });
+                }
+                lineAt += raw0.length + 1;
+            }
+            return out;
         }
         function gcDistNm(a, b){
             const toR = x => x*Math.PI/180;
             const d = 2*Math.asin(Math.sqrt(Math.sin(toR(b[0]-a[0])/2)**2 + Math.cos(toR(a[0]))*Math.cos(toR(b[0]))*Math.sin(toR(b[1]-a[1])/2)**2));
             return d * 3440.065;
         }
-        // Field 15(우선순위: ①대조표 ①번 칸에 붙여넣은 값 ②(FPL 자동추출 ③AI route_string)를 좌표열로 해석
+        // 토큰열을 좌표 사전으로 해석 → 좌표가 있는 점만 순서 유지
+        function resolveRouteTokens(toks, dict){
+            const pts = []; let total = 0, resolved = 0;
+            for (const raw of toks){
+                let t0 = String(raw || '').toUpperCase().split('/')[0].trim();
+                if (!t0 || t0 === 'DCT' || /^(FPL|IFR|VFR|SID|STAR)$/.test(t0)) continue;
+                if (/^[NMK]\d{3,4}[FSMA]\d{2,4}$/.test(t0)) continue;   // 속도/고도
+                if (/^[FSA]\d{2,4}$/.test(t0)) continue;
+                if (/^[A-Z]{4}\d{4}$/.test(t0)) continue;                // RKSI0100
+                // 항공로(A590, Y71)·SID/STAR는 좌표가 없으면 건너뛰고 앞뒤 픽스를 대권으로 연결
+                const isAirway = /^[A-Z]{1,2}\d{1,4}[A-Z]?$/.test(t0) && !dict[t0];
+                const isProc = /^[A-Z]{3,6}\d[A-Z]?$/.test(t0) && !dict[t0];
+                if (isAirway || isProc) continue;
+                total++;
+                const ll = parseFplLatLon(t0) || parseLatLonPair(t0) || dict[t0] || null;
+                if (ll){ pts.push({ name: t0, ll }); resolved++; }
+            }
+            const out = [];
+            pts.forEach(p => { if (!out.length || gcDistNm(out[out.length - 1].ll, p.ll) > 1) out.push(p); });
+            return { pts: out, total, resolved };
+        }
+        // Field 15 + OFP 항법일지 웨이포인트 좌표로 정확한 항로 구성
+        // 우선순위: ①대조표 Field 15 ②(FPL) ③AI route_string — 각각 OFP 좌표사전으로 해독
+        //           해독 점이 적으면 OFP 항법일지 순서를 사용 (LIDO/SimBrief에 좌표가 모두 있음)
         function buildExactRoute(srcText, r){
             const xa = $('xcheckA') && $('xcheckA').value.trim();
+            const xb = $('xcheckB') && $('xcheckB').value.trim();
             const fpl = extractFplRoute(srcText || '');
             const f15 = xa || (fpl && fpl.raw) || (r && r.route_string) || '';
-            if (!f15) return { pts: [], total: 0, src: '' };
             const dict = buildWptDict(srcText || '');
-            const toks = f15.toUpperCase().split(/[\s.]+/).filter(Boolean);
-            const pts = []; let total = 0;
-            for (const t of toks){
-                const t0 = t.split('/')[0].trim();                       // MCKEY/N0480F360 → MCKEY
-                if (!t0 || t0 === 'DCT' || /^(FPL|IFR|VFR)$/.test(t0)) continue;
-                if (/^[A-Z]{4}\d{4}$/.test(t0)) continue;                // RKSI0100 (공항+시각)
-                total++;
-                const ll = parseFplLatLon(t0);
-                if (ll){ pts.push({ name: t0, ll }); continue; }
-                if (/^[A-Z]{2}[A-Z0-9]{0,3}$/.test(t0) && dict[t0]) pts.push({ name: t0, ll: dict[t0] });
-                // 그 외(항공로 A590·SID/STAR 등)는 좌표 DB가 없어 건너뜀 — 앞뒤 지점을 대권으로 연결
+            // 공항 ICAO도 사전에 보강
+            const depI = (r && r.departure || (fpl && fpl.adep) || '').toUpperCase().trim();
+            const dstI = (r && r.destination || (fpl && fpl.ades) || '').toUpperCase().trim();
+            if (depI && AIRPORT_LL[depI]) dict[depI] = AIRPORT_LL[depI];
+            if (dstI && AIRPORT_LL[dstI]) dict[dstI] = AIRPORT_LL[dstI];
+            ((r && r.alternates) || []).forEach(a => { const ic = String(a).toUpperCase().trim(); if (AIRPORT_LL[ic]) dict[ic] = AIRPORT_LL[ic]; });
+
+            const candidates = [];
+            if (f15){
+                const toks = tokenizeRoute(f15);
+                const res = resolveRouteTokens(toks, dict);
+                candidates.push({
+                    pts: res.pts, total: res.total, resolved: res.resolved,
+                    src: xa ? '대조표 Field 15' : (fpl ? 'FPL Field 15' : 'route_string')
+                });
             }
-            // 연속 중복(1NM 이내) 제거
-            const out = [];
-            pts.forEach(p => { if (!out.length || gcDistNm(out[out.length-1].ll, p.ll) > 1) out.push(p); });
-            return { pts: out, total, src: xa ? '대조표 입력' : (fpl ? 'FPL Field 15' : 'route_string') };
+            // Page 2 서술형 항로 (확장된 웨이포인트 나열)
+            const narr = xb || extractNarrativeRoute(srcText || '', fpl) || '';
+            if (narr){
+                const toks = tokenizeRoute(narr);
+                const res = resolveRouteTokens(toks, dict);
+                if (res.pts.length) candidates.push({ pts: res.pts, total: res.total, resolved: res.resolved, src: xb ? '대조표 Page2' : 'Page 2 항로' });
+            }
+            // OFP 항법일지 — 문서에 좌표와 함께 적힌 웨이포인트 순서
+            // 출발↔도착 부근으로 잘라 다른 구간(별도 예시·교체공항 등) 좌표가 섞이지 않게 함
+            let nav = extractNavlogRoute(srcText || '');
+            const depLL = depI && AIRPORT_LL[depI], dstLL = dstI && AIRPORT_LL[dstI];
+            if (nav.length && depLL && dstLL){
+                let i0 = nav.findIndex(p => gcDistNm(p.ll, depLL) < 120);
+                let i1 = -1;
+                for (let i = nav.length - 1; i >= 0; i--){ if (gcDistNm(nav[i].ll, dstLL) < 120){ i1 = i; break; } }
+                if (i0 >= 0 && i1 > i0) nav = nav.slice(i0, i1 + 1);
+            }
+            if (nav.length){
+                const pts = nav.map(p => ({ name: p.name, ll: p.ll }));
+                if (depLL && (!pts.length || gcDistNm(pts[0].ll, depLL) > 5)) pts.unshift({ name: depI, ll: depLL });
+                if (dstLL && (!pts.length || gcDistNm(pts[pts.length - 1].ll, dstLL) > 5)) pts.push({ name: dstI, ll: dstLL });
+                candidates.push({ pts, total: nav.length, resolved: nav.length, src: 'OFP 항법일지 좌표' });
+            }
+
+            if (!candidates.length) return { pts: [], total: 0, resolved: 0, src: '', dictSize: Object.keys(dict).length };
+
+            const f15C = candidates.find(c => /Field 15|route_string|대조표 Field/.test(c.src));
+            const navC = candidates.find(c => /항법일지/.test(c.src));
+            const pageC = candidates.find(c => /Page ?2|대조표 Page/i.test(c.src));
+            // ① Field 15가 웨이포인트 좌표를 3개 이상 해독하면 그것을 우선 (제출 항로 순서)
+            // ② 아니면 항법일지(좌표 완비) → Page 2 → Field 15 순
+            let chosen;
+            if (f15C && f15C.resolved >= 3) chosen = f15C;
+            else if (navC && navC.pts.length >= 3) chosen = navC;
+            else if (pageC && pageC.resolved >= 3) chosen = pageC;
+            else {
+                candidates.sort((a, b) => (b.resolved - a.resolved) || (b.pts.length - a.pts.length));
+                chosen = candidates[0];
+            }
+
+            return { pts: chosen.pts, total: chosen.total, resolved: chosen.resolved, src: chosen.src, dictSize: Object.keys(dict).length };
         }
         function rmPopup(n){
             const sev = (n.severity || 'advisory').toLowerCase();
@@ -1759,19 +1893,29 @@ TEXT:
             }
             const alls = [];
             let ref = dep ? dep[1] : (dst ? dst[1] : geoN[0]._geo.c[1]);
-            // ① FPL 항로 — Field 15 웨이포인트(좌표형+OFP 픽스사전) 순서대로 경유, 구간은 대권 연결. 날짜변경선 경도 연속화
+            // ① FPL 항로 — Field 15/OFP 항법일지 웨이포인트 좌표를 순서대로 연결 (구간은 대권). 날짜변경선 경도 연속화
             const srcText = ($('packageInput') && $('packageInput').value) || '';
             const ex = buildExactRoute(srcText, r);
             let routeInfo = '';
             const anchors = [];
-            if (dep) anchors.push({ name: depI, ll: dep, apt: true });
-            ex.pts.forEach(p => anchors.push(p));
-            if (dst) anchors.push({ name: dstI, ll: dst, apt: true });
+            const pushAnchor = (p) => {
+                if (!p || !p.ll) return;
+                if (anchors.length && gcDistNm(anchors[anchors.length - 1].ll, p.ll) <= 2) {
+                    // 거의 같은 좌표면 이름만 보강
+                    if (p.name && !anchors[anchors.length - 1].name) anchors[anchors.length - 1].name = p.name;
+                    return;
+                }
+                anchors.push(p);
+            };
+            if (dep) pushAnchor({ name: depI, ll: dep, apt: true });
+            (ex.pts || []).forEach(p => pushAnchor(p));
+            if (dst) pushAnchor({ name: dstI, ll: dst, apt: true });
             if (anchors.length >= 2){
                 let path = [];
                 for (let i = 0; i < anchors.length - 1; i++){
                     const a = anchors[i].ll, b = anchors[i+1].ll;
-                    const seg = Math.min(64, Math.max(2, Math.round(gcDistNm(a, b) / 40)));
+                    // 웨이포인트가 많을수록 구간을 짧게 나눠 대권 곡선을 정확하게
+                    const seg = Math.min(48, Math.max(2, Math.round(gcDistNm(a, b) / 25)));
                     const part = gcPath(a, b, seg);
                     path = path.concat(i ? part.slice(1) : part);
                 }
@@ -1780,14 +1924,18 @@ TEXT:
                 const p2 = path.map(p => [p[0], rmNormLng(p[1], ref)]);
                 L.polyline(p2, { color: '#e879f9', weight: 2.5, opacity: .9 }).addTo(rmGroup);
                 p2.forEach(p => alls.push(p));
-                // 웨이포인트 점 + 이름(탭/호버 시 표시)
-                ex.pts.forEach(p => {
+                // 웨이포인트 점 + 이름(탭/호버 시 표시) — 공항 마커와 중복되는 양끝은 제외
+                anchors.forEach(p => {
+                    if (p.apt) return;
                     const P = [p.ll[0], rmNormLng(p.ll[1], ref)];
-                    L.circleMarker(P, { radius: 2.6, color: '#e879f9', weight: 1, fillColor: '#e879f9', fillOpacity: .9 })
-                        .bindTooltip(p.name, { direction: 'top', opacity: .85 }).addTo(rmGroup);
+                    L.circleMarker(P, { radius: 3, color: '#f5d0fe', weight: 1, fillColor: '#e879f9', fillOpacity: .95 })
+                        .bindTooltip(p.name, { direction: 'top', opacity: .9, className: 'rm-wpt-tip' }).addTo(rmGroup);
                 });
-                routeInfo = ex.pts.length
-                    ? `항로: <b>${ex.src}</b> 웨이포인트 <b>${ex.pts.length}</b>/${ex.total}개 좌표 반영`
+                const nWpt = anchors.filter(p => !p.apt).length;
+                routeInfo = nWpt
+                    ? `항로: <b>${escapeHtml(ex.src || 'FPL')}</b> · 웨이포인트 좌표 <b>${nWpt}</b>개` +
+                      (ex.total ? ` (토큰 ${ex.resolved || nWpt}/${ex.total})` : '') +
+                      (ex.dictSize ? ` · OFP 좌표사전 ${ex.dictSize}개` : '')
                     : `항로: 웨이포인트 좌표 미검출 — 출발↔도착 <b>대권 근사</b>로 표시`;
             }
             const aptMark = (icao, ll, altn) => {
