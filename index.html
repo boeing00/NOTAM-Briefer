@@ -319,6 +319,8 @@
         .site-footer a{color:var(--cyan);text-decoration:none}
         .site-footer a:hover{text-decoration:underline}
         .site-footer__copy{color:var(--dim)}
+        .site-footer__disc{max-width:960px;margin:1.6rem auto 0;padding:.7rem 1rem;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;background:var(--surface);text-align:center;font-family:"IBM Plex Sans KR",system-ui,sans-serif;font-size:.74rem;line-height:1.65;color:var(--muted);letter-spacing:0}
+        .site-footer__disc b{color:var(--accent-hi)}
         /* ── 공유 NOTAM DB (Firebase) ── */
         .cloud-panel{padding:0;overflow:hidden}
         .cloud-panel>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:.6rem;padding:.7rem .95rem;user-select:none}
@@ -575,6 +577,7 @@
     </div>
 
     <footer class="site-footer">
+        <p class="site-footer__disc">⚠ 이 앱은 <b>브리핑 보조 도구</b>입니다. 최종 운항 판단은 공식 브리핑 자료와 절차에 따르십시오.</p>
         <p class="site-footer__copy">© 2026 Moon-Sik Yim. All rights reserved.</p>
         <p>For inquiries or suggestions, please contact <a href="mailto:moonsikyim@gmail.com">moonsikyim@gmail.com</a>.</p>
     </footer>
