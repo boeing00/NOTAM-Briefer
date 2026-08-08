@@ -454,6 +454,10 @@
         .pfwx-grid b{color:var(--muted);font-weight:600;margin-right:.25rem}
         .pfwx-cond{grid-column:1/-1}
         .pfwx-empty{font-family:"IBM Plex Sans KR";font-size:.8rem;color:var(--dim)}
+        .wxraw{white-space:pre-wrap;word-break:break-word;font-family:"IBM Plex Mono";font-size:.72rem;line-height:1.65;color:var(--text);
+            background:#FFFDF8;border:1px solid var(--line);border-radius:8px;padding:.6rem .7rem;max-height:280px;overflow:auto;margin:.3rem 0 .8rem}
+        .wxraw mark.wx-hi-main{background:#FEF08A;color:#1e293b;padding:0 1px;border-radius:2px}
+        .wxraw mark.wx-hi-temp{background:#FCA5A5;color:#1e293b;padding:0 1px;border-radius:2px;font-weight:600}
         .gatebar{display:flex;align-items:center;gap:1rem;margin:.2rem 0 1rem;flex-wrap:wrap}
         .pilottop{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:.8rem}
         .pilottop .eyebrow{margin:0}
@@ -778,6 +782,7 @@
                                 <div class="jfield"><label>Title</label><input id="j_wx_dep_title" class="jinput" placeholder="Departure – ICN (Seoul / Incheon Intl)"></div>
                                 <div class="jfield"><label>METAR/TAF 구간 (참고)</label><input id="j_wx_dep_period" class="jinput" placeholder="e.g. TAF FM021200Z 또는 METAR 021200Z"></div>
                             </div>
+                            <div class="jfield"><label>원문 (METAR/TAF 전체 · 줄바꿈 그대로 붙여넣기 — PILOT 탭에서 해당 시간대 하이라이트)</label><textarea id="j_wx_dep_raw" class="jinput" rows="4" placeholder="METAR RKSI 021200Z ...&#10;TAF RKSI 021100Z 0212/0318 ... FM021800Z ..."></textarea></div>
                             <div class="jgrid3">
                                 <div class="jfield"><label>Sky</label><input id="j_wx_dep_sky" class="jinput"></div>
                                 <div class="jfield"><label>TX (최고)</label><input id="j_wx_dep_tx" class="jinput" placeholder="e.g. 28 or TX28/0500Z"></div>
@@ -792,6 +797,7 @@
                                 <div class="jfield"><label>Title</label><input id="j_wx_arr_title" class="jinput" placeholder="Arrival – NRT (Tokyo / Narita Intl)"></div>
                                 <div class="jfield"><label>METAR/TAF 구간 (참고)</label><input id="j_wx_arr_period" class="jinput" placeholder="e.g. TAF FM021800Z 또는 METAR 021800Z"></div>
                             </div>
+                            <div class="jfield"><label>원문 (METAR/TAF 전체 · 줄바꿈 그대로 붙여넣기 — PILOT 탭에서 해당 시간대 하이라이트)</label><textarea id="j_wx_arr_raw" class="jinput" rows="4" placeholder="METAR RJAA 021800Z ...&#10;TAF RJAA 021700Z 0218/0324 ... FM022100Z ..."></textarea></div>
                             <div class="jgrid3">
                                 <div class="jfield"><label>Sky</label><input id="j_wx_arr_sky" class="jinput"></div>
                                 <div class="jfield"><label>TX (최고)</label><input id="j_wx_arr_tx" class="jinput" placeholder="e.g. 24 or TX24/0500Z"></div>
@@ -805,6 +811,7 @@
                                 <div class="jfield"><label>Title</label><input id="j_wx_alt_title" class="jinput" placeholder="Alternate – HND (Tokyo / Haneda Intl)"></div>
                                 <div class="jfield"><label>METAR/TAF 구간 (참고)</label><input id="j_wx_alt_period" class="jinput" placeholder="e.g. TAF FM021800Z 또는 METAR 021800Z"></div>
                             </div>
+                            <div class="jfield"><label>원문 (METAR/TAF 전체 · 줄바꿈 그대로 붙여넣기 — PILOT 탭에서 해당 시간대 하이라이트)</label><textarea id="j_wx_alt_raw" class="jinput" rows="4" placeholder="METAR RJTT 021800Z ...&#10;TAF RJTT 021700Z 0218/0324 ... FM022100Z ..."></textarea></div>
                             <div class="jgrid3">
                                 <div class="jfield"><label>Sky</label><input id="j_wx_alt_sky" class="jinput"></div>
                                 <div class="jfield"><label>TX (최고)</label><input id="j_wx_alt_tx" class="jinput"></div>
@@ -4266,12 +4273,18 @@ Features to locate: ${JSON.stringify(features)}`;
                 j_airline:'ASIANA AIRLINES', j_datelabel:'2026.05.03, Sun', j_route:'ICN > NRT',
                 j_actype:'A21N', j_acreg:'HL8364', j_ft:'2:20', j_gate:'– (–)',
                 j_pax:'F 0 / C 12 / Y 174', j_sched:'ICN 10:00 (+9:00) > NRT 12:20 (+9:00)',
-                j_wx_dep_title:'Departure – ICN (Seoul / Incheon Intl)', j_wx_dep_period:'TAF FM020100Z', j_wx_dep_sky:'FEW030 SCT100',
+                j_wx_dep_title:'Departure – ICN (Seoul / Incheon Intl)', j_wx_dep_period:'TAF base (before FM030300Z)',
+                j_wx_dep_raw:'METAR RKSI 030100Z 27008KT 9999 FEW030 SCT100 18/09 Q1015 NOSIG=\nTAF RKSI 022300Z 0300/0324 25006KT 9999 SCT100\n  FM030300Z 27008KT 9999 FEW030 SCT100\n  FM031200Z 30010KT 9999 SCT030\n  BECMG 0318/0320 24012KT',
+                j_wx_dep_sky:'FEW030 SCT100',
                 j_wx_dep_tx:'18', j_wx_dep_tn:'09', j_wx_dep_wind:'270/08KT', j_wx_dep_vis:'10km+',
                 j_wx_dep_qnh:'1015 hPa', j_wx_dep_cond:'VMC – Normal departure expected',
-                j_wx_arr_title:'Arrival – NRT (Tokyo / Narita Intl)', j_wx_arr_period:'TAF FM020330Z', j_wx_arr_sky:'SCT025 BKN080',
+                j_wx_arr_title:'Arrival – NRT (Tokyo / Narita Intl)', j_wx_arr_period:'TAF FM030200Z',
+                j_wx_arr_raw:'METAR RJAA 030300Z 16010KT 9999 SCT025 BKN080 22/14 Q1012 NOSIG=\nTAF RJAA 022300Z 0300/0324 16008KT 9999 SCT025\n  FM030200Z 18012KT 9999 BKN080\n  TEMPO 0302/0305 3000 SHRA\n  FM031200Z 20010KT 9999 SCT030',
+                j_wx_arr_sky:'SCT025 BKN080',
                 j_wx_arr_tx:'22', j_wx_arr_tn:'14', j_wx_arr_wind:'160/12KT', j_wx_arr_vis:'9999', j_wx_arr_cond:'TEMPO 3000 SHRA – monitor before descent',
-                j_wx_alt_title:'Alternate – HND (Tokyo / Haneda Intl)', j_wx_alt_period:'TAF FM020330Z', j_wx_alt_sky:'BKN030',
+                j_wx_alt_title:'Alternate – HND (Tokyo / Haneda Intl)', j_wx_alt_period:'TAF FM030200Z',
+                j_wx_alt_raw:'METAR RJTT 030300Z 19010KT 9999 BKN030 21/13 Q1013 NOSIG=\nTAF RJTT 022300Z 0300/0324 19008KT 9999 BKN030\n  FM030200Z 20010KT 9999 BKN030\n  FM031500Z 22012KT 9999 SCT040',
+                j_wx_alt_sky:'BKN030',
                 j_wx_alt_tx:'21', j_wx_alt_tn:'13', j_wx_alt_wind:'190/10KT', j_wx_alt_vis:'9999', j_wx_alt_cond:'VMC',
                 j_wx_enr_alt:'FL360 -> FL340', j_wx_enr_route:'Incheon -> Yellow Sea -> central Japan -> Narita',
                 j_turb1_t:'Around +1:10', j_turb1_d:'Central Japan – light to moderate, FL300–FL340 (SIGWX)',
@@ -4296,9 +4309,9 @@ Features to locate: ${JSON.stringify(features)}`;
             jset('j_actype',o.ac_type); jset('j_acreg',o.ac_reg); jset('j_ft',o.flight_time); jset('p_ft',o.flight_time);
             jset('j_gate',o.gate_spot); jset('j_sched',o.schedule); jset('j_pax',o.pax); jset('j_taxi',o.taxi);
             const w = o.weather || {};
-            if (w.departure){ const x = w.departure; jset('j_wx_dep_title',x.title); jset('j_wx_dep_period',x.period); jset('j_wx_dep_sky',x.sky); jset('j_wx_dep_tx',x.temp_tx); jset('j_wx_dep_tn',x.temp_tn); jset('j_wx_dep_wind',x.wind); jset('j_wx_dep_vis',x.vis); jset('j_wx_dep_qnh',x.qnh); jset('j_wx_dep_cond',x.cond); }
-            if (w.arrival){ const x = w.arrival; jset('j_wx_arr_title',x.title); jset('j_wx_arr_period',x.period); jset('j_wx_arr_sky',x.sky); jset('j_wx_arr_tx',x.temp_tx); jset('j_wx_arr_tn',x.temp_tn); jset('j_wx_arr_wind',x.wind); jset('j_wx_arr_vis',x.vis); jset('j_wx_arr_cond',x.cond); }
-            if (w.alternate){ const x = w.alternate; jset('j_wx_alt_title',x.title); jset('j_wx_alt_period',x.period); jset('j_wx_alt_sky',x.sky); jset('j_wx_alt_tx',x.temp_tx); jset('j_wx_alt_tn',x.temp_tn); jset('j_wx_alt_wind',x.wind); jset('j_wx_alt_vis',x.vis); jset('j_wx_alt_cond',x.cond); }
+            if (w.departure){ const x = w.departure; jset('j_wx_dep_title',x.title); jset('j_wx_dep_period',x.period); jset('j_wx_dep_raw',x.raw); jset('j_wx_dep_sky',x.sky); jset('j_wx_dep_tx',x.temp_tx); jset('j_wx_dep_tn',x.temp_tn); jset('j_wx_dep_wind',x.wind); jset('j_wx_dep_vis',x.vis); jset('j_wx_dep_qnh',x.qnh); jset('j_wx_dep_cond',x.cond); }
+            if (w.arrival){ const x = w.arrival; jset('j_wx_arr_title',x.title); jset('j_wx_arr_period',x.period); jset('j_wx_arr_raw',x.raw); jset('j_wx_arr_sky',x.sky); jset('j_wx_arr_tx',x.temp_tx); jset('j_wx_arr_tn',x.temp_tn); jset('j_wx_arr_wind',x.wind); jset('j_wx_arr_vis',x.vis); jset('j_wx_arr_cond',x.cond); }
+            if (w.alternate){ const x = w.alternate; jset('j_wx_alt_title',x.title); jset('j_wx_alt_period',x.period); jset('j_wx_alt_raw',x.raw); jset('j_wx_alt_sky',x.sky); jset('j_wx_alt_tx',x.temp_tx); jset('j_wx_alt_tn',x.temp_tn); jset('j_wx_alt_wind',x.wind); jset('j_wx_alt_vis',x.vis); jset('j_wx_alt_cond',x.cond); }
             if (w.enroute){ jset('j_wx_enr_alt',w.enroute.altitude); jset('j_wx_enr_route',w.enroute.route); }
             if (Array.isArray(w.turbulence)){ const t = w.turbulence; if (t[0]){ jset('j_turb1_t',t[0].time); jset('j_turb1_d',t[0].detail); } if (t[1]){ jset('j_turb2_t',t[1].time); jset('j_turb2_d',t[1].detail); } }
             const f = o.fuel || {};
@@ -4321,9 +4334,9 @@ Features to locate: ${JSON.stringify(features)}`;
             if (!key){ setS('⚠ Gemini API Key가 필요합니다 — 상단 헤더에서 입력 또는 🔓 잠금해제 후 다시 시도.'); return; }
             if (typeof geminiFetch !== 'function'){ setS('❌ Gemini 호출 헬퍼(geminiFetch)를 찾지 못했습니다.'); return; }
             setS('🛰 FPL/OFP에서 Joint 데이터 추출 중…');
-            const prompt = `You are an airline dispatcher preparing a cabin-crew JOINT BRIEFING from a flight package (FPL / OFP / Dispatch Release / weather). Extract the fields below into STRICT JSON only (no markdown, no code fences). If a value is unknown use an empty string (numbers: 0). Fuel units = LBS (convert if the plan uses x100LBS or KG). RULES: enroute "route" uses GEOGRAPHIC NAMES ONLY (no waypoint codes, e.g. "Incheon -> Yellow Sea -> central Japan -> Narita"); turbulence "time" is ELAPSED time from departure like "Around +1:30" derived from waypoint ETOs; "flight_time" as "H:MM"; "taxi" from the block-out / TAXI field else ""; "date_label" like "2026.05.03, Sun"; "temp_tx"/"temp_tn" are the TAF forecast MAX/MIN temperature for that airport (from the TAF's TX.../TN... groups if present, else your best estimate from the METAR/TAF text) — leave blank only if truly not derivable; "schedule" MUST use the exact format "DEP HH:MM (+tz) > ARR HH:MM (+tz)" with a literal ">" separator and BOTH UTC-offset parts included (never omit the offsets) so the arrival local time can be computed; for weather "period" and the sky/temp/wind/vis/cond values in each block, pick the TAF FM/BECMG/TEMPO group (or METAR) that actually covers that airport's estimated LOCAL time (departure = ETD, arrival/alternate = ETA) — NOT just the first/base group in the TAF — and record which group you used in "period" so it can be verified.
+            const prompt = `You are an airline dispatcher preparing a cabin-crew JOINT BRIEFING from a flight package (FPL / OFP / Dispatch Release / weather). Extract the fields below into STRICT JSON only (no markdown, no code fences). If a value is unknown use an empty string (numbers: 0). Fuel units = LBS (convert if the plan uses x100LBS or KG). RULES: enroute "route" uses GEOGRAPHIC NAMES ONLY (no waypoint codes, e.g. "Incheon -> Yellow Sea -> central Japan -> Narita"); turbulence "time" is ELAPSED time from departure like "Around +1:30" derived from waypoint ETOs; "flight_time" as "H:MM"; "taxi" from the block-out / TAXI field else ""; "date_label" like "2026.05.03, Sun"; "temp_tx"/"temp_tn" are the TAF forecast MAX/MIN temperature for that airport (from the TAF's TX.../TN... groups if present, else your best estimate from the METAR/TAF text) — leave blank only if truly not derivable; "schedule" MUST use the exact format "DEP HH:MM (+tz) > ARR HH:MM (+tz)" with a literal ">" separator and BOTH UTC-offset parts included (never omit the offsets) so the arrival local time can be computed; for weather "period" and the sky/temp/wind/vis/cond values in each block, pick the TAF FM/BECMG/TEMPO group (or METAR) that actually covers that airport's estimated LOCAL time (departure = ETD, arrival/alternate = ETA) — NOT just the first/base group in the TAF — and record which group you used in "period" so it can be verified; weather "raw" must be the COMPLETE ORIGINAL METAR+TAF text for that airport COPIED VERBATIM (every group, not just the one you picked) so the app can highlight the relevant time segment itself — never summarize or truncate "raw".
 JSON shape:
-{"airline":"","flight_no":"e.g. OZ 123","date":"YYYY-MM-DD","date_label":"YYYY.MM.DD, Day","dep":"IATA","arr":"IATA","route_label":"DEP > ARR","ac_type":"e.g. A21N","ac_reg":"e.g. HL8364","flight_time":"H:MM","gate_spot":"","schedule":"DEP HH:MM (+tz) > ARR HH:MM (+tz)","pax":"F x / C y / Y z","taxi":"","alert_level":"BLUE","weather":{"departure":{"title":"Departure - IATA (City / Airport)","period":"the exact METAR/TAF group this row was taken from, e.g. 'TAF FM021200Z' or 'METAR 021200Z' or 'TAF BECMG 1214/1216'","sky":"","temp_tx":"TAF/forecast MAX temp, number only e.g. 28","temp_tn":"TAF/forecast MIN temp, number only e.g. 18","wind":"","vis":"","qnh":"","cond":""},"arrival":{"title":"Arrival - IATA (City / Airport)","period":"the exact METAR/TAF group covering the ESTIMATED ARRIVAL TIME, e.g. 'TAF FM021800Z'","sky":"","temp_tx":"forecast MAX temp e.g. 24","temp_tn":"forecast MIN temp e.g. 15","wind":"","vis":"","cond":""},"alternate":{"title":"Alternate - IATA (City / Airport)","period":"the exact METAR/TAF group used","sky":"","temp_tx":"forecast MAX temp","temp_tn":"forecast MIN temp","wind":"","vis":"","cond":""},"enroute":{"altitude":"e.g. FL360 -> FL340","route":"geographic names only","wind":"representative cruise wind e.g. 270/80KT"},"turbulence":[{"time":"Around +H:MM","detail":"area - severity, FL range (source)"},{"time":"Near Arrival","detail":""}]},"fuel":{"final_reserve_lbs":0,"altn_lbs":0,"trip_lbs":0,"tof_lbs":0},"oat_cruise_c":0}
+{"airline":"","flight_no":"e.g. OZ 123","date":"YYYY-MM-DD","date_label":"YYYY.MM.DD, Day","dep":"IATA","arr":"IATA","route_label":"DEP > ARR","ac_type":"e.g. A21N","ac_reg":"e.g. HL8364","flight_time":"H:MM","gate_spot":"","schedule":"DEP HH:MM (+tz) > ARR HH:MM (+tz)","pax":"F x / C y / Y z","taxi":"","alert_level":"BLUE","weather":{"departure":{"title":"Departure - IATA (City / Airport)","period":"the exact METAR/TAF group this row was taken from, e.g. 'TAF FM021200Z' or 'METAR 021200Z' or 'TAF BECMG 1214/1216'","raw":"the FULL, VERBATIM, UNMODIFIED METAR + TAF text block for this airport exactly as printed in the source document, newlines as \\n, nothing paraphrased or omitted","sky":"","temp_tx":"TAF/forecast MAX temp, number only e.g. 28","temp_tn":"TAF/forecast MIN temp, number only e.g. 18","wind":"","vis":"","qnh":"","cond":""},"arrival":{"title":"Arrival - IATA (City / Airport)","period":"the exact METAR/TAF group covering the ESTIMATED ARRIVAL TIME, e.g. 'TAF FM021800Z'","raw":"the FULL verbatim METAR + TAF text block for this airport","sky":"","temp_tx":"forecast MAX temp e.g. 24","temp_tn":"forecast MIN temp e.g. 15","wind":"","vis":"","cond":""},"alternate":{"title":"Alternate - IATA (City / Airport)","period":"the exact METAR/TAF group used","raw":"the FULL verbatim METAR + TAF text block for this airport","sky":"","temp_tx":"forecast MAX temp","temp_tn":"forecast MIN temp","wind":"","vis":"","cond":""},"enroute":{"altitude":"e.g. FL360 -> FL340","route":"geographic names only","wind":"representative cruise wind e.g. 270/80KT"},"turbulence":[{"time":"Around +H:MM","detail":"area - severity, FL range (source)"},{"time":"Near Arrival","detail":""}]},"fuel":{"final_reserve_lbs":0,"altn_lbs":0,"trip_lbs":0,"tof_lbs":0},"oat_cruise_c":0}
 TEXT:
 """${src.slice(0, 200000)}"""`;
             try {
@@ -4383,6 +4396,74 @@ TEXT:
         }
 
         // Pilot 탭 Weather = Joint 탭 Weather 그대로 표시 (읽기전용) + ETD/ETA 시간 배지
+        // ── 원문 METAR/TAF에서 "지금 이 비행에 해당하는" 구간을 찾아 하이라이트 ──
+        // j_date(비행일자, day-of-month) + Schedule(로컬시각+offset)로 UTC day/hour/min을 구해
+        // TAF의 FM/BECMG(주 상태변화) · TEMPO/PROB(일시적) 그룹 중 그 시각에 적용되는 구간을 고른다.
+        // 월 경계(예: 말일→다음달 1일로 넘어가는 TAF)는 근사치로 처리하지 않음 — 드문 엣지케이스, 알려진 한계.
+        function computeUtcDayMinute(kind){
+            const dm = /^(\d{4})-(\d{2})-(\d{2})$/.exec(jgv('j_date') || '');
+            if (!dm) return null;
+            const s = parseSchedTimes(jgv('j_sched'));
+            if (!s || !s.depTime) return null;
+            const depLocalMin = parseHHMMToMin(s.depTime);
+            if (depLocalMin == null) return null;
+            const depOffMin = parseOffsetToMin(s.depOff) || 0;
+            let utcMin = depLocalMin - depOffMin, day = parseInt(dm[3], 10);
+            while (utcMin < 0){ utcMin += 1440; day--; }
+            while (utcMin >= 1440){ utcMin -= 1440; day++; }
+            if (kind === 'dep') return day * 1440 + utcMin;
+            const ftH = jFlightHours(), ftMin = ftH > 0 ? Math.round(ftH * 60) : null;
+            if (ftMin == null) return null;
+            let etaMin = utcMin + ftMin, etaDay = day;
+            while (etaMin >= 1440){ etaMin -= 1440; etaDay++; }
+            return etaDay * 1440 + etaMin;
+        }
+        function pickTafSegment(raw, targetDayMin){
+            if (!raw || targetDayMin == null) return null;
+            const tafIdx = raw.search(/\bTAF\b/i);
+            if (tafIdx < 0) return null; // METAR 단독 텍스트 — 고를 하위 구간 없음
+            const re = /\bFM(\d{2})(\d{2})(\d{2})Z\b|\bBECMG\s+(\d{2})(\d{2})\/(\d{2})(\d{2})\b|\bTEMPO\s+(\d{2})(\d{2})\/(\d{2})(\d{2})\b|\bPROB(\d{2})(?:\s+TEMPO)?\s+(\d{2})(\d{2})\/(\d{2})(\d{2})\b/gi;
+            const markers = []; let mm;
+            while ((mm = re.exec(raw))){
+                if (mm.index < tafIdx) continue;
+                if (mm[1] !== undefined) markers.push({ type:'FM', index:mm.index, startMin:(+mm[1])*1440+(+mm[2])*60+(+mm[3]) });
+                else if (mm[4] !== undefined) markers.push({ type:'BECMG', index:mm.index, startMin:(+mm[4])*1440+(+mm[5])*60, endMin:(+mm[6])*1440+(+mm[7])*60 });
+                else if (mm[8] !== undefined) markers.push({ type:'TEMPO', index:mm.index, startMin:(+mm[8])*1440+(+mm[9])*60, endMin:(+mm[10])*1440+(+mm[11])*60 });
+                else if (mm[12] !== undefined) markers.push({ type:'PROB', index:mm.index, startMin:(+mm[13])*1440+(+mm[14])*60, endMin:(+mm[15])*1440+(+mm[16])*60 });
+            }
+            markers.sort((a,b) => a.index - b.index);
+            const primaries = markers.filter(x => x.type === 'FM' || x.type === 'BECMG');
+            let active = null;
+            for (const p of primaries){ const eff = p.type === 'FM' ? p.startMin : p.endMin; if (eff <= targetDayMin) active = p; else break; }
+            const mainStart = active ? active.index : tafIdx;
+            const nextPrimary = primaries.find(p => active ? p.index > active.index : true);
+            const mainEnd = nextPrimary ? nextPrimary.index : raw.length;
+            const overlays = markers.filter(x => (x.type === 'TEMPO' || x.type === 'PROB')
+                && x.index >= mainStart && x.index < mainEnd && x.startMin <= targetDayMin && targetDayMin <= x.endMin
+            ).map(x => {
+                const nextAfter = markers.find(y => y.index > x.index);
+                return { start:x.index, end: nextAfter ? Math.min(nextAfter.index, mainEnd) : mainEnd };
+            });
+            return { mainStart, mainEnd, overlays };
+        }
+        function renderWxRawHtml(raw, targetDayMin){
+            if (!raw) return '';
+            const seg = pickTafSegment(raw, targetDayMin);
+            if (!seg) return `<div class="wxraw">${escapeHtml(raw)}</div>`;
+            const { mainStart, mainEnd, overlays } = seg;
+            const cuts = new Set([0, raw.length, mainStart, mainEnd]);
+            overlays.forEach(o => { cuts.add(Math.max(o.start, mainStart)); cuts.add(Math.min(o.end, mainEnd)); });
+            const points = Array.from(cuts).filter(p => p >= 0 && p <= raw.length).sort((a,b) => a - b);
+            let html = '';
+            for (let i = 0; i < points.length - 1; i++){
+                const a = points[i], b = points[i+1]; if (a >= b) continue;
+                const chunk = escapeHtml(raw.slice(a, b));
+                const inOverlay = overlays.some(o => a >= Math.max(o.start, mainStart) && b <= Math.min(o.end, mainEnd));
+                const inMain = a >= mainStart && b <= mainEnd;
+                html += inOverlay ? `<mark class="wx-hi-temp">${chunk}</mark>` : inMain ? `<mark class="wx-hi-main">${chunk}</mark>` : chunk;
+            }
+            return `<div class="wxraw">${html}</div>`;
+        }
         function renderPilotWeather(){
             const el = document.getElementById('pfWxView'); if (!el) return;
             const g = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
@@ -4391,23 +4472,29 @@ TEXT:
             const ft = g('p_ft') || g('j_ft');
             const etd = s.depTime ? (s.depTime + (s.depOff ? ` (${s.depOff})` : '')) : '';
             const eta = computeEta(sched, ft);
+            const depTargetMin = computeUtcDayMinute('dep'), etaTargetMin = computeUtcDayMinute('eta');
             const altName = (g('j_wx_alt_title').match(/[-–]\s*([A-Za-z0-9]+)/) || [])[1] || '';
-            const block = (titleKo, timeLabel, timeVal, period, sky, temp, wind, vis, qnh, cond) => {
-                const rows = [];
-                if (sky)  rows.push(`<div><b>Sky</b> ${escapeHtml(sky)}</div>`);
-                if (temp) rows.push(`<div><b>Temp</b> ${escapeHtml(temp)}</div>`);
-                if (wind) rows.push(`<div><b>Wind</b> ${escapeHtml(wind)}</div>`);
-                if (vis)  rows.push(`<div><b>Vis</b> ${escapeHtml(vis)}</div>`);
-                if (qnh)  rows.push(`<div><b>QNH</b> ${escapeHtml(qnh)}</div>`);
-                if (cond) rows.push(`<div class="pfwx-cond"><b>Cond</b> ${escapeHtml(cond)}</div>`);
+            const block = (titleKo, timeLabel, timeVal, period, raw, targetMin, sky, temp, wind, vis, qnh, cond) => {
+                let body;
+                if (raw){
+                    body = renderWxRawHtml(raw, targetMin) + '<p class="jnote">🖍 노란색 = 해당 시각 주 상태 · 빨강 = 그 시각 겹치는 TEMPO/PROB (일시적 변화)</p>';
+                } else {
+                    const rows = [];
+                    if (sky)  rows.push(`<div><b>Sky</b> ${escapeHtml(sky)}</div>`);
+                    if (temp) rows.push(`<div><b>Temp</b> ${escapeHtml(temp)}</div>`);
+                    if (wind) rows.push(`<div><b>Wind</b> ${escapeHtml(wind)}</div>`);
+                    if (vis)  rows.push(`<div><b>Vis</b> ${escapeHtml(vis)}</div>`);
+                    if (qnh)  rows.push(`<div><b>QNH</b> ${escapeHtml(qnh)}</div>`);
+                    if (cond) rows.push(`<div class="pfwx-cond"><b>Cond</b> ${escapeHtml(cond)}</div>`);
+                    body = rows.length ? `<div class="pfwx-grid">${rows.join('')}</div>` : '<p class="pfwx-empty">입력된 값 없음 — JOINT 탭에서 원문(METAR/TAF)을 붙여넣으면 여기 자동 하이라이트됩니다.</p>';
+                }
                 return `<div class="jsub">${escapeHtml(titleKo)}${timeVal ? `<span class="jtime">${escapeHtml(timeLabel)} ${escapeHtml(timeVal)}</span>` : ''}</div>`
-                    + (period ? `<p class="jnote">📡 출처 구간: ${escapeHtml(period)}</p>` : '')
-                    + (rows.length ? `<div class="pfwx-grid">${rows.join('')}</div>` : '<p class="pfwx-empty">입력된 값 없음</p>');
+                    + (period ? `<p class="jnote">📡 출처 구간: ${escapeHtml(period)}</p>` : '') + body;
             };
             let html = '';
-            html += block(`출발지 (${g('j_dep')||'DEP'})`, 'ETD(Local)', etd, g('j_wx_dep_period'), g('j_wx_dep_sky'), jTempStr(g('j_wx_dep_tx'), g('j_wx_dep_tn')), g('j_wx_dep_wind'), g('j_wx_dep_vis'), g('j_wx_dep_qnh'), g('j_wx_dep_cond'));
-            html += block(`목적지 (${g('j_arr')||'ARR'})`, 'ETA(Local)', eta, g('j_wx_arr_period'), g('j_wx_arr_sky'), jTempStr(g('j_wx_arr_tx'), g('j_wx_arr_tn')), g('j_wx_arr_wind'), g('j_wx_arr_vis'), '', g('j_wx_arr_cond'));
-            html += block(`교체공항${altName?` (${altName})`:''}`, 'ETA(Local)', eta, g('j_wx_alt_period'), g('j_wx_alt_sky'), jTempStr(g('j_wx_alt_tx'), g('j_wx_alt_tn')), g('j_wx_alt_wind'), g('j_wx_alt_vis'), '', g('j_wx_alt_cond'));
+            html += block(`출발지 (${g('j_dep')||'DEP'})`, 'ETD(Local)', etd, g('j_wx_dep_period'), g('j_wx_dep_raw'), depTargetMin, g('j_wx_dep_sky'), jTempStr(g('j_wx_dep_tx'), g('j_wx_dep_tn')), g('j_wx_dep_wind'), g('j_wx_dep_vis'), g('j_wx_dep_qnh'), g('j_wx_dep_cond'));
+            html += block(`목적지 (${g('j_arr')||'ARR'})`, 'ETA(Local)', eta, g('j_wx_arr_period'), g('j_wx_arr_raw'), etaTargetMin, g('j_wx_arr_sky'), jTempStr(g('j_wx_arr_tx'), g('j_wx_arr_tn')), g('j_wx_arr_wind'), g('j_wx_arr_vis'), '', g('j_wx_arr_cond'));
+            html += block(`교체공항${altName?` (${altName})`:''}`, 'ETA(Local)', eta, g('j_wx_alt_period'), g('j_wx_alt_raw'), etaTargetMin, g('j_wx_alt_sky'), jTempStr(g('j_wx_alt_tx'), g('j_wx_alt_tn')), g('j_wx_alt_wind'), g('j_wx_alt_vis'), '', g('j_wx_alt_cond'));
             const enrAlt = g('j_wx_enr_alt'), enrRoute = g('j_wx_enr_route');
             if (enrAlt || enrRoute){
                 html += `<div class="jsub">항로 (Enroute)</div><div class="pfwx-grid">`
