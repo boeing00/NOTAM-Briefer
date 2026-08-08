@@ -492,6 +492,14 @@
                 <span id="globalDocName" class="clock__lbl" style="max-width:13rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
                 <button id="btnApply" class="btn btn--sm btn--go" onclick="applyFromPdf()" title="PDF에서 추출한 정보를 PILOT · JOINT · NOTAM 탭에 모두 적용">🚀 APPLY</button>
                 <span id="applyStatus" class="clock__lbl" style="max-width:16rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+                <button id="btnPilotInput" class="btn btn--sm btn--cyan" onclick="togglePilotInput()" aria-expanded="false" title="비행시간 · Gate · 예상 Taxi Time 빠른 입력 → PILOT·JOINT·NOTAM 전체에 적용">🎚 Pilot Input</button>
+                <div class="keybox hidden" id="pilotInputBox">
+                    <div class="jfield" style="max-width:120px"><label>비행시간</label><input id="quickFt" class="jinput" placeholder="2:20"></div>
+                    <div class="jfield" style="max-width:110px"><label>Gate</label><input id="quickGate" class="jinput" placeholder="32 또는 B7"></div>
+                    <div class="jfield" style="max-width:160px"><label>예상 Taxi Time</label><input id="quickTaxi" class="jinput" placeholder="20 min"></div>
+                    <button id="btnPilotInputApply" class="btn btn--sm btn--go" onclick="applyPilotInput()">✅ 전체 적용</button>
+                    <span id="pilotInputStatus" class="keystat"></span>
+                </div>
                 <button id="btnSettings" class="btn btn--sm btn--cyan" onclick="toggleSettings()" aria-expanded="false" title="API Key · 모델 설정"><span id="settingsDot" class="sdot"></span>⚙ Settings</button>
                 <div class="keybox hidden" id="keybox">
                     <input type="password" id="apiKey" class="keyin" placeholder="GEMINI API KEY" onchange="autoSavePlainKey()" oninput="autoSavePlainKey()">
@@ -3768,8 +3776,39 @@ Features to locate: ${JSON.stringify(features)}`;
         function toggleSettings(){
             const box = $('keybox'), btn = $('btnSettings');
             if (!box) return;
+            const pib = $('pilotInputBox'), pibBtn = $('btnPilotInput');
+            if (pib && !pib.classList.contains('hidden')){ pib.classList.add('hidden'); if (pibBtn) pibBtn.setAttribute('aria-expanded', 'false'); }
             const nowHidden = box.classList.toggle('hidden');
             if (btn) btn.setAttribute('aria-expanded', nowHidden ? 'false' : 'true');
+        }
+        // ── Pilot Input: 비행시간 · Gate · 예상 Taxi Time을 한 번에 전체 탭(PILOT/JOINT)에 적용 ──
+        function togglePilotInput(){
+            const box = $('pilotInputBox'), btn = $('btnPilotInput');
+            if (!box) return;
+            const kb = $('keybox'), kbBtn = $('btnSettings');
+            if (kb && !kb.classList.contains('hidden')){ kb.classList.add('hidden'); if (kbBtn) kbBtn.setAttribute('aria-expanded', 'false'); }
+            const nowHidden = box.classList.toggle('hidden');
+            if (btn) btn.setAttribute('aria-expanded', nowHidden ? 'false' : 'true');
+            if (!nowHidden){
+                // 열 때 현재 전체 적용된 값으로 미리 채움 (없으면 비워둠)
+                const qft = $('quickFt'), qg = $('quickGate'), qt = $('quickTaxi');
+                if (qft) qft.value = jgv('p_ft') || jgv('j_ft') || '';
+                if (qg) qg.value = jgv('pf_gate') || jgv('j_gate') || '';
+                if (qt) qt.value = jgv('j_taxi') || '';
+            }
+        }
+        function applyPilotInput(){
+            const ft = jgv('quickFt'), gate = jgv('quickGate'), taxi = jgv('quickTaxi');
+            const applied = [];
+            if (ft){ jset('j_ft', ft); jset('p_ft', ft); applied.push('비행시간'); }
+            if (gate){ jset('j_gate', gate); jset('pf_gate', gate); applied.push('Gate'); }
+            if (taxi){ jset('j_taxi', taxi); applied.push('Taxi Time'); }
+            recalcJointMemo();
+            renderJointSummaryNote();
+            try { renderGateTriangle(); renderPilotFlightInfo(); renderPilotWeather(); } catch(_){}
+            const st = $('pilotInputStatus');
+            if (st) st.textContent = applied.length ? `✅ 적용됨: ${applied.join(' · ')} → PILOT·JOINT 전체` : '입력된 값이 없습니다';
+            jVerifyFlash(['j_ft','p_ft','j_gate','pf_gate','j_taxi']);
         }
         // ============ 상단 탭 (Pilot / Joint / NOTAM) ============
         const TABS = ['pilot', 'joint', 'notam'];
