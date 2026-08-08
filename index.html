@@ -768,7 +768,8 @@
                             <div class="jfield"><label>Title</label><input id="j_wx_dep_title" class="jinput" placeholder="Departure – ICN (Seoul / Incheon Intl)"></div>
                             <div class="jgrid3">
                                 <div class="jfield"><label>Sky</label><input id="j_wx_dep_sky" class="jinput"></div>
-                                <div class="jfield"><label>Temperature</label><input id="j_wx_dep_temp" class="jinput"></div>
+                                <div class="jfield"><label>TX (최고)</label><input id="j_wx_dep_tx" class="jinput" placeholder="e.g. 28 or TX28/0500Z"></div>
+                                <div class="jfield"><label>TN (최저)</label><input id="j_wx_dep_tn" class="jinput" placeholder="e.g. 18 or TN18/2100Z"></div>
                                 <div class="jfield"><label>Wind</label><input id="j_wx_dep_wind" class="jinput"></div>
                                 <div class="jfield"><label>Visibility</label><input id="j_wx_dep_vis" class="jinput"></div>
                                 <div class="jfield"><label>QNH</label><input id="j_wx_dep_qnh" class="jinput"></div>
@@ -778,7 +779,8 @@
                             <div class="jfield"><label>Title</label><input id="j_wx_arr_title" class="jinput" placeholder="Arrival – NRT (Tokyo / Narita Intl)"></div>
                             <div class="jgrid3">
                                 <div class="jfield"><label>Sky</label><input id="j_wx_arr_sky" class="jinput"></div>
-                                <div class="jfield"><label>Temperature</label><input id="j_wx_arr_temp" class="jinput"></div>
+                                <div class="jfield"><label>TX (최고)</label><input id="j_wx_arr_tx" class="jinput" placeholder="e.g. 24 or TX24/0500Z"></div>
+                                <div class="jfield"><label>TN (최저)</label><input id="j_wx_arr_tn" class="jinput" placeholder="e.g. 15 or TN15/2100Z"></div>
                                 <div class="jfield"><label>Wind</label><input id="j_wx_arr_wind" class="jinput"></div>
                                 <div class="jfield"><label>Visibility</label><input id="j_wx_arr_vis" class="jinput"></div>
                                 <div class="jfield"><label>Conditions</label><input id="j_wx_arr_cond" class="jinput"></div>
@@ -787,7 +789,8 @@
                             <div class="jfield"><label>Title</label><input id="j_wx_alt_title" class="jinput" placeholder="Alternate – HND (Tokyo / Haneda Intl)"></div>
                             <div class="jgrid3">
                                 <div class="jfield"><label>Sky</label><input id="j_wx_alt_sky" class="jinput"></div>
-                                <div class="jfield"><label>Temperature</label><input id="j_wx_alt_temp" class="jinput"></div>
+                                <div class="jfield"><label>TX (최고)</label><input id="j_wx_alt_tx" class="jinput"></div>
+                                <div class="jfield"><label>TN (최저)</label><input id="j_wx_alt_tn" class="jinput"></div>
                                 <div class="jfield"><label>Wind</label><input id="j_wx_alt_wind" class="jinput"></div>
                                 <div class="jfield"><label>Visibility</label><input id="j_wx_alt_vis" class="jinput"></div>
                                 <div class="jfield"><label>Conditions</label><input id="j_wx_alt_cond" class="jinput"></div>
@@ -3955,14 +3958,14 @@ Features to locate: ${JSON.stringify(features)}`;
                 taxi: jgv('j_taxi') || '– (refer to ground crew)',
                 wx: {
                     departure: { title: jgv('j_wx_dep_title') || 'Departure', rows: [
-                        wrow('Sky', jgv('j_wx_dep_sky')), wrow('Temperature', jgv('j_wx_dep_temp')),
+                        wrow('Sky', jgv('j_wx_dep_sky')), wrow('Temp (TX/TN)', jTempStr(jgv('j_wx_dep_tx'), jgv('j_wx_dep_tn'))),
                         wrow('Wind', jgv('j_wx_dep_wind')), wrow('Visibility', jgv('j_wx_dep_vis')),
                         wrow('QNH', jgv('j_wx_dep_qnh')), wrow('Conditions', jgv('j_wx_dep_cond')) ] },
                     arrival: { title: jgv('j_wx_arr_title') || 'Arrival', rows: [
-                        wrow('Sky', jgv('j_wx_arr_sky')), wrow('Temperature', jgv('j_wx_arr_temp')), wrow('Wind', jgv('j_wx_arr_wind')),
+                        wrow('Sky', jgv('j_wx_arr_sky')), wrow('Temp (TX/TN)', jTempStr(jgv('j_wx_arr_tx'), jgv('j_wx_arr_tn'))), wrow('Wind', jgv('j_wx_arr_wind')),
                         wrow('Visibility', jgv('j_wx_arr_vis')), wrow('Conditions', jgv('j_wx_arr_cond')) ] },
                     alternate: { title: jgv('j_wx_alt_title') || 'Alternate', rows: [
-                        wrow('Sky', jgv('j_wx_alt_sky')), wrow('Temperature', jgv('j_wx_alt_temp')), wrow('Wind', jgv('j_wx_alt_wind')),
+                        wrow('Sky', jgv('j_wx_alt_sky')), wrow('Temp (TX/TN)', jTempStr(jgv('j_wx_alt_tx'), jgv('j_wx_alt_tn'))), wrow('Wind', jgv('j_wx_alt_wind')),
                         wrow('Visibility', jgv('j_wx_alt_vis')), wrow('Conditions', jgv('j_wx_alt_cond')) ] },
                     enroute: { title: 'Enroute', rows: [
                         wrow('Altitude', jgv('j_wx_enr_alt')), wrow('Route', jgv('j_wx_enr_route')) ] },
@@ -4152,6 +4155,14 @@ Features to locate: ${JSON.stringify(features)}`;
             return `${escapeHtml(time || '')}${detail ? ': ' + dd : ''}`;
         }
         // 기상 원문(Sky/Conditions) → 한국어 요약 서술어(눈/비/안개/흐림/구름조금/맑음) + 온도
+        // TX(최고)/TN(최저) 두 값을 하나의 표시 문자열로 결합 (하나만 있어도 표시)
+        function jTempStr(tx, tn){
+            tx = (tx||'').trim(); tn = (tn||'').trim();
+            if (tx && tn) return `TX ${tx} / TN ${tn}`;
+            if (tx) return `TX ${tx}`;
+            if (tn) return `TN ${tn}`;
+            return '';
+        }
         function koreanWxSummary(sky, cond, temp){
             const t = ((sky||'') + ' ' + (cond||'')).toUpperCase();
             let desc = '';
@@ -4162,12 +4173,12 @@ Features to locate: ${JSON.stringify(features)}`;
             else if (/SCT|FEW/.test(t)) desc = '구름 조금';
             else if (/CLR|SKC|CAVOK|NSC|VMC/.test(t)) desc = '맑음';
             else desc = (cond || sky || '').trim();
-            if (!desc) return '';
+            if (!desc) return temp || '';
             return temp ? `${desc} · ${temp}` : desc;
         }
-        // "ICN 10:00 (+9:00) > NRT 12:20 (+9:00)" 형태의 Schedule 파싱
+        // "ICN 10:00 (+9:00) > NRT 12:20 (+9:00)" 형태의 Schedule 파싱 (>, ->, → 모두 허용)
         function parseSchedTimes(sched){
-            const m = /^\s*(\S+)\s+(\d{1,2}:\d{2})\s*\(?\s*([+\-]?\d{1,2}(?::?\d{2})?)?\)?\s*>\s*(\S+)\s+(\d{1,2}:\d{2})?\s*\(?\s*([+\-]?\d{1,2}(?::?\d{2})?)?\)?/.exec(sched || '');
+            const m = /^\s*(\S+)\s+(\d{1,2}:\d{2})\s*\(?\s*([+\-]?\d{1,2}(?::?\d{2})?)?\)?\s*(?:->|>|→)\s*(\S+)\s+(\d{1,2}:\d{2})?\s*\(?\s*([+\-]?\d{1,2}(?::?\d{2})?)?\)?/.exec(sched || '');
             if (!m) return null;
             return { depTime:m[2]||'', depOff:m[3]||'', arrTime:m[5]||'', arrOff:m[6]||'' };
         }
@@ -4196,7 +4207,7 @@ Features to locate: ${JSON.stringify(features)}`;
                 }
                 if (s.arrTime) return s.arrTime + (s.arrOff ? ` (${s.arrOff})` : '');
             }
-            const m2 = />\s*\S+\s+(\d{1,2}:\d{2})/.exec(sched || '');
+            const m2 = /(?:->|>|→)\s*\S+\s+(\d{1,2}:\d{2})/.exec(sched || '');
             return m2 ? m2[1] : '';
         }
         function renderJointSummaryNote(){
@@ -4207,15 +4218,15 @@ Features to locate: ${JSON.stringify(features)}`;
             const sched = g('j_sched');
             const eta = computeEta(sched, ft);
             const dep = g('j_dep') || 'DEP', arr = g('j_arr') || 'ARR';
-            const depDesc = koreanWxSummary(g('j_wx_dep_sky'), g('j_wx_dep_cond'), g('j_wx_dep_temp'));
-            const arrDesc = koreanWxSummary(g('j_wx_arr_sky'), g('j_wx_arr_cond'), g('j_wx_arr_temp'));
+            const depDesc = koreanWxSummary(g('j_wx_dep_sky'), g('j_wx_dep_cond'), jTempStr(g('j_wx_dep_tx'), g('j_wx_dep_tn')));
+            const arrDesc = koreanWxSummary(g('j_wx_arr_sky'), g('j_wx_arr_cond'), jTempStr(g('j_wx_arr_tx'), g('j_wx_arr_tn')));
             const t1 = jTurbCell(g('j_turb1_t'), g('j_turb1_d'));
             const t2 = jTurbCell(g('j_turb2_t'), g('j_turb2_d'));
             const gate = g('pf_gate');
             const em = v => v ? v : '<span class="empty">—</span>';
             let html = '';
             html += `<div class="t">✈️ 비행 브리핑: ${escapeHtml(flt)}</div>`;
-            html += `<div class="blk"><span class="h">■ 비행시간:</span> ${escapeHtml(ft)}` + (eta ? ` · 도착예정 ${escapeHtml(eta)}` : '') + `</div>`;
+            html += `<div class="blk"><span class="h">■ 비행시간:</span> ${escapeHtml(ft)}` + (eta ? ` · 도착예정(Local) ${escapeHtml(eta)}` : ' · <span class="empty">도착예정시간 미상 — Schedule 확인 필요</span>') + `</div>`;
             html += `<div class="blk"><span class="h">■ 날씨:</span><br>- ${escapeHtml(dep)}: ${em(escapeHtml(depDesc))}<br>- ${escapeHtml(arr)}: ${em(escapeHtml(arrDesc))}</div>`;
             html += `<div class="blk"><span class="h">■ 난기류:</span><br>- ${em(t1)}` + (t2 ? `<br>- ${t2}` : '') + `</div>`;
             if (gate) html += `<div class="blk"><span class="h">■ GATE:</span> ${escapeHtml(gate)}</div>`;
@@ -4238,12 +4249,12 @@ Features to locate: ${JSON.stringify(features)}`;
                 j_actype:'A21N', j_acreg:'HL8364', j_ft:'2:20', j_gate:'– (–)',
                 j_pax:'F 0 / C 12 / Y 174', j_sched:'ICN 10:00 (+9:00) > NRT 12:20 (+9:00)',
                 j_wx_dep_title:'Departure – ICN (Seoul / Incheon Intl)', j_wx_dep_sky:'FEW030 SCT100',
-                j_wx_dep_temp:'18°C / DP 09°C', j_wx_dep_wind:'270/08KT', j_wx_dep_vis:'10km+',
+                j_wx_dep_tx:'18', j_wx_dep_tn:'09', j_wx_dep_wind:'270/08KT', j_wx_dep_vis:'10km+',
                 j_wx_dep_qnh:'1015 hPa', j_wx_dep_cond:'VMC – Normal departure expected',
                 j_wx_arr_title:'Arrival – NRT (Tokyo / Narita Intl)', j_wx_arr_sky:'SCT025 BKN080',
-                j_wx_arr_wind:'160/12KT', j_wx_arr_vis:'9999', j_wx_arr_cond:'TEMPO 3000 SHRA – monitor before descent',
+                j_wx_arr_tx:'22', j_wx_arr_tn:'14', j_wx_arr_wind:'160/12KT', j_wx_arr_vis:'9999', j_wx_arr_cond:'TEMPO 3000 SHRA – monitor before descent',
                 j_wx_alt_title:'Alternate – HND (Tokyo / Haneda Intl)', j_wx_alt_sky:'BKN030',
-                j_wx_alt_wind:'190/10KT', j_wx_alt_vis:'9999', j_wx_alt_cond:'VMC',
+                j_wx_alt_tx:'21', j_wx_alt_tn:'13', j_wx_alt_wind:'190/10KT', j_wx_alt_vis:'9999', j_wx_alt_cond:'VMC',
                 j_wx_enr_alt:'FL360 -> FL340', j_wx_enr_route:'Incheon -> Yellow Sea -> central Japan -> Narita',
                 j_turb1_t:'Around +1:10', j_turb1_d:'Central Japan – light to moderate, FL300–FL340 (SIGWX)',
                 j_turb2_t:'Near Arrival', j_turb2_d:'Narita vicinity – recheck before descent',
@@ -4267,9 +4278,9 @@ Features to locate: ${JSON.stringify(features)}`;
             jset('j_actype',o.ac_type); jset('j_acreg',o.ac_reg); jset('j_ft',o.flight_time); jset('p_ft',o.flight_time);
             jset('j_gate',o.gate_spot); jset('j_sched',o.schedule); jset('j_pax',o.pax); jset('j_taxi',o.taxi);
             const w = o.weather || {};
-            if (w.departure){ const x = w.departure; jset('j_wx_dep_title',x.title); jset('j_wx_dep_sky',x.sky); jset('j_wx_dep_temp',x.temp); jset('j_wx_dep_wind',x.wind); jset('j_wx_dep_vis',x.vis); jset('j_wx_dep_qnh',x.qnh); jset('j_wx_dep_cond',x.cond); }
-            if (w.arrival){ const x = w.arrival; jset('j_wx_arr_title',x.title); jset('j_wx_arr_sky',x.sky); jset('j_wx_arr_temp',x.temp); jset('j_wx_arr_wind',x.wind); jset('j_wx_arr_vis',x.vis); jset('j_wx_arr_cond',x.cond); }
-            if (w.alternate){ const x = w.alternate; jset('j_wx_alt_title',x.title); jset('j_wx_alt_sky',x.sky); jset('j_wx_alt_temp',x.temp); jset('j_wx_alt_wind',x.wind); jset('j_wx_alt_vis',x.vis); jset('j_wx_alt_cond',x.cond); }
+            if (w.departure){ const x = w.departure; jset('j_wx_dep_title',x.title); jset('j_wx_dep_sky',x.sky); jset('j_wx_dep_tx',x.temp_tx); jset('j_wx_dep_tn',x.temp_tn); jset('j_wx_dep_wind',x.wind); jset('j_wx_dep_vis',x.vis); jset('j_wx_dep_qnh',x.qnh); jset('j_wx_dep_cond',x.cond); }
+            if (w.arrival){ const x = w.arrival; jset('j_wx_arr_title',x.title); jset('j_wx_arr_sky',x.sky); jset('j_wx_arr_tx',x.temp_tx); jset('j_wx_arr_tn',x.temp_tn); jset('j_wx_arr_wind',x.wind); jset('j_wx_arr_vis',x.vis); jset('j_wx_arr_cond',x.cond); }
+            if (w.alternate){ const x = w.alternate; jset('j_wx_alt_title',x.title); jset('j_wx_alt_sky',x.sky); jset('j_wx_alt_tx',x.temp_tx); jset('j_wx_alt_tn',x.temp_tn); jset('j_wx_alt_wind',x.wind); jset('j_wx_alt_vis',x.vis); jset('j_wx_alt_cond',x.cond); }
             if (w.enroute){ jset('j_wx_enr_alt',w.enroute.altitude); jset('j_wx_enr_route',w.enroute.route); }
             if (Array.isArray(w.turbulence)){ const t = w.turbulence; if (t[0]){ jset('j_turb1_t',t[0].time); jset('j_turb1_d',t[0].detail); } if (t[1]){ jset('j_turb2_t',t[1].time); jset('j_turb2_d',t[1].detail); } }
             const f = o.fuel || {};
@@ -4292,9 +4303,9 @@ Features to locate: ${JSON.stringify(features)}`;
             if (!key){ setS('⚠ Gemini API Key가 필요합니다 — 상단 헤더에서 입력 또는 🔓 잠금해제 후 다시 시도.'); return; }
             if (typeof geminiFetch !== 'function'){ setS('❌ Gemini 호출 헬퍼(geminiFetch)를 찾지 못했습니다.'); return; }
             setS('🛰 FPL/OFP에서 Joint 데이터 추출 중…');
-            const prompt = `You are an airline dispatcher preparing a cabin-crew JOINT BRIEFING from a flight package (FPL / OFP / Dispatch Release / weather). Extract the fields below into STRICT JSON only (no markdown, no code fences). If a value is unknown use an empty string (numbers: 0). Fuel units = LBS (convert if the plan uses x100LBS or KG). RULES: enroute "route" uses GEOGRAPHIC NAMES ONLY (no waypoint codes, e.g. "Incheon -> Yellow Sea -> central Japan -> Narita"); turbulence "time" is ELAPSED time from departure like "Around +1:30" derived from waypoint ETOs; "flight_time" as "H:MM"; "taxi" from the block-out / TAXI field else ""; "date_label" like "2026.05.03, Sun".
+            const prompt = `You are an airline dispatcher preparing a cabin-crew JOINT BRIEFING from a flight package (FPL / OFP / Dispatch Release / weather). Extract the fields below into STRICT JSON only (no markdown, no code fences). If a value is unknown use an empty string (numbers: 0). Fuel units = LBS (convert if the plan uses x100LBS or KG). RULES: enroute "route" uses GEOGRAPHIC NAMES ONLY (no waypoint codes, e.g. "Incheon -> Yellow Sea -> central Japan -> Narita"); turbulence "time" is ELAPSED time from departure like "Around +1:30" derived from waypoint ETOs; "flight_time" as "H:MM"; "taxi" from the block-out / TAXI field else ""; "date_label" like "2026.05.03, Sun"; "temp_tx"/"temp_tn" are the TAF forecast MAX/MIN temperature for that airport (from the TAF's TX.../TN... groups if present, else your best estimate from the METAR/TAF text) — leave blank only if truly not derivable; "schedule" MUST use the exact format "DEP HH:MM (+tz) > ARR HH:MM (+tz)" with a literal ">" separator and BOTH UTC-offset parts included (never omit the offsets) so the arrival local time can be computed.
 JSON shape:
-{"airline":"","flight_no":"e.g. OZ 123","date":"YYYY-MM-DD","date_label":"YYYY.MM.DD, Day","dep":"IATA","arr":"IATA","route_label":"DEP > ARR","ac_type":"e.g. A21N","ac_reg":"e.g. HL8364","flight_time":"H:MM","gate_spot":"","schedule":"DEP HH:MM (+tz) > ARR HH:MM (+tz)","pax":"F x / C y / Y z","taxi":"","alert_level":"BLUE","weather":{"departure":{"title":"Departure - IATA (City / Airport)","sky":"","temp":"","wind":"","vis":"","qnh":"","cond":""},"arrival":{"title":"Arrival - IATA (City / Airport)","sky":"","temp":"","wind":"","vis":"","cond":""},"alternate":{"title":"Alternate - IATA (City / Airport)","sky":"","temp":"","wind":"","vis":"","cond":""},"enroute":{"altitude":"e.g. FL360 -> FL340","route":"geographic names only","wind":"representative cruise wind e.g. 270/80KT"},"turbulence":[{"time":"Around +H:MM","detail":"area - severity, FL range (source)"},{"time":"Near Arrival","detail":""}]},"fuel":{"final_reserve_lbs":0,"altn_lbs":0,"trip_lbs":0,"tof_lbs":0},"oat_cruise_c":0}
+{"airline":"","flight_no":"e.g. OZ 123","date":"YYYY-MM-DD","date_label":"YYYY.MM.DD, Day","dep":"IATA","arr":"IATA","route_label":"DEP > ARR","ac_type":"e.g. A21N","ac_reg":"e.g. HL8364","flight_time":"H:MM","gate_spot":"","schedule":"DEP HH:MM (+tz) > ARR HH:MM (+tz)","pax":"F x / C y / Y z","taxi":"","alert_level":"BLUE","weather":{"departure":{"title":"Departure - IATA (City / Airport)","sky":"","temp_tx":"TAF/forecast MAX temp, number only e.g. 28","temp_tn":"TAF/forecast MIN temp, number only e.g. 18","wind":"","vis":"","qnh":"","cond":""},"arrival":{"title":"Arrival - IATA (City / Airport)","sky":"","temp_tx":"forecast MAX temp e.g. 24","temp_tn":"forecast MIN temp e.g. 15","wind":"","vis":"","cond":""},"alternate":{"title":"Alternate - IATA (City / Airport)","sky":"","temp_tx":"forecast MAX temp","temp_tn":"forecast MIN temp","wind":"","vis":"","cond":""},"enroute":{"altitude":"e.g. FL360 -> FL340","route":"geographic names only","wind":"representative cruise wind e.g. 270/80KT"},"turbulence":[{"time":"Around +H:MM","detail":"area - severity, FL range (source)"},{"time":"Near Arrival","detail":""}]},"fuel":{"final_reserve_lbs":0,"altn_lbs":0,"trip_lbs":0,"tof_lbs":0},"oat_cruise_c":0}
 TEXT:
 """${src.slice(0, 200000)}"""`;
             try {
@@ -4342,7 +4353,7 @@ TEXT:
             const s = parseSchedTimes(sched) || {};
             const ft = g('p_ft') || g('j_ft');
             const etd = s.depTime ? (s.depTime + (s.depOff ? ` (${s.depOff})` : '')) : '';
-            const eta = (s.arrTime ? (s.arrTime + (s.arrOff ? ` (${s.arrOff})` : '')) : computeEta(sched, ft));
+            const eta = computeEta(sched, ft);
             const altName = (g('j_wx_alt_title').match(/[-–]\s*([A-Za-z0-9]+)/) || [])[1] || '';
             const block = (titleKo, timeLabel, timeVal, sky, temp, wind, vis, qnh, cond) => {
                 const rows = [];
@@ -4356,9 +4367,9 @@ TEXT:
                     + (rows.length ? `<div class="pfwx-grid">${rows.join('')}</div>` : '<p class="pfwx-empty">입력된 값 없음</p>');
             };
             let html = '';
-            html += block(`출발지 (${g('j_dep')||'DEP'})`, 'ETD', etd, g('j_wx_dep_sky'), g('j_wx_dep_temp'), g('j_wx_dep_wind'), g('j_wx_dep_vis'), g('j_wx_dep_qnh'), g('j_wx_dep_cond'));
-            html += block(`목적지 (${g('j_arr')||'ARR'})`, 'ETA', eta, g('j_wx_arr_sky'), g('j_wx_arr_temp'), g('j_wx_arr_wind'), g('j_wx_arr_vis'), '', g('j_wx_arr_cond'));
-            html += block(`교체공항${altName?` (${altName})`:''}`, 'ETA', eta, g('j_wx_alt_sky'), g('j_wx_alt_temp'), g('j_wx_alt_wind'), g('j_wx_alt_vis'), '', g('j_wx_alt_cond'));
+            html += block(`출발지 (${g('j_dep')||'DEP'})`, 'ETD(Local)', etd, g('j_wx_dep_sky'), jTempStr(g('j_wx_dep_tx'), g('j_wx_dep_tn')), g('j_wx_dep_wind'), g('j_wx_dep_vis'), g('j_wx_dep_qnh'), g('j_wx_dep_cond'));
+            html += block(`목적지 (${g('j_arr')||'ARR'})`, 'ETA(Local)', eta, g('j_wx_arr_sky'), jTempStr(g('j_wx_arr_tx'), g('j_wx_arr_tn')), g('j_wx_arr_wind'), g('j_wx_arr_vis'), '', g('j_wx_arr_cond'));
+            html += block(`교체공항${altName?` (${altName})`:''}`, 'ETA(Local)', eta, g('j_wx_alt_sky'), jTempStr(g('j_wx_alt_tx'), g('j_wx_alt_tn')), g('j_wx_alt_wind'), g('j_wx_alt_vis'), '', g('j_wx_alt_cond'));
             const enrAlt = g('j_wx_enr_alt'), enrRoute = g('j_wx_enr_route');
             if (enrAlt || enrRoute){
                 html += `<div class="jsub">항로 (Enroute)</div><div class="pfwx-grid">`

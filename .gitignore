@@ -1,2 +1,5 @@
 # local build-reference material (not for the public GitHub Pages repo)
 .local/
+
+# local dev-preview server config (python http.server launcher)
+.claude/
