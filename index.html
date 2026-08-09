@@ -4379,7 +4379,7 @@ Features to locate: ${JSON.stringify(features)}`;
                 const text = `${fmtElapsedHM(r.startMin)}~${end}까지는 ${labelOf(r)} 예상`;
                 return r.tier === 'L' ? `<span class="sev-light">${escapeHtml(text)}</span>` : `<span class="sev">${escapeHtml(text)}</span>`;
             });
-            return '이륙후 ' + parts.join(', ');
+            return '이륙후' + parts.map(p => '<br>' + p).join('');
         }
         function koreanWxSummary(sky, cond, temp){
             const t = ((sky||'') + ' ' + (cond||'')).toUpperCase();
