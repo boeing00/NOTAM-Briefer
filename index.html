@@ -4175,30 +4175,6 @@ Features to locate: ${JSON.stringify(features)}`;
             {text:r[0],bold:true,color:JB.GRAY,fontSize:9}, {text:r[1],color:JB.DARK,fontSize:9} ]);
             return { table:{widths:[120,'*'],body}, layout:{ hLineWidth:(i,node)=> (i>0 && i<node.table.body.length)?0.3:0,
                 vLineWidth:()=>0, hLineColor:()=>JB.ROW_LINE, paddingTop:()=>3, paddingBottom:()=>3, paddingLeft:()=>4, paddingRight:()=>4 }, margin:[0,0,0,4] }; }
-        function jbAlertRow(sel){
-            const cells = JB_LEVELS.map(l => { const on = (l===sel);
-                return { text:l, alignment:'center', bold:on,
-                    color: on ? JB_ALERT_TC[l] : '#AAAAAA', fillColor: on ? JB_ALERT_C[l] : jbDim(JB_ALERT_C[l]),
-                    fontSize: on ? 13 : 6, margin:[2, on?7:3, 2, on?7:3] }; });
-            return { table:{widths:['*','*','*','*','*'],body:[cells]}, layout:'noBorders', margin:[0,4,0,6] }; }
-        function jbPaTable(){
-            const H = t => ({text:t,bold:true,color:JB.WHITE,fontSize:8});
-            const C = t => ({text:t,fontSize:8,color:JB.DARK});
-            const body = [
-                [H('PIC Announcement'),H('Cabin Crew Judgment'),H('Cabin Crew Procedures')],
-                [C('"This is the Captain"\n"Remain seated, remain seated."'),C('Not necessary to execute emergency evacuation.'),C('Hold each original position to prepare subsequent mission.')],
-                [C('"Attention, crew at station."'),C('Expected to execute emergency evacuation.'),C('Prepare emergency evacuation at each original position.')],
-                [C('"This is the Captain. Evacuate, evacuate!"'),C('Mandatory to execute emergency evacuation.'),C("Conduct passenger's emergency evacuation.")] ];
-            return { table:{widths:['*','*','*'],body}, layout:jbGridLayout([JB.BLUE_MID,JB.SECTION_BG,JB.WHITE,JB.SECTION_BG]), margin:[0,2,0,4] }; }
-        function jbBraceTable(){
-            const H = t => ({text:t,bold:true,color:JB.WHITE,fontSize:8});
-            const C = t => ({text:t,fontSize:8,color:JB.DARK});
-            const body = [
-                [H('Flight Crew'),H('Cabin Crew')],
-                [C('Brace Signal: Cycle the seat belt sign (4 times chime bell)\nPA: "Brace for impact, Brace for impact."'),C('Shouting "Brace" – Fasten seat belt and harness, brace for impact until aircraft completely stopped.')],
-                [C('Emergency Light / Emergency Exit Light: ON'),C('Passenger Cabin Emergency Light: ON (at the appropriate time)')],
-                [{text:'Turn on the emergency light to assist in passenger evacuation.',colSpan:2,fontSize:8,color:JB.DARK},{}] ];
-            return { table:{widths:['*','*'],body}, layout:jbGridLayout([JB.BLUE_MID,JB.SECTION_BG,JB.WHITE,JB.SECTION_BG]), margin:[0,2,0,4] }; }
         function jbFuelTable(f){
             const H = t => ({text:t,bold:true,color:JB.WHITE,fontSize:8.5});
             const L = t => ({text:t,fontSize:8.5,color:JB.DARK});
@@ -4229,91 +4205,6 @@ Features to locate: ${JSON.stringify(features)}`;
                 [{text:'THIS FLIGHT',bold:true,fontSize:8.5},{text:o.rule,fontSize:8.5},{text:Math.trunc(o.min)+' qts',bold:true,alignment:'center',color:'#1B5E20'}] ];
             const fills = [JB.BLUE_MID,JB.SECTION_BG,JB.WHITE,JB.SECTION_BG,JB.WHITE,'#E8F5E9'];
             return { table:{widths:[110,'*',50],body}, layout:jbGridLayout(fills), margin:[0,2,0,2] }; }
-
-        function buildJointDocDefinition(d){
-            const sub = `${d.airline} – Joint Briefing System | For Internal Use Only | Generated: ${d.date||'-'}`;
-            const content = [];
-            content.push({text:'Joint Briefing', color:JB.BLUE, bold:true, fontSize:18});
-            content.push({text:sub, color:JB.GRAY, fontSize:8, margin:[0,2,0,6]});
-            content.push({ table:{widths:['*','*','*','*'],body:[
-                [{text:'Date',bold:true,fontSize:8,color:JB.GRAY},{text:'Flight No',bold:true,fontSize:8,color:JB.GRAY},{text:'DEP',bold:true,fontSize:8,color:JB.GRAY},{text:'ARR',bold:true,fontSize:8,color:JB.GRAY}],
-                [{text:d.date||'-',fontSize:9},{text:(d.flight_no||'').split(' ').pop(),fontSize:9},{text:d.dep||'-',fontSize:9},{text:d.arr||'-',fontSize:9}]
-            ]}, layout:jbGridLayout(['#FAFAFA','#FAFAFA']), margin:[0,0,0,4] });
-
-            if (d.summary){
-                content.push(jbSecHeader('Summary'));
-                content.push({text:d.summary, fontSize:9, color:JB.DARK, margin:[2,3,0,4]});
-            }
-
-            content.push(jbSecHeader('Flight Information'));
-            content.push({ columns:[
-                {width:120, text:d.flight_no, bold:true, color:JB.BLUE, fontSize:20},
-                {width:'*', stack:[
-                    {text:d.date_label||'', color:JB.GRAY, fontSize:9},
-                    {text:d.route_label||'', bold:true, color:JB.DARK, fontSize:15, margin:[0,2,0,0]} ]}
-            ], margin:[0,4,0,6] });
-            content.push({ table:{widths:['*','*','*'],body:[
-                [{text:'A/C',bold:true,fontSize:8,color:JB.GRAY},{text:'Flight Time',bold:true,fontSize:8,color:JB.GRAY},{text:'Gate (Spot)',bold:true,fontSize:8,color:JB.GRAY}],
-                [{text:((d.ac_type||'')+' / '+(d.ac_reg||'')),fontSize:9},{text:d.flight_time,fontSize:9},{text:d.gate_spot,fontSize:9}],
-                [{text:'Schedule',bold:true,fontSize:8,color:JB.GRAY},{text:'PAX',bold:true,fontSize:8,color:JB.GRAY},{text:'',fontSize:8}],
-                [{text:d.schedule||'',fontSize:9},{text:d.pax||'',fontSize:9},{text:'',fontSize:9}]
-            ]}, layout:jbGridLayout([JB.SECTION_BG,JB.SECTION_BG,JB.SECTION_BG,JB.SECTION_BG]), margin:[0,2,0,6] });
-
-            content.push(jbSecHeader('Weather'));
-            ['departure','arrival','alternate','enroute','turbulence'].forEach(k => {
-                content.push(jbWxTitle(d.wx[k].title));
-                content.push(jbWxRows(d.wx[k].rows));
-            });
-
-            content.push(jbSecHeader('Security'));
-            content.push({ul:['Emphasize that all crew are security staff.'], fontSize:9, color:JB.DARK, margin:[0,2,0,2]});
-            content.push(jbAlertRow(d.alert_level));
-            content.push({text:'Cockpit Entry Procedure (Two-Crew Rule)', bold:true, fontSize:9, color:JB.DARK, margin:[0,2,0,2]});
-            content.push({ul:[
-                'Intercom call → Authorization by flight crew (pre-arranged code word if required by PIC)',
-                "Flight crew may request crew member's name if in doubt – names can be confirmed during Joint Briefing",
-                'Cabin crew must confirm no passenger is in the Clear Zone',
-                'Close curtain in front of cockpit door → pre-arranged knocks → enter normal access code on keypad',
-                'A cabin crew must be present at cockpit door to monitor entry/exit status',
-                'Cockpit door unlocked via Flight Deck Door Lock Panel (Boeing) / Cockpit Door Control Panel (Airbus), or manually after camera/peep hole check'
-            ], fontSize:9, color:JB.DARK, margin:[6,0,0,4]});
-            content.push({text:'Emergency Alert Signal', bold:true, fontSize:9, color:JB.DARK, margin:[0,2,0,2]});
-            content.push({ul:['Push "EMER" – Interphone call to cockpit is strictly prohibited during sterile phase'], fontSize:9, color:JB.DARK, margin:[6,0,0,4]});
-
-            content.push(jbSecHeader('Sterile Cockpit Procedure'));
-            content.push({ul:[
-                'Below 10,000 feet – No non-essential communication',
-                'Emergency Alert Signal: Push EMER only for genuine emergencies'
-            ], fontSize:9, color:JB.DARK, margin:[0,2,0,4]});
-
-            content.push(jbSecHeader('Emergency Procedure'));
-            content.push({text:'Rejected Takeoff', bold:true, fontSize:9, color:JB.DARK, margin:[0,2,0,2]});
-            content.push({ul:[
-                'Remain at jump seat with harness fastened until aircraft completely stopped',
-                'Await PIC announcement before any action'
-            ], fontSize:9, color:JB.DARK, margin:[6,0,0,4]});
-            content.push({text:'PA & Evacuation Signal', bold:true, fontSize:9, color:JB.DARK, margin:[0,2,0,2]});
-            content.push(jbPaTable());
-            content.push({text:'Brace Signal (Below 1,000 ft AGL – approx. 1 min before landing)', bold:true, fontSize:9, color:JB.DARK, margin:[0,4,0,2]});
-            content.push(jbBraceTable());
-
-            content.push(jbSecHeader('Crew Coordination'));
-            content.push({ul:[
-                'Temperature Control',
-                'Taxi Time & Ready Signal – ' + d.taxi,
-                'PA Monitoring',
-                'Unruly Passenger – Notify cockpit immediately',
-                'CABIN LOG – Any item affecting airworthiness must be reported to PIC without exception',
-                'Timing of In-flight Services – To be conducted in coordination with PIC'
-            ], fontSize:9, color:JB.DARK, margin:[0,2,0,4]});
-
-            // Pilot Memo(연료·오일)는 PILOT BRIEFING 탭으로 이동 — Joint 브리핑에서는 제외
-
-            content.push({canvas:[{type:'line',x1:0,y1:2,x2:511,y2:2,lineWidth:0.5,lineColor:'#CCCCCC'}], margin:[0,6,0,2]});
-            content.push({text:sub, color:JB.GRAY, fontSize:8});
-
-            return { pageSize:'A4', pageMargins:[42,42,42,42], content, defaultStyle:{fontSize:9} };
-        }
 
         // ── 화면에 보이는 내용을 그대로 PDF로 캡처 (html2canvas → jsPDF, 여러 페이지로 자동 분할) ──
         // buildJointDocDefinition()(고정 서식의 pdfmake 문서)는 더 이상 쓰지 않음 — 사용자 요청으로 폐기,
