@@ -476,6 +476,18 @@
             background:#FFFDF8;border:1px solid var(--line);border-radius:8px;padding:.6rem .7rem;max-height:280px;overflow:auto;margin:.3rem 0 .8rem}
         .wxraw mark.wx-hi-main{background:#FEF08A;color:#1e293b;padding:0 1px;border-radius:2px}
         .wxraw mark.wx-hi-temp{background:#FCA5A5;color:#1e293b;padding:0 1px;border-radius:2px;font-weight:600}
+        /* 종합 운항 분석 리포트 (Weather Briefing 탭) — Gemini가 만든 마크다운을 mdToHtml()로 렌더 */
+        .wbreport{font-family:"IBM Plex Sans KR",sans-serif;font-size:.86rem;line-height:1.7;color:var(--text);
+            background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:1rem 1.15rem;overflow-x:auto}
+        .wbreport h1{font-size:1.08rem;font-weight:700;color:var(--accent-hi);margin:0 0 .7rem;padding-bottom:.5rem;border-bottom:2px solid var(--line)}
+        .wbreport h2{font-size:.94rem;font-weight:700;color:var(--accent-hi);margin:1.2rem 0 .4rem;padding-top:.2rem;border-top:1px solid var(--line)}
+        .wbreport h2:first-child{margin-top:0;border-top:none;padding-top:0}
+        .wbreport h3{font-size:.87rem;font-weight:700;color:var(--muted);margin:.85rem 0 .35rem}
+        .wbreport p{margin:.35rem 0}
+        .wbreport ul,.wbreport ol{margin:.25rem 0 .5rem 1.25rem;padding:0}
+        .wbreport li{margin:.22rem 0}
+        .wbreport strong{color:var(--accent-hi);font-weight:700}
+        .wbreport hr{border:none;border-top:1px dashed var(--line);margin:1rem 0}
         .gatebar{display:flex;align-items:center;gap:1rem;margin:.2rem 0 1rem;flex-wrap:wrap}
         .pilottop{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:.8rem}
         .pilottop .eyebrow{margin:0}
@@ -1134,6 +1146,19 @@
                                 <span id="wbChartStatus" class="jnote"></span>
                             </div>
                             <div id="wbChartList"></div>
+                        </div>
+                    </details>
+
+                    <!-- 3) 종합 운항 분석 리포트 (서사형) -->
+                    <details class="jcard" open>
+                        <summary>3 · 종합 운항 분석 리포트</summary>
+                        <div class="jcard__body">
+                            <p class="jnote">공유 PDF(OFP/FPL) 원문 + Weather Chart 분석 결과(있으면)를 종합해, 시간대별 순항고도·난기류·제트기류, 연료계획, EDTO 회항공항 전략까지 담은 서사형 리포트를 생성합니다.</p>
+                            <div class="jbtnrow">
+                                <button class="btn btn--sm btn--go" onclick="generateFlightAnalysisReport()">🧾 리포트 생성</button>
+                                <span id="wbReportStatus" class="jnote"></span>
+                            </div>
+                            <div id="wbReportOutput"></div>
                         </div>
                     </details>
                 </div>
@@ -4965,6 +4990,129 @@ Respond with STRICT JSON ONLY, no markdown/code fences: {"applicable":true,"char
                 renderWbChartList();
             }
             setS('✅ 분석 완료');
+        }
+
+        // ══════════ 종합 운항 분석 리포트 (서사형 · Weather Briefing 탭 3번 섹션) ══════════
+        // Gemini에 마크다운(제목/굵게/목록/구분선)으로 답하게 하고, 여기서 가벼운 변환기로 HTML을 만든다.
+        // JSON 스키마로 안 받는 이유: 이 리포트는 사람이 읽는 자유서식 문서이지 다른 화면이 재사용하는 구조적 데이터가 아님.
+        function mdToHtml(md){
+            const inlineFmt = s => escapeHtml(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            const lines = (md || '').replace(/\r\n/g, '\n').split('\n');
+            let html = '';
+            const stack = []; // {indent, type} — 들여쓰기 기반 중첩 목록
+            const closeTo = (indent) => { while (stack.length && stack[stack.length-1].indent >= indent) html += `</${stack.pop().type}>`; };
+            for (const raw of lines){
+                const trimmed = raw.trim();
+                if (!trimmed) continue; // 빈 줄은 무시(목록은 다음 비-목록 줄에서 닫힘)
+                let m;
+                if (/^---+$/.test(trimmed)){ closeTo(0); html += '<hr>'; continue; }
+                if ((m = /^(#{1,3})\s+(.*)/.exec(trimmed))){ closeTo(0); const lvl = m[1].length; html += `<h${lvl}>${inlineFmt(m[2])}</h${lvl}>`; continue; }
+                const bm = /^(\s*)[*-]\s+(.*)/.exec(raw);
+                const nm = /^(\s*)\d+\.\s+(.*)/.exec(raw);
+                if (bm || nm){
+                    const indent = (bm ? bm[1] : nm[1]).length;
+                    const type = bm ? 'ul' : 'ol';
+                    const text = bm ? bm[2] : nm[2];
+                    while (stack.length && (stack[stack.length-1].indent > indent || (stack[stack.length-1].indent === indent && stack[stack.length-1].type !== type))) html += `</${stack.pop().type}>`;
+                    if (!stack.length || stack[stack.length-1].indent < indent){ html += `<${type}>`; stack.push({ indent, type }); }
+                    html += `<li>${inlineFmt(text)}</li>`;
+                    continue;
+                }
+                closeTo(0);
+                html += `<p>${inlineFmt(trimmed)}</p>`;
+            }
+            closeTo(0);
+            return html;
+        }
+        function buildFlightReportContext(){
+            const d = getJointFormData();
+            const turb = getTurbRows().map(t => `- ${t.time}: ${t.detail}`).join('\n') || '(없음)';
+            const chartLines = wbCharts.filter(c => c.status === 'done' && c.applicable !== false && (c.segments||[]).length)
+                .map(c => `[${c.name}] ${c.chartValid || ''}\n` + c.segments.map(s => `  - ${s.time||''} ${s.name||''}: ${s.detail||''} (${s.severity||''})`).join('\n'))
+                .join('\n');
+            return {
+                flight_no: d.flight_no, dep: d.dep, arr: d.arr, ac_type: d.ac_type, ac_reg: d.ac_reg,
+                date_label: d.date_label || d.date, flight_time: d.flight_time, schedule: d.schedule,
+                enroute_alt: jgv('j_wx_enr_alt'), enroute_route: jgv('j_wx_enr_route'), enroute_wind: jgv('j_wx_enr_wind'),
+                turbulence: turb,
+                final_lbs: jgv('j_final'), altn_lbs: jgv('j_altn'), trip_lbs: jgv('j_trip'), tof_lbs: jgv('j_tof'), oat: jgv('j_oat'),
+                chartAnalysis: chartLines || '(업로드/분석된 Weather Chart 없음)'
+            };
+        }
+        async function generateFlightAnalysisReport(){
+            const st = document.getElementById('wbReportStatus');
+            const out = document.getElementById('wbReportOutput');
+            const setS = m => { if (st) st.textContent = m; };
+            const key = (document.getElementById('apiKey') && document.getElementById('apiKey').value || '').trim();
+            const src = ((document.getElementById('packageInput') && document.getElementById('packageInput').value) || '').trim();
+            if (!src){ setS('⚠ 공유 PDF가 없습니다 — 상단 📄 PDF 열기로 먼저 업로드하세요.'); return; }
+            if (!key){ setS('⚠ Gemini API Key가 필요합니다 (⚙ Settings).'); return; }
+            if (typeof geminiFetch !== 'function'){ setS('❌ geminiFetch 헬퍼를 찾지 못했습니다.'); return; }
+            setS('🛰 OFP/FPL 원문 + 기상 데이터를 종합해 리포트 작성 중…');
+            const ctx = buildFlightReportContext();
+            const prompt = `You are an airline dispatcher writing a comprehensive Korean-language flight-operations analysis report for a pilot, based on the ATTACHED raw OFP/FPL/dispatch-release text (navigation log, step-climb altitudes, wind/temp table, fuel plan, EDTO/ETP data, SIGWX/turbulence data) plus already-analyzed weather-chart findings and turbulence rows provided below as hints (use them, but ALSO read the raw OFP text yourself for anything they don't cover — altitude steps, jet stream speeds, CB tops, EDTO/ETP alternate airports, shear-rate/SR index values, etc. are usually only in the raw OFP nav log).
+FLIGHT CONTEXT: ${ctx.flight_no}, ${ctx.dep} -> ${ctx.arr}, ${ctx.date_label}, A/C ${ctx.ac_type}/${ctx.ac_reg}, Flight Time ${ctx.flight_time}, Schedule ${ctx.schedule}.
+KNOWN ENROUTE (from Joint tab, may be incomplete): altitude ${ctx.enroute_alt || '?'}, route ${ctx.enroute_route || '?'}, wind ${ctx.enroute_wind || '?'}.
+KNOWN TURBULENCE ROWS (already extracted, elapsed-time-from-departure + detail):
+${ctx.turbulence}
+KNOWN WEATHER-CHART ANALYSIS (SIGWX/wind charts already analyzed in-app, if any):
+${ctx.chartAnalysis}
+KNOWN FUEL (LBS): final_reserve=${ctx.final_lbs||'?'}, altn=${ctx.altn_lbs||'?'}, trip=${ctx.trip_lbs||'?'}, takeoff_fuel=${ctx.tof_lbs||'?'}. Cruise OAT(C)=${ctx.oat||'?'}.
+
+Write the report in Korean, in EXACTLY this markdown structure (use the literal emoji/headers shown; adapt section COUNT/labels/timing under "## 2" to however many genuinely distinct phases this flight's actual altitude-step/turbulence/wind data supports — do not force a fixed number of stages, and do not invent phases/data not supported by the source; if a sub-item genuinely isn't derivable from the source, write "정보 없음" for it rather than guessing):
+
+# ✈️ 항공 운항 및 기상 분석 리포트 (${ctx.flight_no})
+
+## 1. 운항 기본 정보
+- **편명:** ...
+- **기종:** ...
+- **예상 비행 시간:** ...
+- **이륙/착륙 시각:** ...
+
+## 2. 시간대별 순항 고도 및 기상 분석
+### 🟢 1단계: (짧은 단계 이름) (Xh ~ Yh)
+- **구간:** ...
+- **계획 고도:** ...
+- **기상 분석:**
+    - **(세부 항목, 예: 난기류/제트기류/적란운 등):** ...
+(2단계, 3단계... 필요한 만큼 반복 — 색상 이모지는 🟢🔵🟣🟡🟠 순환)
+
+## 3. 운항 관리 특별 주의사항 (Dispatcher's Note)
+### ⛽ 연료 계획 (Fuel Strategy)
+- **Trip Fuel:** ...
+- **Takeoff Fuel:** ...
+- **분석:** ...
+### 🚑 회항 공항 전략 (EDTO/ETP)
+- **전략:** ...
+- **지정 공항:** (OFP에 실제로 명시된 ETP/EDTO/회항 공항이 있을 때만 나열 — 없으면 "OFP에 명시된 EDTO 회항공항 정보 없음"이라고 쓸 것, 추측 금지)
+### ⚠️ 고도 및 기압 변화 주의 (Shear Rate) — OFP에 SR/난류지수 관련 특이값이 있을 때만 포함, 없으면 이 소제목 자체를 생략
+- **주의 지점:** ...
+- **내용:** ...
+- **영향:** ...
+
+## 4. 💡 최종 운항 요약
+1. ...
+2. ...
+3. ...
+(핵심 요점만, 4~6개)
+
+Respond with ONLY the markdown report, no preamble, no code fences.
+RAW OFP/FPL TEXT:
+"""${src.slice(0, 200000)}"""`;
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(key)}`;
+                const res = await geminiFetch(url,
+                    { contents:[{ parts:[{ text: prompt }] }], generationConfig:{ temperature:0.3, maxOutputTokens:8192 } },
+                    (delay) => setS(`요청 한도 도달 · ${Math.round(delay/1000)}초 후 재시도`));
+                if (!res.ok){ const t = await res.text(); throw new Error((typeof apiErrText === 'function') ? apiErrText(res.status, t) : ('HTTP ' + res.status)); }
+                const data = await res.json();
+                const cand = data?.candidates?.[0];
+                const raw = (cand?.content?.parts?.[0]?.text || '').trim();
+                const truncated = cand?.finishReason === 'MAX_TOKENS';
+                if (!raw){ throw new Error(truncated ? '응답이 비어있음 — 토큰 한도 초과로 잘렸을 수 있습니다' : 'Gemini 응답이 비어있습니다'); }
+                if (out) out.innerHTML = `<div class="wbreport">${mdToHtml(raw)}</div>`;
+                setS('✅ 리포트 생성 완료' + (truncated ? '  ⚠ 응답이 토큰 한도로 잘렸을 수 있습니다 — 뒷부분을 확인하세요.' : ''));
+            } catch(err){ setS('❌ 리포트 생성 실패: ' + err.message); if (st) st.title = err.message; }
         }
 
         // 헤더 🚀 APPLY — 공유 PDF 추출 결과를 PILOT · JOINT · NOTAM 3개 탭에 모두 적용
