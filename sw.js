@@ -2,7 +2,7 @@
    v3: 앱 셸(index.html)은 네트워크 우선(온라인이면 항상 최신, 오프라인이면 캐시)
        → 이후 index.html만 GitHub에 올려도 자동 반영, 캐시 버전 올릴 필요 없음
        CDN 자산(tailwind, pdf.js, fonts, firebase)은 캐시 우선(빠름+오프라인) */
-const CACHE = 'pilot-ops-v3';
+const CACHE = 'pilot-ops-v4';
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();
