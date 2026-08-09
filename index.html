@@ -413,6 +413,8 @@
         .jgrid2{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
         .jgrid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem}
         .jgrid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.6rem}
+        .turbrow{display:grid;grid-template-columns:1fr 2fr auto;gap:.6rem;align-items:end;margin-bottom:.5rem}
+        .turbrow .turb-rm{align-self:end}
         .jfixed{font-family:"IBM Plex Sans KR";font-size:.75rem;line-height:1.7;color:var(--muted)}
         .jfixed b{color:var(--text)}
         .jfixed ul{margin:.25rem 0;padding-left:1.1rem}
@@ -444,6 +446,7 @@
         .jsum-paper .sub{font-size:1.25rem}
         .jsum-paper .hi{background:#fef08a;padding:0 .15rem;border-radius:2px}
         .jsum-paper .sev{color:#dc2626;font-weight:700;text-decoration:underline}
+        .jsum-paper .ftemph{color:#059669;font-weight:800;font-size:2.05rem}
         .jsum-paper .sig{text-align:right;color:#6b7280;font-size:1.35rem;margin-top:.9rem}
         .jsum-paper .empty{color:#b8ab86}
         .jsum-edit{margin-top:.2rem}
@@ -467,7 +470,7 @@
         .gatesvg{width:100%;height:auto;display:block;filter:drop-shadow(0 3px 6px rgba(90,78,58,.12))}
         .gatewrap__val{position:absolute;top:60%;left:0;right:0;transform:translateY(-50%);text-align:center;font-family:"IBM Plex Sans KR",system-ui,sans-serif;font-weight:800;font-size:1.5rem;color:var(--accent-hi);line-height:1}
         .gatebar .jfield{flex:1 1 160px;max-width:220px;margin:0}
-        @media(max-width:640px){.jbar{grid-template-columns:1fr 1fr}.jgrid3{grid-template-columns:1fr}.jgrid2{grid-template-columns:1fr}.jgrid4{grid-template-columns:1fr 1fr}.pfwx-grid{grid-template-columns:1fr 1fr}}
+        @media(max-width:640px){.jbar{grid-template-columns:1fr 1fr}.jgrid3{grid-template-columns:1fr}.jgrid2{grid-template-columns:1fr}.jgrid4{grid-template-columns:1fr 1fr}.pfwx-grid{grid-template-columns:1fr 1fr}.turbrow{grid-template-columns:1fr}}
         /* ── Google Chat 공유 ─────────────────────────────── */
         .gchat-body{padding:.2rem .95rem .95rem;border-top:1px solid var(--line)}
         .gchat-row{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin:.55rem 0}
@@ -840,13 +843,9 @@
                                 <div class="jfield"><label>Altitude</label><input id="j_wx_enr_alt" class="jinput" placeholder="FL360 -> FL340 -> FL300"></div>
                                 <div class="jfield"><label>Route (지리 명칭만, 웨이포인트 코드 금지 · PDF 폰트 제약상 화살표는 -> 로 입력)</label><input id="j_wx_enr_route" class="jinput" placeholder="Incheon -> Yellow Sea -> central Japan -> Narita"></div>
                             </div>
-                            <div class="jsub">Expected Turbulence</div>
-                            <div class="jgrid2">
-                                <div class="jfield"><label>Row 1 – Time</label><input id="j_turb1_t" class="jinput" placeholder="Around +1:30"></div>
-                                <div class="jfield"><label>Row 1 – Detail</label><input id="j_turb1_d" class="jinput" placeholder="Central Japan – light to moderate, FL300–FL340 (SIGWX)"></div>
-                                <div class="jfield"><label>Row 2 – Time</label><input id="j_turb2_t" class="jinput" placeholder="Near Arrival"></div>
-                                <div class="jfield"><label>Row 2 – Detail</label><input id="j_turb2_d" class="jinput" placeholder="Destination vicinity – recheck before descent"></div>
-                            </div>
+                            <div class="jsub">Expected Turbulence <span class="jnote" style="margin:0 0 0 .4rem">— CFP(OFP) 항로상 SIGWX/난기류 구간을 waypoint 단위로 자세히 나눠서 기입</span></div>
+                            <div id="turbList"></div>
+                            <div class="jbtnrow"><button type="button" class="btn btn--sm btn--cyan" onclick="addTurbRow()">+ 구간 추가</button></div>
                             <p class="jnote">※ 마지막 행 "Pax Safety – Turn on Seat Belt Sign before entering CB areas – PA announcement required" 는 PDF에 자동 고정 추가됩니다.</p>
                         </div>
                     </details>
@@ -3977,8 +3976,16 @@ Features to locate: ${JSON.stringify(features)}`;
             const v = parseFloat(s); return isFinite(v) ? v : 0;
         }
 
-        // Pilot Memo 계산용 비행시간: Pilot 탭 입력(p_ft) 우선, 없으면 Joint Flight Info(j_ft)
-        function jFlightHours(){ return jParseHours(jgv('p_ft') || jgv('j_ft')); }
+        // Pilot Memo 계산용 비행시간: Pilot 탭 입력(p_ft) 우선, 없으면 Joint Flight Info(j_ft),
+        // 그마저도 없으면 ETD(Z)/ETA(Z) 원문 시각의 차이로 역산 (문서에 별도 "비행시간" 항목이 없는 경우의 최후 폴백)
+        function jFlightHours(){
+            const explicit = jParseHours(jgv('p_ft') || jgv('j_ft'));
+            if (explicit > 0) return explicit;
+            const etdMin = parseHHMMToMin(jgv('j_etd_z')), etaMin = parseHHMMToMin(jgv('j_eta_z'));
+            if (etdMin == null || etaMin == null) return 0;
+            let diff = etaMin - etdMin; if (diff < 0) diff += 1440; // UTC 자정 통과(다음날 도착)만 처리
+            return diff / 60;
+        }
         function jComputeFuel(){
             const finalRes = jnum('j_final'), altn = jnum('j_altn'), trip = jnum('j_trip'), tof = jnum('j_tof');
             const ftH = jFlightHours();
@@ -4041,8 +4048,7 @@ Features to locate: ${JSON.stringify(features)}`;
                     enroute: { title: 'Enroute', rows: [
                         wrow('Altitude', jgv('j_wx_enr_alt')), wrow('Route', jgv('j_wx_enr_route')) ] },
                     turbulence: { title: 'Expected Turbulence', rows: [
-                        [ jgv('j_turb1_t') || '–', jgv('j_turb1_d') || '–' ],
-                        [ jgv('j_turb2_t') || '–', jgv('j_turb2_d') || '–' ],
+                        ...(getTurbRows().length ? getTurbRows().map(t => [ t.time || '–', t.detail || '–' ]) : [[ '–', '–' ]]),
                         [ 'Pax Safety', 'Turn on Seat Belt Sign before entering CB areas – PA announcement required' ] ] }
                 }
             };
@@ -4225,6 +4231,29 @@ Features to locate: ${JSON.stringify(features)}`;
             const dd = /SEV|severe/i.test(detail || '') ? `<span class="sev">${escapeHtml(detail)}</span>` : escapeHtml(detail || '');
             return `${escapeHtml(time || '')}${detail ? ': ' + dd : ''}`;
         }
+        // ── Expected Turbulence: 구간 수 제한 없는 동적 행 (CFP/OFP의 waypoint별 SIGWX 구간을 있는 만큼 다 기입) ──
+        function addTurbRow(time, detail){
+            const list = document.getElementById('turbList'); if (!list) return;
+            const wrap = document.createElement('div');
+            wrap.className = 'turbrow';
+            wrap.innerHTML = `<div class="jfield"><label>Time (elapsed / 구간)</label><input class="jinput turb-t" placeholder="Around +1:30"></div>
+                <div class="jfield"><label>Detail — 구간·고도·강도·근거</label><input class="jinput turb-d" placeholder="Central Japan (waypoint A–B) – light to moderate, FL300–FL340 (SIGWX)"></div>
+                <button type="button" class="btn btn--sm btn--ghost turb-rm" onclick="this.closest('.turbrow').remove()" title="이 구간 삭제">✕</button>`;
+            list.appendChild(wrap);
+            wrap.querySelector('.turb-t').value = time || '';
+            wrap.querySelector('.turb-d').value = detail || '';
+        }
+        function getTurbRows(){
+            return Array.from(document.querySelectorAll('#turbList .turbrow')).map(r => ({
+                time: r.querySelector('.turb-t').value.trim(), detail: r.querySelector('.turb-d').value.trim()
+            })).filter(t => t.time || t.detail);
+        }
+        function setTurbRows(list){
+            const el = document.getElementById('turbList'); if (!el) return;
+            el.innerHTML = '';
+            const rows = (Array.isArray(list) && list.length) ? list : [{},{}]; // 비어있으면 기본 2행
+            rows.forEach(t => addTurbRow(t.time, t.detail));
+        }
         // 기상 원문(Sky/Conditions) → 한국어 요약 서술어(눈/비/안개/흐림/구름조금/맑음) + 온도
         // TX(최고)/TN(최저) 두 값을 하나의 표시 문자열로 결합 (하나만 있어도 표시)
         function jTempStr(tx, tn){
@@ -4313,20 +4342,20 @@ Features to locate: ${JSON.stringify(features)}`;
             const g = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
             const flt = (g('j_flightno') || 'OZ ----').replace(/\s+/g, '');
             const ft = g('j_sum_ft') || g('j_ft') || '--:--';
-            const et = computeEtdEta(g('j_sum_ft') || g('j_ft'));
+            const sumFtOverride = g('j_sum_ft') || g('j_ft'); // 빈 문자열이면 undefined로 넘겨 jFlightHours()의 ETD/ETA-Z 역산 폴백을 타게 함
+            const et = computeEtdEta(sumFtOverride || undefined);
             const eta = et.etaLocal ? `${et.etaLocal}${fmtDayShift(et.etaLocalDayShift)}${et.etaDerived ? ' (est.)' : ''}` : '';
             const dep = g('j_dep') || 'DEP', arr = g('j_arr') || 'ARR';
             const depDesc = koreanWxSummary(g('j_wx_dep_sky'), g('j_wx_dep_cond'), jTempStr(g('j_wx_dep_tx'), g('j_wx_dep_tn')));
             const arrDesc = koreanWxSummary(g('j_wx_arr_sky'), g('j_wx_arr_cond'), jTempStr(g('j_wx_arr_tx'), g('j_wx_arr_tn')));
-            const t1 = jTurbCell(g('j_turb1_t'), g('j_turb1_d'));
-            const t2 = jTurbCell(g('j_turb2_t'), g('j_turb2_d'));
+            const turbCells = getTurbRows().map(t => jTurbCell(t.time, t.detail)).filter(Boolean);
             const gate = g('pf_gate');
             const em = v => v ? v : '<span class="empty">—</span>';
             let html = '';
             html += `<div class="t">✈️ 비행 브리핑: ${escapeHtml(flt)}</div>`;
-            html += `<div class="blk"><span class="h">■ 비행시간:</span> ${escapeHtml(ft)}` + (eta ? ` · 도착예정(Local) ${escapeHtml(eta)}` : ' · <span class="empty">도착예정시간 미상 — ETD(Z)/ETA(Z) 확인 필요</span>') + `</div>`;
+            html += `<div class="blk"><span class="h">■ 비행시간:</span> <span class="ftemph">✓ ${escapeHtml(ft)}</span>` + (eta ? ` · 도착예정(Local) ${escapeHtml(eta)}` : ' · <span class="empty">도착예정시간 미상 — ETD(Z)/ETA(Z) 확인 필요</span>') + `</div>`;
             html += `<div class="blk"><span class="h">■ 날씨:</span><br>- ${escapeHtml(dep)}: ${em(escapeHtml(depDesc))}<br>- ${escapeHtml(arr)}: ${em(escapeHtml(arrDesc))}</div>`;
-            html += `<div class="blk"><span class="h">■ 난기류:</span><br>- ${em(t1)}` + (t2 ? `<br>- ${t2}` : '') + `</div>`;
+            html += `<div class="blk"><span class="h">■ 난기류:</span><br>` + (turbCells.length ? turbCells.map(c => `- ${c}`).join('<br>') : `- ${em('')}`) + `</div>`;
             if (gate) html += `<div class="blk"><span class="h">■ GATE:</span> ${escapeHtml(gate)}</div>`;
             html += `<div class="sig">안전 비행! _ 기장</div>`;
             el.innerHTML = html;
@@ -4361,11 +4390,14 @@ Features to locate: ${JSON.stringify(features)}`;
                 j_wx_alt_sky:'BKN030',
                 j_wx_alt_tx:'21', j_wx_alt_tn:'13', j_wx_alt_wind:'190/10KT', j_wx_alt_vis:'9999', j_wx_alt_cond:'VMC',
                 j_wx_enr_alt:'FL360 -> FL340', j_wx_enr_route:'Incheon -> Yellow Sea -> central Japan -> Narita',
-                j_turb1_t:'Around +1:10', j_turb1_d:'Central Japan – light to moderate, FL300–FL340 (SIGWX)',
-                j_turb2_t:'Near Arrival', j_turb2_d:'Narita vicinity – recheck before descent',
                 j_taxi:'20 min (refer to ground crew)',
                 j_final:'2600', j_altn:'3800', j_trip:'19500', j_tof:'27000', j_oat:'-45' };
             Object.keys(S).forEach(k => { const e = document.getElementById(k); if (e) e.value = S[k]; });
+            setTurbRows([
+                { time:'Around +0:40', detail:'Yellow Sea (RKSI–APEX) – light, FL300–FL340 (enroute forecast)' },
+                { time:'Around +1:10', detail:'Central Japan (APEX–KANZE) – light to moderate, FL300–FL340 (SIGWX)' },
+                { time:'Near Arrival', detail:'Narita vicinity – recheck before descent (TEMPO SHRA)' }
+            ]);
             setJointAlert('BLUE');
             recalcJointMemo();
             autoJointSummary();
@@ -4376,9 +4408,26 @@ Features to locate: ${JSON.stringify(features)}`;
         function jset(id, v){ if (v === undefined || v === null) return; const e = document.getElementById(id); if (e && String(v).trim() !== '') e.value = String(v); }
         function jVerifyFlash(ids){ ids.forEach(id => { const e = document.getElementById(id); if (e){ e.classList.add('j-verify'); setTimeout(() => e.classList.remove('j-verify'), 4500); } }); }
 
+        // "204" 같이 항공사 코드 없이 편명만 넘어온 경우를 대비한 안전망(1차 방어는 추출 프롬프트 자체).
+        // 항공사명에서 흔한 국내/주요 캐리어의 IATA 코드를 매칭 — 매칭 실패 시 원문 그대로 둠(추측 금지).
+        const IATA_CODE_BY_NAME = { 'ASIANA':'OZ','KOREAN AIR':'KE','JIN AIR':'LJ','JEJU AIR':'7C',"T'WAY":'TW','TWAY':'TW','AIR BUSAN':'BX','AIR SEOUL':'RS','EASTAR':'ZE','AIR PREMIA':'YP',
+            'UNITED':'UA','AMERICAN AIRLINES':'AA','DELTA':'DL','SOUTHWEST':'WN','JAPAN AIRLINES':'JL','ALL NIPPON':'NH',
+            'CATHAY PACIFIC':'CX','SINGAPORE AIRLINES':'SQ','EMIRATES':'EK','QATAR AIRWAYS':'QR','LUFTHANSA':'LH','AIR FRANCE':'AF','BRITISH AIRWAYS':'BA',
+            'CHINA EASTERN':'MU','CHINA SOUTHERN':'CZ','AIR CHINA':'CA','THAI AIRWAYS':'TG','VIETNAM AIRLINES':'VN','PHILIPPINE AIRLINES':'PR','AIR CANADA':'AC' };
+        function guessCarrierCode(airlineName){
+            const up = (airlineName || '').toUpperCase();
+            for (const k in IATA_CODE_BY_NAME) if (up.includes(k)) return IATA_CODE_BY_NAME[k];
+            return '';
+        }
+        function normalizeFlightNo(flightNo, airlineName){
+            const f = (flightNo || '').trim();
+            if (!f || /^[A-Za-z]/.test(f)) return f; // 이미 항공사 코드로 시작
+            const code = guessCarrierCode(airlineName);
+            return code ? `${code} ${f}` : f;
+        }
         function applyJointExtract(o){
             if (!o || typeof o !== 'object') return;
-            jset('j_airline',o.airline); jset('j_flightno',o.flight_no); jset('j_date',o.date);
+            jset('j_airline',o.airline); jset('j_flightno', normalizeFlightNo(o.flight_no, o.airline)); jset('j_date',o.date);
             jset('j_datelabel',o.date_label); jset('j_dep',o.dep); jset('j_arr',o.arr); jset('j_route',o.route_label);
             jset('j_actype',o.ac_type); jset('j_acreg',o.ac_reg); jset('j_ft',o.flight_time); jset('p_ft',o.flight_time);
             jset('j_gate',o.gate_spot); jset('j_pax',o.pax); jset('j_taxi',o.taxi);
@@ -4390,7 +4439,7 @@ Features to locate: ${JSON.stringify(features)}`;
             if (w.arrival){ const x = w.arrival; jset('j_wx_arr_title',x.title); jset('j_wx_arr_period',x.period); jset('j_wx_arr_raw',x.raw); jset('j_wx_arr_sky',x.sky); jset('j_wx_arr_tx',x.temp_tx); jset('j_wx_arr_tn',x.temp_tn); jset('j_wx_arr_wind',x.wind); jset('j_wx_arr_vis',x.vis); jset('j_wx_arr_cond',x.cond); }
             if (w.alternate){ const x = w.alternate; jset('j_wx_alt_title',x.title); jset('j_wx_alt_period',x.period); jset('j_wx_alt_raw',x.raw); jset('j_wx_alt_sky',x.sky); jset('j_wx_alt_tx',x.temp_tx); jset('j_wx_alt_tn',x.temp_tn); jset('j_wx_alt_wind',x.wind); jset('j_wx_alt_vis',x.vis); jset('j_wx_alt_cond',x.cond); }
             if (w.enroute){ jset('j_wx_enr_alt',w.enroute.altitude); jset('j_wx_enr_route',w.enroute.route); }
-            if (Array.isArray(w.turbulence)){ const t = w.turbulence; if (t[0]){ jset('j_turb1_t',t[0].time); jset('j_turb1_d',t[0].detail); } if (t[1]){ jset('j_turb2_t',t[1].time); jset('j_turb2_d',t[1].detail); } }
+            if (Array.isArray(w.turbulence)) setTurbRows(w.turbulence);
             const f = o.fuel || {};
             jset('j_final',f.final_reserve_lbs); jset('j_altn',f.altn_lbs); jset('j_trip',f.trip_lbs); jset('j_tof',f.tof_lbs);
             if (o.oat_cruise_c !== undefined && o.oat_cruise_c !== null && o.oat_cruise_c !== '') jset('j_oat', o.oat_cruise_c);
@@ -4418,9 +4467,9 @@ Features to locate: ${JSON.stringify(features)}`;
             if (!key){ setS('⚠ Gemini API Key가 필요합니다 — 상단 헤더에서 입력 또는 🔓 잠금해제 후 다시 시도.'); return; }
             if (typeof geminiFetch !== 'function'){ setS('❌ Gemini 호출 헬퍼(geminiFetch)를 찾지 못했습니다.'); return; }
             setS('🛰 FPL/OFP에서 Joint 데이터 추출 중…');
-            const prompt = `You are an airline dispatcher preparing a cabin-crew JOINT BRIEFING from a flight package (FPL / OFP / Dispatch Release / weather). Extract the fields below into STRICT JSON only (no markdown, no code fences). If a value is unknown use an empty string (numbers: 0). Fuel units = LBS (convert if the plan uses x100LBS or KG). RULES: enroute "route" uses GEOGRAPHIC NAMES ONLY (no waypoint codes, e.g. "Incheon -> Yellow Sea -> central Japan -> Narita"); turbulence "time" is ELAPSED time from departure like "Around +1:30" derived from waypoint ETOs; "flight_time" as "H:MM"; "taxi" from the block-out / TAXI field else ""; "date_label" like "2026.05.03, Sun"; "temp_tx"/"temp_tn" are the TAF forecast MAX/MIN temperature for that airport (from the TAF's TX.../TN... groups if present, else your best estimate from the METAR/TAF text) — leave blank only if truly not derivable; "schedule.etd_z"/"schedule.eta_z" MUST be the ZULU/UTC times AS LITERALLY PRINTED in the document (e.g. an OFP line "ETD 1440Z" -> "14:40", "ETA 0109Z" -> "01:09") — COPY THE DIGITS, do not convert or calculate anything, this is the one value in the whole schema that must never involve arithmetic; if only local times are printed with no Z time anywhere, leave etd_z/eta_z empty rather than guessing. "schedule.dep_utc_offset"/"schedule.arr_utc_offset" are the DEP/ARR airport's UTC offset for the flight date as a signed value like "+9:00" or "-7:00" (standard time zone of that airport/city, accounting for DST if applicable that date) — the app computes local time itself from Z + offset, so do not try to state a local clock time anywhere in this object. "mel" reports the aircraft's MEL/CDL (Minimum Equipment List / Configuration Deviation List) status from the dispatch release / OFP / tech log pages — "none":true ONLY if the document explicitly states the aircraft has no open MEL/CDL items (or the section is absent), otherwise "none":false and "detail" MUST list every MEL/CDL item found (item number, ATA/system, restriction or procedure), one per line, verbatim/summarized from the source — never leave both "none" and "detail" empty if the document mentions MEL/CDL at all; for weather "period" and the sky/temp/wind/vis/cond values in each block, pick the TAF FM/BECMG/TEMPO group (or METAR) that actually covers that airport's estimated LOCAL time (departure = ETD, arrival/alternate = ETA) — NOT just the first/base group in the TAF — and record which group you used in "period" so it can be verified; weather "raw" must be the COMPLETE ORIGINAL METAR+TAF text for that airport COPIED VERBATIM (every group, not just the one you picked) so the app can highlight the relevant time segment itself — never summarize or truncate "raw".
+            const prompt = `You are an airline dispatcher preparing a cabin-crew JOINT BRIEFING from a flight package (FPL / OFP / Dispatch Release / weather). Extract the fields below into STRICT JSON only (no markdown, no code fences). If a value is unknown use an empty string (numbers: 0). Fuel units = LBS (convert if the plan uses x100LBS or KG). RULES: "flight_no" MUST include the operating carrier's IATA (or ICAO if IATA unknown) code directly attached to the number, e.g. "OZ204" or "OZ 204" — NEVER just the bare digits "204" — even if the source prints the flight number and the airline name in separate places, combine them yourself using the known carrier code for that airline; enroute "route" uses GEOGRAPHIC NAMES ONLY (no waypoint codes, e.g. "Incheon -> Yellow Sea -> central Japan -> Narita"); "turbulence" MUST be a THOROUGH waypoint-by-waypoint analysis of the CFP/OFP's route/flight-log data (ETO per waypoint, cruise FL steps, enroute wind/temp table, and any SIGWX/turbulence chart or forecast text in the package) — output ONE ARRAY ENTRY PER DISTINCT TURBULENCE-RELEVANT SEGMENT you can identify (do not artificially cap it at 1 or 2; a long route legitimately has several), each with: "time" = elapsed time from departure for that segment's start, e.g. "Around +1:30", derived from the actual waypoint ETO minus the ETD (not guessed), "detail" = the geographic segment name (not waypoint codes) + turbulence/SIGWX severity + affected FL range + source (e.g. "SIGWX chart", "PIREP", "enroute forecast"); if the source genuinely shows no turbulence-relevant data at all, return an empty array rather than inventing generic rows; "flight_time" as "H:MM"; "taxi" from the block-out / TAXI field else ""; "date_label" like "2026.05.03, Sun"; "temp_tx"/"temp_tn" are the TAF forecast MAX/MIN temperature for that airport (from the TAF's TX.../TN... groups if present, else your best estimate from the METAR/TAF text) — leave blank only if truly not derivable; "schedule.etd_z"/"schedule.eta_z" MUST be the ZULU/UTC times AS LITERALLY PRINTED in the document (e.g. an OFP line "ETD 1440Z" -> "14:40", "ETA 0109Z" -> "01:09") — COPY THE DIGITS, do not convert or calculate anything, this is the one value in the whole schema that must never involve arithmetic; if only local times are printed with no Z time anywhere, leave etd_z/eta_z empty rather than guessing. "schedule.dep_utc_offset"/"schedule.arr_utc_offset" are the DEP/ARR airport's UTC offset for the flight date as a signed value like "+9:00" or "-7:00" (standard time zone of that airport/city, accounting for DST if applicable that date) — the app computes local time itself from Z + offset, so do not try to state a local clock time anywhere in this object. "mel" reports the aircraft's MEL/CDL (Minimum Equipment List / Configuration Deviation List) status from the dispatch release / OFP / tech log pages — "none":true ONLY if the document explicitly states the aircraft has no open MEL/CDL items (or the section is absent), otherwise "none":false and "detail" MUST list every MEL/CDL item found (item number, ATA/system, restriction or procedure), one per line, verbatim/summarized from the source — never leave both "none" and "detail" empty if the document mentions MEL/CDL at all; for weather "period" and the sky/temp/wind/vis/cond values in each block, pick the TAF FM/BECMG/TEMPO group (or METAR) that actually covers that airport's estimated LOCAL time (departure = ETD, arrival/alternate = ETA) — NOT just the first/base group in the TAF — and record which group you used in "period" so it can be verified; weather "raw" must be the COMPLETE ORIGINAL METAR+TAF text for that airport COPIED VERBATIM (every group, not just the one you picked) so the app can highlight the relevant time segment itself — never summarize or truncate "raw".
 JSON shape:
-{"airline":"","flight_no":"e.g. OZ 123","date":"YYYY-MM-DD","date_label":"YYYY.MM.DD, Day","dep":"IATA","arr":"IATA","route_label":"DEP > ARR","ac_type":"e.g. A21N","ac_reg":"e.g. HL8364","flight_time":"H:MM","gate_spot":"","schedule":{"etd_z":"HH:MM, from the document's Z/UTC time, no conversion","dep_utc_offset":"e.g. +9:00","eta_z":"HH:MM, from the document's Z/UTC time, no conversion","arr_utc_offset":"e.g. -7:00"},"pax":"F x / C y / Y z","taxi":"","alert_level":"BLUE","weather":{"departure":{"title":"Departure - IATA (City / Airport)","period":"the exact METAR/TAF group this row was taken from, e.g. 'TAF FM021200Z' or 'METAR 021200Z' or 'TAF BECMG 1214/1216'","raw":"the FULL, VERBATIM, UNMODIFIED METAR + TAF text block for this airport exactly as printed in the source document, newlines as \\n, nothing paraphrased or omitted","sky":"","temp_tx":"TAF/forecast MAX temp, number only e.g. 28","temp_tn":"TAF/forecast MIN temp, number only e.g. 18","wind":"","vis":"","qnh":"","cond":""},"arrival":{"title":"Arrival - IATA (City / Airport)","period":"the exact METAR/TAF group covering the ESTIMATED ARRIVAL TIME, e.g. 'TAF FM021800Z'","raw":"the FULL verbatim METAR + TAF text block for this airport","sky":"","temp_tx":"forecast MAX temp e.g. 24","temp_tn":"forecast MIN temp e.g. 15","wind":"","vis":"","cond":""},"alternate":{"title":"Alternate - IATA (City / Airport)","period":"the exact METAR/TAF group used","raw":"the FULL verbatim METAR + TAF text block for this airport","sky":"","temp_tx":"forecast MAX temp","temp_tn":"forecast MIN temp","wind":"","vis":"","cond":""},"enroute":{"altitude":"e.g. FL360 -> FL340","route":"geographic names only","wind":"representative cruise wind e.g. 270/80KT"},"turbulence":[{"time":"Around +H:MM","detail":"area - severity, FL range (source)"},{"time":"Near Arrival","detail":""}]},"fuel":{"final_reserve_lbs":0,"altn_lbs":0,"trip_lbs":0,"tof_lbs":0},"oat_cruise_c":0,"mel":{"none":true,"detail":"item number, system, restriction — one per line, or empty if none applies"}}
+{"airline":"","flight_no":"e.g. OZ 123","date":"YYYY-MM-DD","date_label":"YYYY.MM.DD, Day","dep":"IATA","arr":"IATA","route_label":"DEP > ARR","ac_type":"e.g. A21N","ac_reg":"e.g. HL8364","flight_time":"H:MM","gate_spot":"","schedule":{"etd_z":"HH:MM, from the document's Z/UTC time, no conversion","dep_utc_offset":"e.g. +9:00","eta_z":"HH:MM, from the document's Z/UTC time, no conversion","arr_utc_offset":"e.g. -7:00"},"pax":"F x / C y / Y z","taxi":"","alert_level":"BLUE","weather":{"departure":{"title":"Departure - IATA (City / Airport)","period":"the exact METAR/TAF group this row was taken from, e.g. 'TAF FM021200Z' or 'METAR 021200Z' or 'TAF BECMG 1214/1216'","raw":"the FULL, VERBATIM, UNMODIFIED METAR + TAF text block for this airport exactly as printed in the source document, newlines as \\n, nothing paraphrased or omitted","sky":"","temp_tx":"TAF/forecast MAX temp, number only e.g. 28","temp_tn":"TAF/forecast MIN temp, number only e.g. 18","wind":"","vis":"","qnh":"","cond":""},"arrival":{"title":"Arrival - IATA (City / Airport)","period":"the exact METAR/TAF group covering the ESTIMATED ARRIVAL TIME, e.g. 'TAF FM021800Z'","raw":"the FULL verbatim METAR + TAF text block for this airport","sky":"","temp_tx":"forecast MAX temp e.g. 24","temp_tn":"forecast MIN temp e.g. 15","wind":"","vis":"","cond":""},"alternate":{"title":"Alternate - IATA (City / Airport)","period":"the exact METAR/TAF group used","raw":"the FULL verbatim METAR + TAF text block for this airport","sky":"","temp_tx":"forecast MAX temp","temp_tn":"forecast MIN temp","wind":"","vis":"","cond":""},"enroute":{"altitude":"e.g. FL360 -> FL340","route":"geographic names only","wind":"representative cruise wind e.g. 270/80KT"},"turbulence":[{"time":"Around +H:MM","detail":"geographic segment - severity, FL range (source)"} /* as many entries as the CFP's route/SIGWX data actually supports, not limited to 2 */]},"fuel":{"final_reserve_lbs":0,"altn_lbs":0,"trip_lbs":0,"tof_lbs":0},"oat_cruise_c":0,"mel":{"none":true,"detail":"item number, system, restriction — one per line, or empty if none applies"}}
 TEXT:
 """${src.slice(0, 200000)}"""`;
             try {
@@ -4720,7 +4769,7 @@ TEXT:
             } catch(e){ if (st) st.textContent = '❌ 오류: ' + e.message; }
         }
 
-        function initJoint(){ setJointAlert('BLUE'); recalcJointMemo(); renderJointSummaryNote(); renderGateTriangle(); try { renderPilotFlightInfo(); renderPilotWeather(); } catch(_){} }
+        function initJoint(){ setJointAlert('BLUE'); setTurbRows([]); recalcJointMemo(); renderJointSummaryNote(); renderGateTriangle(); try { renderPilotFlightInfo(); renderPilotWeather(); } catch(_){} }
 
         document.addEventListener('DOMContentLoaded', () => {
             switchTab(loadActiveTab());
