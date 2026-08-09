@@ -4626,6 +4626,42 @@ Features to locate: ${JSON.stringify(features)}`;
             return checks.filter(([id]) => !jgv(id)).map(([,label]) => `${label} 원문(METAR/TAF) 비어있음`);
         }
 
+        // Gemini structured-output 스키마 — 이 스키마 없이 프롬프트 텍스트만으로 JSON 모양을 설명하면
+        // 모델이 (특히 응답이 길어질 때) 일부 필드를 조용히 통째로 빠뜨리는 경우가 있었음(예: weather.turbulence
+        // 키 자체가 응답에서 누락 — flight_time/weather 필드가 통째로 비어 나온 것과 같은 문제의 재발).
+        // responseSchema + 각 레벨의 required로 모든 필드를 항상 내보내도록(값이 모르면 빈 문자열/0/빈 배열이라도)
+        // 구조적으로 강제 — 이후 유사한 "일부 필드 무작위 누락" 부류의 재발을 근본적으로 막기 위한 조치.
+        const JOINT_EXTRACT_SCHEMA = (() => {
+            const S = { type:'STRING' };
+            const N = { type:'NUMBER' };
+            const wxBlock = (withQnh) => ({
+                type:'OBJECT',
+                properties: Object.assign({ title:S, period:S, raw:S, sky:S, temp_tx:S, temp_tn:S, wind:S, vis:S, cond:S }, withQnh ? { qnh:S } : {}),
+                required: ['title','period','raw','sky','temp_tx','temp_tn','wind','vis','cond'].concat(withQnh ? ['qnh'] : [])
+            });
+            return {
+                type:'OBJECT',
+                properties: {
+                    airline:S, flight_no:S, date:S, date_label:S, dep:S, arr:S, route_label:S,
+                    ac_type:S, ac_reg:S, flight_time:S, gate_spot:S,
+                    schedule: { type:'OBJECT', properties:{ etd_z:S, dep_utc_offset:S, eta_z:S, arr_utc_offset:S }, required:['etd_z','dep_utc_offset','eta_z','arr_utc_offset'] },
+                    pax:S, taxi:S, alert_level:S,
+                    weather: {
+                        type:'OBJECT',
+                        properties: {
+                            departure: wxBlock(true), arrival: wxBlock(false), alternate: wxBlock(false),
+                            enroute: { type:'OBJECT', properties:{ altitude:S, route:S, wind:S, speed:S }, required:['altitude','route','wind','speed'] },
+                            turbulence: { type:'ARRAY', items:{ type:'OBJECT', properties:{ time:S, detail:S }, required:['time','detail'] } }
+                        },
+                        required: ['departure','arrival','alternate','enroute','turbulence']
+                    },
+                    fuel: { type:'OBJECT', properties:{ final_reserve_lbs:N, altn_lbs:N, trip_lbs:N, tof_lbs:N, zfw_lbs:N, tow_lbs:N }, required:['final_reserve_lbs','altn_lbs','trip_lbs','tof_lbs','zfw_lbs','tow_lbs'] },
+                    oat_cruise_c: N,
+                    mel: { type:'OBJECT', properties:{ none:{ type:'BOOLEAN' }, detail:S }, required:['none','detail'] }
+                },
+                required: ['airline','flight_no','date','date_label','dep','arr','route_label','ac_type','ac_reg','flight_time','gate_spot','schedule','pax','taxi','alert_level','weather','fuel','oat_cruise_c','mel']
+            };
+        })();
         async function extractJointFromFpl(){
             const st = document.getElementById('jointExtractStatus');
             const setS = (m) => { if (st) st.textContent = m; };
@@ -4643,7 +4679,7 @@ TEXT:
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(key)}`;
                 const res = await geminiFetch(url,
-                    { contents:[{ parts:[{ text: prompt }] }], generationConfig:{ responseMimeType:'application/json', temperature:0.2, maxOutputTokens:32768, thinkingConfig:{ thinkingBudget:0 } } },
+                    { contents:[{ parts:[{ text: prompt }] }], generationConfig:{ responseMimeType:'application/json', responseSchema: JOINT_EXTRACT_SCHEMA, temperature:0.2, maxOutputTokens:32768, thinkingConfig:{ thinkingBudget:0 } } },
                     (delay) => setS(`요청 한도 도달 · ${Math.round(delay/1000)}초 후 재시도`));
                 if (!res.ok){ const t = await res.text(); throw new Error((typeof apiErrText === 'function') ? apiErrText(res.status, t) : ('HTTP ' + res.status)); }
                 const data = await res.json();
