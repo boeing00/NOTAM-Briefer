@@ -417,6 +417,15 @@
         .jgrid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.6rem}
         .turbrow{display:grid;grid-template-columns:1fr 2fr auto;gap:.6rem;align-items:end;margin-bottom:.5rem}
         .turbrow .turb-rm{align-self:end}
+        .wbchart-card{border:1px solid var(--line);border-radius:10px;padding:.7rem;background:var(--raised);margin-bottom:.8rem}
+        .wbchart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;font-weight:600;font-size:.85rem}
+        .wbchart-imgwrap{position:relative;width:100%;line-height:0;border-radius:8px;overflow:hidden;background:#111}
+        .wbchart-imgwrap img{width:100%;height:auto;display:block}
+        .wbchart-box{position:absolute;border:2px solid;border-radius:4px;background:rgba(0,0,0,.12)}
+        .wbchart-tag{position:absolute;top:2px;left:2px;font-size:.62rem;font-weight:700;color:#fff;padding:.08rem .4rem;border-radius:4px;white-space:nowrap;max-width:calc(100% - 4px);overflow:hidden;text-overflow:ellipsis}
+        .wbchart-list{margin-top:.6rem;display:flex;flex-direction:column;gap:.35rem}
+        .wbchart-item{font-size:.78rem;display:flex;align-items:baseline;gap:.45rem;line-height:1.4}
+        .wbchart-dot{width:.55rem;height:.55rem;border-radius:50%;flex:none;display:inline-block;transform:translateY(-1px)}
         .jfixed{font-family:"IBM Plex Sans KR";font-size:.75rem;line-height:1.7;color:var(--muted)}
         .jfixed b{color:var(--text)}
         .jfixed ul{margin:.25rem 0;padding-left:1.1rem}
@@ -534,6 +543,7 @@
             <button class="tabbtn" id="tabbtn-pilot" role="tab" onclick="switchTab('pilot')">PILOT BRIEFING<span class="tabbtn__sub">조종사 단독 브리핑</span></button>
             <button class="tabbtn" id="tabbtn-joint" role="tab" onclick="switchTab('joint')">JOINT BRIEFING<span class="tabbtn__sub">운항·객실 합동 브리핑</span></button>
             <button class="tabbtn" id="tabbtn-notam" role="tab" onclick="switchTab('notam')">NOTAM BRIEFING<span class="tabbtn__sub">NOTAM 분석 · 차트</span></button>
+            <button class="tabbtn" id="tabbtn-weather" role="tab" onclick="switchTab('weather')">WEATHER BRIEFING<span class="tabbtn__sub">기상 차트 분석</span></button>
         </nav>
 
         <!-- ══ Google Chat 공유 설정 (전 탭 공통) ═══════════ -->
@@ -598,7 +608,7 @@
                         <summary>1 · Weather Information</summary>
                         <div class="jcard__body">
                             <p class="jnote">※ JOINT BRIEFING 탭의 Weather를 그대로 표시합니다 (편집·자동추출은 JOINT 탭에서).</p>
-                            <div id="pfWxView"></div>
+                            <div id="pfWxView" class="wx-mirror-target"></div>
                         </div>
                     </details>
 
@@ -1085,6 +1095,43 @@
                     </div>
                     <div id="mapEmpty" class="mfd-empty">◎ NO CHART LOADED</div>
                     <div id="mapLabel" class="mfd__label"></div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ══ TAB 4 · WEATHER BRIEFING ══════════════════════ -->
+        <div class="stack tabpane hidden" id="pane-weather">
+            <section class="panel">
+                <div class="panel__head">
+                    <h2 class="panel__title">WEATHER BRIEFING</h2>
+                </div>
+                <div id="weatherBody" class="jform">
+                    <!-- 1) Weather Information (PILOT BRIEFING과 동일 데이터 · 읽기전용 미러) -->
+                    <details class="jcard" open>
+                        <summary>1 · Weather Information</summary>
+                        <div class="jcard__body">
+                            <p class="jnote">※ JOINT BRIEFING 탭의 Weather를 그대로 표시합니다 (편집·자동추출은 JOINT 탭에서).</p>
+                            <div id="wbWxView" class="wx-mirror-target"></div>
+                        </div>
+                    </details>
+
+                    <!-- 2) Weather Chart 분석 -->
+                    <details class="jcard" open>
+                        <summary>2 · Weather Chart 분석</summary>
+                        <div class="jcard__body">
+                            <p class="jnote">SIGWX · 바람/기온 등 기상 차트 이미지를 업로드하면, 이 비행의 항로·시간대(ETD/ETA/Enroute)에 맞춰 관련 구간과 예상 통과 시각을 분석해 차트 위에 하이라이트합니다.</p>
+                            <div class="jfield">
+                                <label>Weather Chart 업로드 (이미지, 여러 장 가능)</label>
+                                <input type="file" id="wbChartFile" class="jinput" accept="image/*,application/pdf" multiple onchange="handleWbChartFiles(this)">
+                                <p class="jnote">이미지 또는 PDF 업로드 가능 — PDF는 페이지별로 자동 분리해 각각 분석합니다.</p>
+                            </div>
+                            <div class="jbtnrow">
+                                <button class="btn btn--sm btn--go" onclick="analyzeWeatherCharts()">🛰 차트 분석</button>
+                                <span id="wbChartStatus" class="jnote"></span>
+                            </div>
+                            <div id="wbChartList"></div>
+                        </div>
+                    </details>
                 </div>
             </section>
         </div>
@@ -3815,7 +3862,7 @@ Features to locate: ${JSON.stringify(features)}`;
             jVerifyFlash(['j_ft','p_ft','j_gate','pf_gate','j_taxi']);
         }
         // ============ 상단 탭 (Pilot / Joint / NOTAM) ============
-        const TABS = ['pilot', 'joint', 'notam'];
+        const TABS = ['pilot', 'joint', 'notam', 'weather'];
         const TAB_DEFAULT = 'notam';   // Pilot·Joint 구성 완료 후 'pilot'로 변경 예정
         let currentTab = TAB_DEFAULT;
 
@@ -3833,6 +3880,7 @@ Features to locate: ${JSON.stringify(features)}`;
                 try { if (typeof rmMap !== 'undefined' && rmMap) rmMap.invalidateSize(); } catch(_){}
             }, 60);
             if (name === 'pilot'){ try { renderPilotFlightInfo(); renderPilotWeather(); renderGateTriangle(); } catch(_){} }
+            if (name === 'weather'){ try { renderPilotWeather(); } catch(_){} }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
         function loadActiveTab(){ try { return localStorage.getItem('activeTab') || TAB_DEFAULT; } catch(_){ return TAB_DEFAULT; } }
@@ -4611,7 +4659,8 @@ TEXT:
             return `<div class="wxraw">${html}</div>`;
         }
         function renderPilotWeather(){
-            const el = document.getElementById('pfWxView'); if (!el) return;
+            const targets = document.querySelectorAll('.wx-mirror-target'); // PILOT 탭 + WEATHER BRIEFING 탭, 둘 다 동일 내용 미러
+            if (!targets.length) return;
             const g = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
             const et = computeEtdEta();
             const etd = et.etdZ ? `${et.etdZ}Z${et.etdLocal ? ` / ${et.etdLocal}${fmtDayShift(et.etdLocalDayShift)} Local` : ' (Local 계산 불가 — DEP UTC± 필요)'}` : '';
@@ -4648,7 +4697,142 @@ TEXT:
                     + (enrAlt ? `<div><b>Altitude</b> ${escapeHtml(enrAlt)}</div>` : '')
                     + (enrRoute ? `<div class="pfwx-cond"><b>Route</b> ${escapeHtml(enrRoute)}</div>` : '') + `</div>`;
             }
-            el.innerHTML = html;
+            targets.forEach(el => { el.innerHTML = html; });
+        }
+
+        // ══════════ WEATHER BRIEFING 탭 — 기상 차트(SIGWX/바람·기온 등) 이미지 분석 ══════════
+        // 업로드한 차트(이미지 또는 PDF, PDF는 페이지별로 분리)를 이 비행의 항로/시간대와 함께
+        // Gemini(멀티모달)에 보내 관련 구간·예상 통과시각·대략적 위치(bounding box %)를 받아 오버레이 표시.
+        let wbCharts = [];   // {id, name, dataUrl, base64, mime, segments: null|[], status: ''|'analyzing'|'done'|'error', error}
+        let wbChartSeq = 0;
+        const WB_COLORS = ['#dc2626','#2563eb','#059669','#d97706','#7c3aed','#db2777','#0891b2'];
+
+        function addImageChart(file){
+            return new Promise((resolve, reject) => {
+                const r = new FileReader();
+                r.onload = (e) => {
+                    const dataUrl = e.target.result;
+                    const base64 = (dataUrl.split(',')[1] || '');
+                    wbCharts.push({ id:'wbc_'+(wbChartSeq++), name:file.name, dataUrl, base64, mime:file.type || 'image/png', segments:null, status:'' });
+                    resolve();
+                };
+                r.onerror = () => reject(new Error('이미지 읽기 실패'));
+                r.readAsDataURL(file);
+            });
+        }
+        // PDF는 pdf.js로 페이지마다 캔버스에 렌더 → PNG로 변환 (Gemini에 보낼 이미지 = 화면에 보여줄 이미지, 좌표 100% 일치)
+        // 페이지가 많은 패킷(수십 장)일 수 있어 페이지별 진행 상황을 onProgress로 알려준다.
+        async function addPdfChartPages(file, onProgress){
+            const pdfjsLib = window.pdfjsLib;
+            if (!pdfjsLib) throw new Error('PDF.js 라이브러리 로드 실패');
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            const baseName = file.name.replace(/\.pdf$/i, '');
+            for (let i = 1; i <= pdf.numPages; i++){
+                if (onProgress) onProgress(i, pdf.numPages);
+                const page = await pdf.getPage(i);
+                const viewport = page.getViewport({ scale: 1.8 }); // 해상도(기호/글씨 인식) vs 속도 절충
+                const canvas = document.createElement('canvas');
+                canvas.width = viewport.width; canvas.height = viewport.height;
+                await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+                const dataUrl = canvas.toDataURL('image/png');
+                const base64 = (dataUrl.split(',')[1] || '');
+                wbCharts.push({ id:'wbc_'+(wbChartSeq++), name:`${baseName} p.${i}`, dataUrl, base64, mime:'image/png', segments:null, status:'' });
+                renderWbChartList(); // 페이지 렌더 즉시 화면에 추가 — 오래 걸려도 진행 상황이 보임
+            }
+        }
+        async function handleWbChartFiles(input){
+            const files = Array.from((input && input.files) || []);
+            if (!files.length) return;
+            const st = document.getElementById('wbChartStatus');
+            const setS = m => { if (st) st.textContent = m; };
+            for (const file of files){
+                const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+                try {
+                    if (isPdf){
+                        await addPdfChartPages(file, (p, n) => setS(`📄 ${file.name} — 페이지 렌더링 중 (${p}/${n})…`));
+                    } else {
+                        setS(`📄 ${file.name} 불러오는 중…`);
+                        await addImageChart(file);
+                    }
+                } catch(e){ setS(`❌ ${file.name} 처리 실패: ${e.message}`); }
+            }
+            input.value = '';
+            setS(wbCharts.length ? `✅ ${wbCharts.length}개 차트 로드됨 · "🛰 차트 분석"을 눌러 분석하세요.` : '');
+            renderWbChartList();
+        }
+        function removeWbChart(id){ wbCharts = wbCharts.filter(c => c.id !== id); renderWbChartList(); }
+
+        function renderWbChartList(){
+            const el = document.getElementById('wbChartList'); if (!el) return;
+            if (!wbCharts.length){ el.innerHTML = '<p class="pfwx-empty">업로드된 차트가 없습니다.</p>'; return; }
+            el.innerHTML = wbCharts.map(renderWbChartCard).join('');
+        }
+        function renderWbChartCard(c){
+            const segs = c.segments || [];
+            const overlays = segs.map((s, i) => {
+                const b = s.box; if (!b) return '';
+                const x1 = Math.max(0, Math.min(100, +b.x1 || 0)), x2 = Math.max(0, Math.min(100, +b.x2 || 0));
+                const y1 = Math.max(0, Math.min(100, +b.y1 || 0)), y2 = Math.max(0, Math.min(100, +b.y2 || 0));
+                const left = Math.min(x1,x2), top = Math.min(y1,y2), w = Math.abs(x2-x1), h = Math.abs(y2-y1);
+                if (!w || !h) return '';
+                const color = WB_COLORS[i % WB_COLORS.length];
+                return `<div class="wbchart-box" style="left:${left}%;top:${top}%;width:${w}%;height:${h}%;border-color:${color}">
+                    <span class="wbchart-tag" style="background:${color}">${escapeHtml(s.time||'')} ${escapeHtml(s.name||'')}</span>
+                </div>`;
+            }).join('');
+            let listHtml;
+            if (c.status === 'analyzing') listHtml = '<p class="jnote">🛰 분석 중…</p>';
+            else if (c.status === 'error') listHtml = `<p class="jnote" style="color:var(--red)">❌ ${escapeHtml(c.error||'분석 실패')}</p>`;
+            else if (segs.length) listHtml = '<div class="wbchart-list">' + segs.map((s,i) => {
+                const color = WB_COLORS[i % WB_COLORS.length];
+                return `<div class="wbchart-item"><span class="wbchart-dot" style="background:${color}"></span><b>${escapeHtml(s.time||'–')}</b> — ${escapeHtml(s.name||'')}${s.detail?': '+escapeHtml(s.detail):''}${s.severity?` <i>(${escapeHtml(s.severity)})</i>`:''}</div>`;
+            }).join('') + '</div>';
+            else listHtml = (c.status === 'done' ? '<p class="pfwx-empty">이 항로·시간대에 해당하는 특이 기상 없음</p>' : '<p class="pfwx-empty">아직 분석되지 않았습니다 · 상단 "🛰 차트 분석" 버튼을 누르세요.</p>');
+            return `<div class="wbchart-card">
+                <div class="wbchart-head"><span>${escapeHtml(c.name)}</span><button type="button" class="btn btn--sm btn--ghost" onclick="removeWbChart('${c.id}')">✕ 삭제</button></div>
+                <div class="wbchart-imgwrap"><img src="${c.dataUrl}" alt="${escapeHtml(c.name)}">${overlays}</div>
+                ${listHtml}
+            </div>`;
+        }
+        function buildWbFlightContext(){
+            const g = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
+            const et = computeEtdEta();
+            return { dep:g('j_dep'), arr:g('j_arr'), date:g('j_date'), etdZ:et.etdZ, etaZ:et.etaZ,
+                route:g('j_wx_enr_route'), altitude:g('j_wx_enr_alt'), flightTime:g('j_ft') };
+        }
+        async function analyzeOneChart(chart, ctx, key){
+            const prompt = `You are an airline dispatcher analyzing a weather chart image (SIGWX, wind/temperature chart, significant weather chart, or similar) for one specific flight. FLIGHT CONTEXT: departure ${ctx.dep||'?'} at ${ctx.etdZ?ctx.etdZ+'Z':'unknown time'} on ${ctx.date||'unknown date'}; arrival ${ctx.arr||'?'} at ${ctx.etaZ?ctx.etaZ+'Z':'unknown time'}; flight time ${ctx.flightTime||'unknown'}; cruise altitude ${ctx.altitude||'unknown'}; route: ${ctx.route||'(not provided)'}. TASK: identify every weather feature/hazard shown on THIS chart that is actually relevant to this route, altitude and time window — jet streams, CB/thunderstorm areas, turbulence (CAT/CHOP) zones, icing, volcanic ash, significant fronts, freezing level anomalies. IGNORE anything clearly far from the route or outside the flight's altitude/time. For each relevant feature return: "name" (short label, e.g. "Jet stream core 130KT"), "detail" (what it is and why it matters for this flight), "severity" ("LIGHT"/"MODERATE"/"SEVERE"/"N/A"), "time" = the flight-ELAPSED time (from ETD) the aircraft is estimated to reach that point, formatted like "Around +H:MM" — derive this from the feature's position along the described route relative to departure and the chart's own valid time (leave "" only if genuinely impossible to estimate), and "box" = the feature's approximate location on the IMAGE as PERCENTAGES of the image's width/height: {"x1":0-100,"y1":0-100,"x2":0-100,"y2":0-100} where (x1,y1) is the top-left corner and (x2,y2) is the bottom-right corner of a box loosely bounding the feature (best-effort/approximate, not pixel-perfect). If this chart has nothing relevant to this specific flight, return an empty array — do not force irrelevant entries. Respond with STRICT JSON ONLY, no markdown/code fences: {"segments":[{"name":"","detail":"","severity":"","time":"","box":{"x1":0,"y1":0,"x2":0,"y2":0}}]}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(key)}`;
+            const res = await geminiFetch(url, {
+                contents: [{ parts: [ { text: prompt }, { inlineData: { mimeType: chart.mime, data: chart.base64 } } ] }],
+                generationConfig: { responseMimeType: 'application/json', temperature: 0.2, maxOutputTokens: 4096 }
+            }, (delay) => { const st = document.getElementById('wbChartStatus'); if (st) st.textContent = `요청 한도 도달 · ${Math.round(delay/1000)}초 후 재시도`; });
+            if (!res.ok){ const t = await res.text(); throw new Error((typeof apiErrText === 'function') ? apiErrText(res.status, t) : ('HTTP ' + res.status)); }
+            const data = await res.json();
+            const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            const clean = raw.replace(/```json|```/g, '').trim();
+            let obj; try { obj = JSON.parse(clean); } catch(e){ throw new Error('JSON 파싱 실패 — 응답이 잘렸을 수 있습니다'); }
+            return Array.isArray(obj.segments) ? obj.segments : [];
+        }
+        async function analyzeWeatherCharts(){
+            const st = document.getElementById('wbChartStatus');
+            const setS = m => { if (st) st.textContent = m; };
+            const key = (document.getElementById('apiKey') && document.getElementById('apiKey').value || '').trim();
+            if (!wbCharts.length){ setS('⚠ 먼저 차트 이미지/PDF를 업로드하세요.'); return; }
+            if (!key){ setS('⚠ Gemini API Key가 필요합니다 (⚙ Settings).'); return; }
+            if (typeof geminiFetch !== 'function'){ setS('❌ geminiFetch 헬퍼를 찾지 못했습니다.'); return; }
+            const ctx = buildWbFlightContext();
+            for (let i = 0; i < wbCharts.length; i++){
+                const c = wbCharts[i];
+                c.status = 'analyzing'; renderWbChartList();
+                setS(`🛰 분석 중… (${i+1}/${wbCharts.length}) ${c.name}`);
+                try { c.segments = await analyzeOneChart(c, ctx, key); c.status = 'done'; }
+                catch(e){ c.status = 'error'; c.error = e.message; }
+                renderWbChartList();
+            }
+            setS('✅ 분석 완료');
         }
 
         // 헤더 🚀 APPLY — 공유 PDF 추출 결과를 PILOT · JOINT · NOTAM 3개 탭에 모두 적용
