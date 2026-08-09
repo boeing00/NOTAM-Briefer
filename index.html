@@ -788,6 +788,7 @@
                     <details class="jcard" open>
                         <summary>Flight Information</summary>
                         <div class="jcard__body">
+                            <div class="jfield"><label>운항승무원 소개</label><textarea id="j_crew_intro" class="jinput" rows="2" placeholder="예: 기장 김민수 / 부기장 이영희 / 사무장 박지현" oninput="renderJointSummaryNote()"></textarea></div>
                             <div class="jgrid3">
                                 <div class="jfield"><label>Airline</label><input id="j_airline" class="jinput" placeholder="ASIANA AIRLINES"></div>
                                 <div class="jfield"><label>Date Label</label><input id="j_datelabel" class="jinput" placeholder="2026.05.03, Sun"></div>
@@ -4154,6 +4155,7 @@ Features to locate: ${JSON.stringify(features)}`;
                 date_label: jgv('j_datelabel'),
                 dep: jgv('j_dep'), arr: jgv('j_arr'),
                 route_label: jgv('j_route') || ((jgv('j_dep')||'?') + ' > ' + (jgv('j_arr')||'?')),
+                crew_intro: jgv('j_crew_intro'),
                 ac_type: jgv('j_actype'), ac_reg: jgv('j_acreg'),
                 flight_time: jgv('j_ft') || '0:00',
                 gate_spot: jgv('j_gate') || '– (–)',
@@ -4347,8 +4349,11 @@ Features to locate: ${JSON.stringify(features)}`;
             const h = Math.floor(min/60), m = min % 60;
             return m ? `${h}시간 ${m}분` : `${h}시간`;
         }
-        // Joint Summary 노트용 — 개별 구간 나열 대신 "이륙후 X~Y LIGHT TURB 예상, Y~Z MODERATE TO SEVERE TURB 예상"
-        // 식으로 LIGHT / MODERATE-TO-SEVERE 두 구간으로만 뭉쳐서 표시 (turbList의 상세 지리정보는 Joint PDF·편집 화면에 그대로 남음)
+        // Joint Summary 노트용 — 개별 구간 나열 대신 CFP의 SR지수 기반으로 추출된 심각도(turbSeverityLevel)를 이용해
+        // "이륙후 X~Y까지는 Light Turbulence 예상, Y~Z까지는 Moderate Turbulence 예상" 식으로 뭉쳐서 표시
+        // (Light 구간과 Moderate/Severe 구간, 이렇게 두 단계로만 묶되, 라벨은 그 구간에 실제 Severe가 있었는지에
+        //  따라 "Moderate Turbulence" 또는 "Moderate to Severe Turbulence"로 정확히 표기 — turbList의 상세
+        //  지리정보는 Joint PDF·편집 화면에 그대로 남음)
         function summarizeTurbulenceText(){
             const parsed = getTurbRows()
                 .filter(t => turbSeverityOk(t.detail))
@@ -4356,22 +4361,23 @@ Features to locate: ${JSON.stringify(features)}`;
                 .filter(t => t.startMin != null)
                 .sort((a,b) => a.startMin - b.startMin);
             if (!parsed.length) return '';
-            const bucketOf = lvl => (lvl === 'moderate' || lvl === 'severe') ? 'MODERATE TO SEVERE TURB' : 'LIGHT TURB';
+            const tierOf = lvl => (lvl === 'moderate' || lvl === 'severe') ? 'MS' : 'L';
             const ranges = [];
             parsed.forEach(p => {
-                const bucket = bucketOf(p.lvl);
+                const tier = tierOf(p.lvl);
                 const last = ranges[ranges.length - 1];
-                if (last && last.bucket === bucket) return; // 같은 구간이 이어짐 — 시작시간 유지
-                ranges.push({ bucket, startMin: p.startMin, endMin: null });
+                if (last && last.tier === tier){ if (p.lvl === 'severe') last.hasSevere = true; return; } // 같은 구간이 이어짐 — 시작시간 유지, 심각도만 갱신
+                ranges.push({ tier, hasSevere: p.lvl === 'severe', startMin: p.startMin, endMin: null });
             });
             const ftH = jFlightHours(), totalMin = ftH > 0 ? Math.round(ftH*60) : null;
             for (let i = 0; i < ranges.length; i++){
                 ranges[i].endMin = (i+1 < ranges.length) ? ranges[i+1].startMin : totalMin;
             }
+            const labelOf = r => r.tier === 'L' ? 'Light Turbulence' : (r.hasSevere ? 'Moderate to Severe Turbulence' : 'Moderate Turbulence');
             const parts = ranges.map(r => {
                 const end = r.endMin != null ? fmtElapsedHM(r.endMin) : '도착';
-                const text = `${fmtElapsedHM(r.startMin)}~${end} ${r.bucket} 예상`;
-                return r.bucket === 'LIGHT TURB' ? `<span class="sev-light">${escapeHtml(text)}</span>` : `<span class="sev">${escapeHtml(text)}</span>`;
+                const text = `${fmtElapsedHM(r.startMin)}~${end}까지는 ${labelOf(r)} 예상`;
+                return r.tier === 'L' ? `<span class="sev-light">${escapeHtml(text)}</span>` : `<span class="sev">${escapeHtml(text)}</span>`;
             });
             return '이륙후 ' + parts.join(', ');
         }
@@ -4462,10 +4468,12 @@ Features to locate: ${JSON.stringify(features)}`;
             const depDesc = koreanWxSummary(g('j_wx_dep_sky'), g('j_wx_dep_cond'), jTempKo(g('j_wx_dep_tx'), g('j_wx_dep_tn')));
             const arrDesc = koreanWxSummary(g('j_wx_arr_sky'), g('j_wx_arr_cond'), jTempKo(g('j_wx_arr_tx'), g('j_wx_arr_tn')));
             const turbSummary = summarizeTurbulenceText();
+            const crewIntro = g('j_crew_intro');
             const gate = g('pf_gate');
             const em = v => v ? v : '<span class="empty">—</span>';
             let html = '';
             html += `<div class="t">✈️ 비행 브리핑: ${escapeHtml(flt)}</div>`;
+            if (crewIntro) html += `<div class="blk"><span class="h">■ 운항승무원:</span><br>${escapeHtml(crewIntro).replace(/\n/g,'<br>')}</div>`;
             html += `<div class="blk"><span class="h">■ 비행시간:</span> <span class="ftemph">✓ ${escapeHtml(ft)}</span>` + (eta ? ` · 도착예정(Local) ${escapeHtml(eta)}` : etaZOnly ? ` · <span class="empty">도착예정 ${escapeHtml(etaZOnly)}</span>` : ' · <span class="empty">도착예정시간 미상 — ETD(Z)/ETA(Z) 확인 필요</span>') + `</div>`;
             html += `<div class="blk"><span class="h">■ 날씨:</span><br>- ${escapeHtml(dep)}: ${em(escapeHtml(depDesc))}<br>- ${escapeHtml(arr)}: ${em(escapeHtml(arrDesc))}</div>`;
             html += `<div class="blk"><span class="h">■ 난기류:</span> ${turbSummary || em('')}</div>`;
@@ -4489,6 +4497,7 @@ Features to locate: ${JSON.stringify(features)}`;
             const d = getJointFormData();
             const parts = [];
             parts.push(`${d.flight_no}  ${d.route_label}` + (d.date_label ? '  (' + d.date_label + ')' : (d.date ? '  (' + d.date + ')' : '')));
+            if (d.crew_intro) parts.push(`Crew: ${d.crew_intro.replace(/\n/g, ' / ')}`);
             parts.push(`A/C ${d.ac_type||'-'}/${d.ac_reg||'-'} · F/T ${d.flight_time} · PAX ${d.pax||'-'}`);
             parts.push(`Alert ${d.alert_level} · Taxi ${d.taxi}`);
             const el = document.getElementById('j_summary'); if (el) el.value = parts.join('\n');
@@ -4498,6 +4507,7 @@ Features to locate: ${JSON.stringify(features)}`;
         function fillJointSample(){
             const S = { j_date:'2026-05-03', j_flightno:'OZ 0562', j_dep:'ICN', j_arr:'NRT',
                 j_airline:'ASIANA AIRLINES', j_datelabel:'2026.05.03, Sun', j_route:'ICN > NRT',
+                j_crew_intro:'기장 김민수 / 부기장 이영희 / 사무장 박지현',
                 j_actype:'A21N', j_acreg:'HL8364', j_ft:'2:20', j_gate:'– (–)',
                 j_pax:'F 0 / C 12 / Y 174',
                 j_etd_z:'01:00', j_dep_off:'+9:00', j_eta_z:'03:20', j_arr_off:'+9:00',
@@ -4688,6 +4698,7 @@ TEXT:
                 chip('DEP', g('j_dep')), chip('ARR', g('j_arr')),
                 chip('Airline', g('j_airline')), chip('Route', g('j_route') || ((g('j_dep')||'?') + ' > ' + (g('j_arr')||'?'))),
                 chip('A/C Type', g('j_actype')), chip('A/C Reg', g('j_acreg')),
+                chip('운항승무원', g('j_crew_intro').replace(/\n/g, ' / ')),
                 chip('Flight Time', g('j_ft')), chip('Gate (Spot)', g('j_gate')),
                 chip('PAX', g('j_pax')), chip('Schedule', composeSchedText())
             ].filter(Boolean);
