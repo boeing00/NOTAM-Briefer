@@ -763,7 +763,8 @@
                             <div id="jSummaryNote" class="jsum-paper"></div>
                             <details class="jsum-edit">
                                 <summary>요약 텍스트 (PDF·Chat용 · 편집)</summary>
-                                <textarea id="j_summary" class="jinput" rows="3" placeholder="편명 · 구간 · 핵심 기상 · Alert Level 요점 (요약 노트 생성 시 자동 작성 · 편집 가능)"></textarea>
+                                <textarea id="j_summary" class="jinput" rows="3" placeholder="편명 · 구간 · 핵심 기상 · Alert Level 요점 (요약 노트 생성 시 자동 작성 · 편집 가능) — 아래 ✓ 적용을 누르면 위 SUMMARY 노트에도 반영됩니다"></textarea>
+                                <div class="jbtnrow"><button class="btn btn--sm btn--go" onclick="applyJointSummaryMemo()">✓ SUMMARY에 적용</button><span id="jSummaryMemoStatus" class="jnote"></span></div>
                             </details>
                         </div>
                     </details>
@@ -4469,8 +4470,20 @@ Features to locate: ${JSON.stringify(features)}`;
             html += `<div class="blk"><span class="h">■ 날씨:</span><br>- ${escapeHtml(dep)}: ${em(escapeHtml(depDesc))}<br>- ${escapeHtml(arr)}: ${em(escapeHtml(arrDesc))}</div>`;
             html += `<div class="blk"><span class="h">■ 난기류:</span> ${turbSummary || em('')}</div>`;
             if (gate) html += `<div class="blk"><span class="h">■ GATE:</span> ${escapeHtml(gate)}</div>`;
+            if (jSummaryMemoApplied.trim()) html += `<div class="blk"><span class="h">■ 메모:</span><br>${escapeHtml(jSummaryMemoApplied.trim()).replace(/\n/g,'<br>')}</div>`;
             html += `<div class="sig">안전 비행! _ 기장</div>`;
             el.innerHTML = html;
+        }
+        // 요약 텍스트(PDF·Chat용) 박스에 사용자가 자유롭게 입력한 내용을 SUMMARY 노트에 반영.
+        // 입력 중 다른 필드 변경으로 노트가 다시 그려져도 "✓ SUMMARY에 적용"을 누르기 전까지는
+        // 직전에 적용된 내용을 그대로 유지 — 타이핑 중간에 끊겨 보이지 않도록 실시간 반영 대신 버튼식으로 설계.
+        let jSummaryMemoApplied = '';
+        function applyJointSummaryMemo(){
+            const ta = document.getElementById('j_summary');
+            jSummaryMemoApplied = ta ? ta.value : '';
+            renderJointSummaryNote();
+            const st = document.getElementById('jSummaryMemoStatus');
+            if (st){ st.textContent = '✅ SUMMARY에 반영됨'; setTimeout(() => { if (st.textContent === '✅ SUMMARY에 반영됨') st.textContent = ''; }, 2500); }
         }
         function autoJointSummary(){
             const d = getJointFormData();
