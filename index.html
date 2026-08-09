@@ -49,6 +49,9 @@
         .hdr__title{font-family:"Lora","Noto Serif KR",Georgia,serif;font-weight:700;font-size:1.25rem;letter-spacing:.02em;margin:0}
         .hdr__sub{font-family:"Lora","Noto Serif KR",Georgia,serif;font-size:.67rem;letter-spacing:.06em;color:var(--cyan);margin:.15rem 0 0;opacity:.85}
         .hdr__right{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap}
+        .hdr__btnrow{display:flex;align-items:center;gap:.5rem;flex-wrap:nowrap}
+        .hdr__panels{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;padding:0 1.25rem;margin:-.6rem 0 1.25rem}
+        .hdr__docname{max-width:16rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
         .clock{display:flex;align-items:center;gap:.5rem;font-family:"IBM Plex Mono";background:#FFFFFF;border:1px solid var(--line);border-radius:9px;padding:.5rem .7rem}
         .clock__dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:blink 2s infinite}
         .clock__lbl{font-size:.67rem;letter-spacing:.15em;color:var(--muted)}
@@ -420,15 +423,6 @@
         .jgrid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.6rem}
         .turbrow{display:grid;grid-template-columns:1fr 2fr auto;gap:.6rem;align-items:end;margin-bottom:.5rem}
         .turbrow .turb-rm{align-self:end}
-        .wbchart-card{border:1px solid var(--line);border-radius:10px;padding:.7rem;background:var(--raised);margin-bottom:.8rem}
-        .wbchart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;font-weight:600;font-size:.85rem}
-        .wbchart-imgwrap{position:relative;width:100%;line-height:0;border-radius:8px;overflow:hidden;background:#111}
-        .wbchart-imgwrap img{width:100%;height:auto;display:block}
-        .wbchart-box{position:absolute;border:2px solid;border-radius:4px;background:rgba(0,0,0,.12)}
-        .wbchart-tag{position:absolute;top:2px;left:2px;font-size:.62rem;font-weight:700;color:#fff;padding:.08rem .4rem;border-radius:4px;white-space:nowrap;max-width:calc(100% - 4px);overflow:hidden;text-overflow:ellipsis}
-        .wbchart-list{margin-top:.6rem;display:flex;flex-direction:column;gap:.35rem}
-        .wbchart-item{font-size:.78rem;display:flex;align-items:baseline;gap:.45rem;line-height:1.4}
-        .wbchart-dot{width:.55rem;height:.55rem;border-radius:50%;flex:none;display:inline-block;transform:translateY(-1px)}
         .jfixed{font-family:"IBM Plex Sans KR";font-size:.75rem;line-height:1.7;color:var(--muted)}
         .jfixed b{color:var(--text)}
         .jfixed ul{margin:.25rem 0;padding-left:1.1rem}
@@ -445,6 +439,9 @@
         .jalert__b[data-on="1"][data-lvl="YELLOW"]{background:#F9A825;color:#212121;border-color:#F9A825}
         .jalert__b[data-on="1"][data-lvl="ORANGE"]{background:#E65100;color:#fff;border-color:#E65100}
         .jalert__b[data-on="1"][data-lvl="RED"]{background:#B71C1C;color:#fff;border-color:#B71C1C}
+        .jsum-paper .t.trow{display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap}
+        .jsum-paper .jalert--mini{display:flex;gap:.22rem;flex-wrap:wrap}
+        .jsum-paper .jalert__b--mini{font-size:.56rem;padding:.14rem .36rem;border-radius:5px;letter-spacing:.02em}
         .jfltno{font-family:"Lora","Noto Serif KR",Georgia,serif;font-weight:700;font-size:1.5rem;color:var(--accent-hi);line-height:1.1}
         .jnote{font-family:"IBM Plex Mono";font-size:.65rem;color:var(--dim);line-height:1.5}
         .j-verify{outline:2px solid var(--accent)!important;outline-offset:1px;background:#FFF7EF!important;transition:outline-color 1s,background 1s}
@@ -461,8 +458,6 @@
         .jsum-paper .hi{background:#fef08a;padding:0 .15rem;border-radius:2px}
         .jsum-paper .sev{color:#dc2626;font-weight:700;text-decoration:underline}
         .jsum-paper .sev-light{opacity:.55}
-        .wb-sev-severe{color:var(--red);font-weight:700}
-        .wb-sev-light{opacity:.55}
         .jsum-paper .ftemph{color:#059669;font-weight:800;font-size:2.05rem}
         .jsum-paper .sig{text-align:right;color:#6b7280;font-size:1.35rem;margin-top:.9rem}
         .jsum-paper .empty{color:#b8ab86}
@@ -491,6 +486,9 @@
         .wbreport li{margin:.22rem 0}
         .wbreport strong{color:var(--accent-hi);font-weight:700}
         .wbreport hr{border:none;border-top:1px dashed var(--line);margin:1rem 0}
+        .jwx-ko{background:#F5F8FF;border:1px solid var(--line);border-radius:8px;padding:.6rem .8rem;margin:.3rem 0 1rem;font-size:.86rem;line-height:1.65;color:var(--text)}
+        .jwx-ko ul{margin:0;padding-left:1.1rem}
+        .jwx-ko li{margin:.28rem 0}
         .gatebar{display:flex;align-items:center;gap:1rem;margin:.2rem 0 1rem;flex-wrap:wrap}
         .pilottop{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:.8rem}
         .pilottop .eyebrow{margin:0}
@@ -499,6 +497,9 @@
         .gatesvg{width:100%;height:auto;display:block;filter:drop-shadow(0 3px 6px rgba(90,78,58,.12))}
         .gatewrap__val{position:absolute;top:60%;left:0;right:0;transform:translateY(-50%);text-align:center;font-family:"IBM Plex Sans KR",system-ui,sans-serif;font-weight:800;font-size:1.5rem;color:var(--accent-hi);line-height:1}
         .gatebar .jfield{flex:1 1 160px;max-width:220px;margin:0}
+        .jsum-paper .gatemini-row{display:flex;align-items:center;gap:.6rem}
+        .jsum-paper .gatewrap--mini{width:56px}
+        .jsum-paper .gatewrap--mini .gatewrap__val{font-size:1rem;color:#1e40af;font-weight:800}
         @media(max-width:640px){.jbar{grid-template-columns:1fr 1fr}.jgrid3{grid-template-columns:1fr}.jgrid2{grid-template-columns:1fr}.jgrid4{grid-template-columns:1fr 1fr}.pfwx-grid{grid-template-columns:1fr 1fr}.turbrow{grid-template-columns:1fr}}
         /* ── Google Chat 공유 ─────────────────────────────── */
         .gchat-body{padding:.2rem .95rem .95rem;border-top:1px solid var(--line)}
@@ -521,38 +522,54 @@
             <div class="hdr__right">
                 <div class="clock"><span class="clock__dot"></span><span class="clock__lbl">UTC</span><span id="zulu" class="clock__val">--:--:--Z</span></div>
                 <div class="clock"><span class="clock__lbl">LOCAL</span><span id="localclk" class="clock__val">--:--:--</span><span id="localtz" class="clock__lbl" style="margin-left:.15rem"></span></div>
-                <button id="btnOpenPdf" class="btn btn--sm btn--go" onclick="document.getElementById('pdfFile').click()" title="비행 패키지 PDF 열기 · NOTAM·Joint·Pilot 공용 (한 번만 업로드)">📄 PDF 열기</button>
-                <span id="globalDocName" class="clock__lbl" style="max-width:13rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
-                <button id="btnApply" class="btn btn--sm btn--go" onclick="applyFromPdf()" title="PDF에서 추출한 정보를 PILOT · JOINT · NOTAM 탭에 모두 적용">🚀 APPLY</button>
-                <span id="applyStatus" class="clock__lbl" style="max-width:16rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
-                <button id="btnPilotInput" class="btn btn--sm btn--cyan" onclick="togglePilotInput()" aria-expanded="false" title="비행시간 · Gate · 예상 Taxi Time 빠른 입력 → PILOT·JOINT·NOTAM 전체에 적용">🎚 Pilot Input</button>
-                <div class="keybox hidden" id="pilotInputBox">
-                    <div class="jfield" style="max-width:120px"><label>비행시간</label><input id="quickFt" class="jinput" placeholder="2:20"></div>
-                    <div class="jfield" style="max-width:110px"><label>Gate</label><input id="quickGate" class="jinput" placeholder="32 또는 B7"></div>
-                    <div class="jfield" style="max-width:160px"><label>예상 Taxi Time</label><input id="quickTaxi" class="jinput" placeholder="20 min"></div>
-                    <button id="btnPilotInputApply" class="btn btn--sm btn--go" onclick="applyPilotInput()">✅ 전체 적용</button>
-                    <span id="pilotInputStatus" class="keystat"></span>
-                </div>
-                <button id="btnSettings" class="btn btn--sm btn--cyan" onclick="toggleSettings()" aria-expanded="false" title="API Key · 모델 설정"><span id="settingsDot" class="sdot"></span>⚙ Settings</button>
-                <div class="keybox hidden" id="keybox">
-                    <input type="password" id="apiKey" class="keyin" placeholder="GEMINI API KEY" onchange="autoSavePlainKey()" oninput="autoSavePlainKey()">
-                    <button id="btnKey" class="btn btn--sm btn--cyan" onclick="keyLockAction()">🔒 PIN 저장</button>
-                    <button id="btnKeyDel" class="linkbtn hidden" onclick="deleteVault()">삭제</button>
-                    <label class="keymode" title="PIN 없이 이 기기에 자동 저장 (편리하지만 기기 분실·공유 시 Key 노출 위험, 개인 전용 기기 권장)">
-                        <input type="checkbox" id="plainKeyToggle" onchange="togglePlainMode()"> 간편저장(PIN없음)
-                    </label>
-                    <button id="btnTest" class="btn btn--sm btn--ghost" onclick="testConnection()">🔌 연결 테스트</button>
-                    <select id="modelSel" class="modelsel" onchange="setModel(this.value)" title="모델 선택">
-                        <option value="gemini-flash-latest">Flash (latest)</option>
-                        <option value="gemini-2.5-flash-lite">2.5 Flash-Lite · 한도↑</option>
-                        <option value="gemini-2.0-flash">2.0 Flash</option>
-                        <option value="gemini-2.5-flash">2.5 Flash</option>
-                    </select>
-                    <button id="btnRefreshModels" class="btn btn--sm btn--cyan" onclick="refreshModels(true)" title="이 키로 사용 가능한 모델 불러오기">↻ 모델</button>
-                    <span id="keyStatus" class="keystat"></span>
+                <div class="hdr__btnrow">
+                    <button id="btnOpenPdf" class="btn btn--sm btn--go" onclick="document.getElementById('pdfFile').click()" title="비행 패키지 PDF 열기 · NOTAM·Joint·Pilot 공용 (한 번만 업로드)">📄 PDF 열기</button>
+                    <button id="btnApply" class="btn btn--sm btn--go" onclick="applyFromPdf()" title="PDF에서 추출한 정보를 PILOT · JOINT · NOTAM 탭에 모두 적용">🚀 APPLY</button>
+                    <button id="btnPilotInput" class="btn btn--sm btn--go" onclick="togglePilotInput()" aria-expanded="false" title="비행시간 · Gate · 예상 Taxi Time 빠른 입력 → PILOT·JOINT·NOTAM 전체에 적용">🎚 Pilot Input</button>
+                    <button id="btnReportPdf" class="btn btn--sm btn--go" onclick="toggleReportPdfBox()" aria-expanded="false" title="PILOT · JOINT · NOTAM · WEATHER 탭을 선택해 PDF로 생성 (개별 또는 통합 1개 파일)">📎 전체 보고서 PDF</button>
+                    <button id="btnSettings" class="btn btn--sm btn--go" onclick="toggleSettings()" aria-expanded="false" title="API Key · 모델 설정"><span id="settingsDot" class="sdot"></span>⚙ Settings</button>
                 </div>
             </div>
         </header>
+
+        <!-- 헤더 버튼의 상태 텍스트 · 펼침 패널 — 버튼 한 줄 레이아웃이 깨지지 않도록 헤더 아래 별도 줄에 표시 -->
+        <div class="hdr__panels">
+            <span id="globalDocName" class="clock__lbl hdr__docname"></span>
+            <span id="applyStatus" class="clock__lbl hdr__docname"></span>
+            <div class="keybox hidden" id="pilotInputBox">
+                <div class="jfield" style="max-width:120px"><label>비행시간</label><input id="quickFt" class="jinput" placeholder="2:20"></div>
+                <div class="jfield" style="max-width:110px"><label>Gate</label><input id="quickGate" class="jinput" placeholder="32 또는 B7"></div>
+                <div class="jfield" style="max-width:160px"><label>예상 Taxi Time</label><input id="quickTaxi" class="jinput" placeholder="20 min"></div>
+                <button id="btnPilotInputApply" class="btn btn--sm btn--go" onclick="applyPilotInput()">✅ 전체 적용</button>
+                <span id="pilotInputStatus" class="keystat"></span>
+            </div>
+            <div class="keybox hidden" id="reportPdfBox">
+                <label class="scope-chk"><input type="checkbox" id="rptSelPilot" checked> ✈ PILOT</label>
+                <label class="scope-chk"><input type="checkbox" id="rptSelJoint" checked> 🤝 JOINT</label>
+                <label class="scope-chk"><input type="checkbox" id="rptSelNotam" checked> 📡 NOTAM</label>
+                <label class="scope-chk"><input type="checkbox" id="rptSelWeather" checked> 🌦 WEATHER</label>
+                <button class="btn btn--sm btn--go" onclick="generateSelectedTabPdfs()">⤓ 선택 탭 각각 생성</button>
+                <button class="btn btn--sm btn--go" onclick="generateCombinedReportPdf()">⤓ 통합 PDF (1개 파일)</button>
+                <span id="wbFullReportStatus" class="keystat"></span>
+            </div>
+            <div class="keybox hidden" id="keybox">
+                <input type="password" id="apiKey" class="keyin" placeholder="GEMINI API KEY" onchange="autoSavePlainKey()" oninput="autoSavePlainKey()">
+                <button id="btnKey" class="btn btn--sm btn--cyan" onclick="keyLockAction()">🔒 PIN 저장</button>
+                <button id="btnKeyDel" class="linkbtn hidden" onclick="deleteVault()">삭제</button>
+                <label class="keymode" title="PIN 없이 이 기기에 자동 저장 (편리하지만 기기 분실·공유 시 Key 노출 위험, 개인 전용 기기 권장)">
+                    <input type="checkbox" id="plainKeyToggle" onchange="togglePlainMode()"> 간편저장(PIN없음)
+                </label>
+                <button id="btnTest" class="btn btn--sm btn--ghost" onclick="testConnection()">🔌 연결 테스트</button>
+                <select id="modelSel" class="modelsel" onchange="setModel(this.value)" title="모델 선택">
+                    <option value="gemini-flash-latest">Flash (latest)</option>
+                    <option value="gemini-2.5-flash-lite">2.5 Flash-Lite · 한도↑</option>
+                    <option value="gemini-2.0-flash">2.0 Flash</option>
+                    <option value="gemini-2.5-flash">2.5 Flash</option>
+                </select>
+                <button id="btnRefreshModels" class="btn btn--sm btn--cyan" onclick="refreshModels(true)" title="이 키로 사용 가능한 모델 불러오기">↻ 모델</button>
+                <span id="keyStatus" class="keystat"></span>
+            </div>
+        </div>
 
         <div id="envNotice" class="env-notice hidden"></div>
 
@@ -561,7 +578,7 @@
             <button class="tabbtn" id="tabbtn-pilot" role="tab" onclick="switchTab('pilot')">PILOT BRIEFING<span class="tabbtn__sub">조종사 단독 브리핑</span></button>
             <button class="tabbtn" id="tabbtn-joint" role="tab" onclick="switchTab('joint')">JOINT BRIEFING<span class="tabbtn__sub">운항·객실 합동 브리핑</span></button>
             <button class="tabbtn" id="tabbtn-notam" role="tab" onclick="switchTab('notam')">NOTAM BRIEFING<span class="tabbtn__sub">NOTAM 분석 · 차트</span></button>
-            <button class="tabbtn" id="tabbtn-weather" role="tab" onclick="switchTab('weather')">WEATHER BRIEFING<span class="tabbtn__sub">기상 차트 분석</span></button>
+            <button class="tabbtn" id="tabbtn-weather" role="tab" onclick="switchTab('weather')">WEATHER BRIEFING<span class="tabbtn__sub">종합 리포트</span></button>
         </nav>
 
         <!-- ══ Google Chat 공유 설정 (전 탭 공통) ═══════════ -->
@@ -775,19 +792,7 @@
                         <summary>Summary</summary>
                         <div class="jcard__body">
                             <div class="jbtnrow"><button class="btn btn--sm btn--cyan" onclick="autoJointSummary()">↻ 요약 노트 생성</button></div>
-                            <div style="display:flex;gap:.8rem;align-items:flex-start;flex-wrap:wrap">
-                                <div id="jSummaryNote" class="jsum-paper" style="flex:1 1 240px"></div>
-                                <div class="jfield" style="flex:0 0 auto;max-width:170px">
-                                    <label>Security Alert Level (미지정 시 BLUE)</label>
-                                    <div class="jalert" id="jAlertRow" style="flex-direction:column">
-                                        <button class="jalert__b" data-lvl="GREEN"  onclick="setJointAlert('GREEN')">GREEN</button>
-                                        <button class="jalert__b" data-lvl="BLUE"   onclick="setJointAlert('BLUE')">BLUE</button>
-                                        <button class="jalert__b" data-lvl="YELLOW" onclick="setJointAlert('YELLOW')">YELLOW</button>
-                                        <button class="jalert__b" data-lvl="ORANGE" onclick="setJointAlert('ORANGE')">ORANGE</button>
-                                        <button class="jalert__b" data-lvl="RED"    onclick="setJointAlert('RED')">RED</button>
-                                    </div>
-                                </div>
-                            </div>
+                            <div id="jSummaryNote" class="jsum-paper"></div>
                             <details class="jsum-edit">
                                 <summary>요약 텍스트 (PDF·Chat용 · 편집)</summary>
                                 <div class="jfield"><label>운항승무원 소개</label><textarea id="j_crew_intro" class="jinput" rows="2" placeholder="예: 기장 김민수 / 부기장 이영희 / 사무장 박지현" oninput="renderJointSummaryNote()"></textarea></div>
@@ -825,49 +830,57 @@
                     <details class="jcard">
                         <summary>Weather</summary>
                         <div class="jcard__body">
-                            <div class="jsub">Departure</div>
-                            <div class="jgrid2">
-                                <div class="jfield"><label>Title</label><input id="j_wx_dep_title" class="jinput" placeholder="Departure – ICN (Seoul / Incheon Intl)"></div>
-                                <div class="jfield"><label>METAR/TAF 구간 (참고)</label><input id="j_wx_dep_period" class="jinput" placeholder="e.g. TAF FM021200Z 또는 METAR 021200Z"></div>
-                            </div>
-                            <div class="jfield"><label>원문 (METAR/TAF 전체 · 줄바꿈 그대로 붙여넣기 — PILOT 탭에서 해당 시간대 하이라이트)</label><textarea id="j_wx_dep_raw" class="jinput" rows="4" placeholder="METAR RKSI 021200Z ...&#10;TAF RKSI 021100Z 0212/0318 ... FM021800Z ..."></textarea></div>
-                            <div class="jgrid3">
-                                <div class="jfield"><label>Sky</label><input id="j_wx_dep_sky" class="jinput"></div>
-                                <div class="jfield"><label>TX (최고)</label><input id="j_wx_dep_tx" class="jinput" placeholder="e.g. 28 or TX28/0500Z"></div>
-                                <div class="jfield"><label>TN (최저)</label><input id="j_wx_dep_tn" class="jinput" placeholder="e.g. 18 or TN18/2100Z"></div>
-                                <div class="jfield"><label>Wind</label><input id="j_wx_dep_wind" class="jinput"></div>
-                                <div class="jfield"><label>Visibility</label><input id="j_wx_dep_vis" class="jinput"></div>
-                                <div class="jfield"><label>QNH</label><input id="j_wx_dep_qnh" class="jinput"></div>
-                                <div class="jfield"><label>Conditions</label><input id="j_wx_dep_cond" class="jinput" placeholder="VMC – Normal departure expected"></div>
-                            </div>
-                            <div class="jsub">Arrival</div>
-                            <div class="jgrid2">
-                                <div class="jfield"><label>Title</label><input id="j_wx_arr_title" class="jinput" placeholder="Arrival – NRT (Tokyo / Narita Intl)"></div>
-                                <div class="jfield"><label>METAR/TAF 구간 (참고)</label><input id="j_wx_arr_period" class="jinput" placeholder="e.g. TAF FM021800Z 또는 METAR 021800Z"></div>
-                            </div>
-                            <div class="jfield"><label>원문 (METAR/TAF 전체 · 줄바꿈 그대로 붙여넣기 — PILOT 탭에서 해당 시간대 하이라이트)</label><textarea id="j_wx_arr_raw" class="jinput" rows="4" placeholder="METAR RJAA 021800Z ...&#10;TAF RJAA 021700Z 0218/0324 ... FM022100Z ..."></textarea></div>
-                            <div class="jgrid3">
-                                <div class="jfield"><label>Sky</label><input id="j_wx_arr_sky" class="jinput"></div>
-                                <div class="jfield"><label>TX (최고)</label><input id="j_wx_arr_tx" class="jinput" placeholder="e.g. 24 or TX24/0500Z"></div>
-                                <div class="jfield"><label>TN (최저)</label><input id="j_wx_arr_tn" class="jinput" placeholder="e.g. 15 or TN15/2100Z"></div>
-                                <div class="jfield"><label>Wind</label><input id="j_wx_arr_wind" class="jinput"></div>
-                                <div class="jfield"><label>Visibility</label><input id="j_wx_arr_vis" class="jinput"></div>
-                                <div class="jfield"><label>Conditions</label><input id="j_wx_arr_cond" class="jinput"></div>
-                            </div>
-                            <div class="jsub">Alternate</div>
-                            <div class="jgrid2">
-                                <div class="jfield"><label>Title</label><input id="j_wx_alt_title" class="jinput" placeholder="Alternate – HND (Tokyo / Haneda Intl)"></div>
-                                <div class="jfield"><label>METAR/TAF 구간 (참고)</label><input id="j_wx_alt_period" class="jinput" placeholder="e.g. TAF FM021800Z 또는 METAR 021800Z"></div>
-                            </div>
-                            <div class="jfield"><label>원문 (METAR/TAF 전체 · 줄바꿈 그대로 붙여넣기 — PILOT 탭에서 해당 시간대 하이라이트)</label><textarea id="j_wx_alt_raw" class="jinput" rows="4" placeholder="METAR RJTT 021800Z ...&#10;TAF RJTT 021700Z 0218/0324 ... FM022100Z ..."></textarea></div>
-                            <div class="jgrid3">
-                                <div class="jfield"><label>Sky</label><input id="j_wx_alt_sky" class="jinput"></div>
-                                <div class="jfield"><label>TX (최고)</label><input id="j_wx_alt_tx" class="jinput"></div>
-                                <div class="jfield"><label>TN (최저)</label><input id="j_wx_alt_tn" class="jinput"></div>
-                                <div class="jfield"><label>Wind</label><input id="j_wx_alt_wind" class="jinput"></div>
-                                <div class="jfield"><label>Visibility</label><input id="j_wx_alt_vis" class="jinput"></div>
-                                <div class="jfield"><label>Conditions</label><input id="j_wx_alt_cond" class="jinput"></div>
-                            </div>
+                            <div class="jbtnrow"><button type="button" class="btn btn--sm btn--cyan" onclick="renderJointWeatherKoSummary()">🇰🇷 평문 요약 새로고침</button></div>
+                            <div id="jWxKoSummary" class="jwx-ko"></div>
+                            <details class="jsum-edit">
+                                <summary>Departure 원문 · 상세 입력 (편집)</summary>
+                                <div class="jgrid2">
+                                    <div class="jfield"><label>Title</label><input id="j_wx_dep_title" class="jinput" placeholder="Departure – ICN (Seoul / Incheon Intl)"></div>
+                                    <div class="jfield"><label>METAR/TAF 구간 (참고)</label><input id="j_wx_dep_period" class="jinput" placeholder="e.g. TAF FM021200Z 또는 METAR 021200Z"></div>
+                                </div>
+                                <div class="jfield"><label>원문 (METAR/TAF 전체 · 줄바꿈 그대로 붙여넣기 — PILOT 탭에서 해당 시간대 하이라이트)</label><textarea id="j_wx_dep_raw" class="jinput" rows="4" placeholder="METAR RKSI 021200Z ...&#10;TAF RKSI 021100Z 0212/0318 ... FM021800Z ..."></textarea></div>
+                                <div class="jgrid3">
+                                    <div class="jfield"><label>Sky</label><input id="j_wx_dep_sky" class="jinput"></div>
+                                    <div class="jfield"><label>TX (최고)</label><input id="j_wx_dep_tx" class="jinput" placeholder="e.g. 28 or TX28/0500Z"></div>
+                                    <div class="jfield"><label>TN (최저)</label><input id="j_wx_dep_tn" class="jinput" placeholder="e.g. 18 or TN18/2100Z"></div>
+                                    <div class="jfield"><label>Wind</label><input id="j_wx_dep_wind" class="jinput"></div>
+                                    <div class="jfield"><label>Visibility</label><input id="j_wx_dep_vis" class="jinput"></div>
+                                    <div class="jfield"><label>QNH</label><input id="j_wx_dep_qnh" class="jinput"></div>
+                                    <div class="jfield"><label>Conditions</label><input id="j_wx_dep_cond" class="jinput" placeholder="VMC – Normal departure expected"></div>
+                                </div>
+                            </details>
+                            <details class="jsum-edit">
+                                <summary>Arrival 원문 · 상세 입력 (편집)</summary>
+                                <div class="jgrid2">
+                                    <div class="jfield"><label>Title</label><input id="j_wx_arr_title" class="jinput" placeholder="Arrival – NRT (Tokyo / Narita Intl)"></div>
+                                    <div class="jfield"><label>METAR/TAF 구간 (참고)</label><input id="j_wx_arr_period" class="jinput" placeholder="e.g. TAF FM021800Z 또는 METAR 021800Z"></div>
+                                </div>
+                                <div class="jfield"><label>원문 (METAR/TAF 전체 · 줄바꿈 그대로 붙여넣기 — PILOT 탭에서 해당 시간대 하이라이트)</label><textarea id="j_wx_arr_raw" class="jinput" rows="4" placeholder="METAR RJAA 021800Z ...&#10;TAF RJAA 021700Z 0218/0324 ... FM022100Z ..."></textarea></div>
+                                <div class="jgrid3">
+                                    <div class="jfield"><label>Sky</label><input id="j_wx_arr_sky" class="jinput"></div>
+                                    <div class="jfield"><label>TX (최고)</label><input id="j_wx_arr_tx" class="jinput" placeholder="e.g. 24 or TX24/0500Z"></div>
+                                    <div class="jfield"><label>TN (최저)</label><input id="j_wx_arr_tn" class="jinput" placeholder="e.g. 15 or TN15/2100Z"></div>
+                                    <div class="jfield"><label>Wind</label><input id="j_wx_arr_wind" class="jinput"></div>
+                                    <div class="jfield"><label>Visibility</label><input id="j_wx_arr_vis" class="jinput"></div>
+                                    <div class="jfield"><label>Conditions</label><input id="j_wx_arr_cond" class="jinput"></div>
+                                </div>
+                            </details>
+                            <details class="jsum-edit">
+                                <summary>Alternate 원문 · 상세 입력 (편집)</summary>
+                                <div class="jgrid2">
+                                    <div class="jfield"><label>Title</label><input id="j_wx_alt_title" class="jinput" placeholder="Alternate – HND (Tokyo / Haneda Intl)"></div>
+                                    <div class="jfield"><label>METAR/TAF 구간 (참고)</label><input id="j_wx_alt_period" class="jinput" placeholder="e.g. TAF FM021800Z 또는 METAR 021800Z"></div>
+                                </div>
+                                <div class="jfield"><label>원문 (METAR/TAF 전체 · 줄바꿈 그대로 붙여넣기 — PILOT 탭에서 해당 시간대 하이라이트)</label><textarea id="j_wx_alt_raw" class="jinput" rows="4" placeholder="METAR RJTT 021800Z ...&#10;TAF RJTT 021700Z 0218/0324 ... FM022100Z ..."></textarea></div>
+                                <div class="jgrid3">
+                                    <div class="jfield"><label>Sky</label><input id="j_wx_alt_sky" class="jinput"></div>
+                                    <div class="jfield"><label>TX (최고)</label><input id="j_wx_alt_tx" class="jinput"></div>
+                                    <div class="jfield"><label>TN (최저)</label><input id="j_wx_alt_tn" class="jinput"></div>
+                                    <div class="jfield"><label>Wind</label><input id="j_wx_alt_wind" class="jinput"></div>
+                                    <div class="jfield"><label>Visibility</label><input id="j_wx_alt_vis" class="jinput"></div>
+                                    <div class="jfield"><label>Conditions</label><input id="j_wx_alt_cond" class="jinput"></div>
+                                </div>
+                            </details>
                             <div class="jsub">Enroute</div>
                             <div class="jgrid2">
                                 <div class="jfield"><label>Altitude</label><input id="j_wx_enr_alt" class="jinput" placeholder="FL360 -> FL340 -> FL300"></div>
@@ -1128,6 +1141,9 @@
             <section class="panel">
                 <div class="panel__head">
                     <h2 class="panel__title">WEATHER BRIEFING</h2>
+                    <div class="btnrow">
+                        <button class="btn btn--sm btn--go" onclick="generateWeatherPdf()">⤓ PDF 생성</button>
+                    </div>
                 </div>
                 <div id="weatherBody" class="jform">
                     <!-- 1) Weather Information (PILOT BRIEFING과 동일 데이터 · 읽기전용 미러) -->
@@ -1139,34 +1155,17 @@
                         </div>
                     </details>
 
-                    <!-- 2) Weather Chart 분석 -->
+                    <!-- 2) 종합 운항 분석 리포트 (서사형) -->
                     <details class="jcard" open>
-                        <summary>2 · Weather Chart 분석</summary>
+                        <summary>2 · 종합 운항 분석 리포트</summary>
                         <div class="jcard__body">
-                            <p class="jnote">SIGWX · 바람/기온 등 기상 차트 이미지를 업로드하면, 이 비행의 항로·시간대(ETD/ETA/Enroute)에 맞춰 관련 구간과 예상 통과 시각을 분석해 차트 위에 하이라이트합니다.</p>
-                            <div class="jfield">
-                                <label>Weather Chart 업로드 (이미지, 여러 장 가능)</label>
-                                <input type="file" id="wbChartFile" class="jinput" accept="image/*,application/pdf" multiple onchange="handleWbChartFiles(this)">
-                                <p class="jnote">이미지 또는 PDF 업로드 가능 — PDF는 페이지별로 자동 분리해 각각 분석합니다.</p>
-                            </div>
-                            <div class="jbtnrow">
-                                <button class="btn btn--sm btn--go" onclick="analyzeWeatherCharts()">🛰 차트 분석</button>
-                                <span id="wbChartStatus" class="jnote"></span>
-                            </div>
-                            <div id="wbChartList"></div>
-                        </div>
-                    </details>
-
-                    <!-- 3) 종합 운항 분석 리포트 (서사형) -->
-                    <details class="jcard" open>
-                        <summary>3 · 종합 운항 분석 리포트</summary>
-                        <div class="jcard__body">
-                            <p class="jnote">공유 PDF(OFP/FPL) 원문 + Weather Chart 분석 결과(있으면)를 종합해, 시간대별 순항고도·난기류·제트기류, 연료계획, EDTO 회항공항 전략까지 담은 서사형 리포트를 생성합니다.</p>
+                            <p class="jnote">공유 PDF(OFP/FPL) 원문을 종합해, 시간대별 순항고도·난기류·제트기류, 연료계획, EDTO 회항공항 전략까지 담은 서사형 리포트를 생성합니다.</p>
                             <div class="jbtnrow">
                                 <button class="btn btn--sm btn--go" onclick="generateFlightAnalysisReport()">🧾 리포트 생성</button>
                                 <span id="wbReportStatus" class="jnote"></span>
                             </div>
                             <div id="wbReportOutput"></div>
+                            <p class="jnote">※ 전체 보고서 PDF(탭 선택)는 상단 헤더의 <b>📎 전체 보고서 PDF</b> 버튼에서 만들 수 있습니다.</p>
                         </div>
                     </details>
                 </div>
@@ -3909,11 +3908,18 @@ Features to locate: ${JSON.stringify(features)}`;
             const lo = $('localclk'); if (lo) lo.textContent = `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
             const lz = $('localtz'); if (lz){ if (_localTz === null) _localTz = localTzAbbr(d); lz.textContent = _localTz; }
         }
+        // 헤더의 Settings / Pilot Input / 전체 보고서 PDF 박스는 상호 배타적으로 하나만 열림 — 열 때 나머지 둘을 닫는다
+        function closeOtherHeaderBoxes(exceptId){
+            [['keybox','btnSettings'], ['pilotInputBox','btnPilotInput'], ['reportPdfBox','btnReportPdf']].forEach(([boxId,btnId]) => {
+                if (boxId === exceptId) return;
+                const b = $(boxId), bt = $(btnId);
+                if (b && !b.classList.contains('hidden')){ b.classList.add('hidden'); if (bt) bt.setAttribute('aria-expanded', 'false'); }
+            });
+        }
         function toggleSettings(){
             const box = $('keybox'), btn = $('btnSettings');
             if (!box) return;
-            const pib = $('pilotInputBox'), pibBtn = $('btnPilotInput');
-            if (pib && !pib.classList.contains('hidden')){ pib.classList.add('hidden'); if (pibBtn) pibBtn.setAttribute('aria-expanded', 'false'); }
+            closeOtherHeaderBoxes('keybox');
             const nowHidden = box.classList.toggle('hidden');
             if (btn) btn.setAttribute('aria-expanded', nowHidden ? 'false' : 'true');
         }
@@ -3921,8 +3927,7 @@ Features to locate: ${JSON.stringify(features)}`;
         function togglePilotInput(){
             const box = $('pilotInputBox'), btn = $('btnPilotInput');
             if (!box) return;
-            const kb = $('keybox'), kbBtn = $('btnSettings');
-            if (kb && !kb.classList.contains('hidden')){ kb.classList.add('hidden'); if (kbBtn) kbBtn.setAttribute('aria-expanded', 'false'); }
+            closeOtherHeaderBoxes('pilotInputBox');
             const nowHidden = box.classList.toggle('hidden');
             if (btn) btn.setAttribute('aria-expanded', nowHidden ? 'false' : 'true');
             if (!nowHidden){
@@ -3945,6 +3950,14 @@ Features to locate: ${JSON.stringify(features)}`;
             const st = $('pilotInputStatus');
             if (st) st.textContent = applied.length ? `✅ 적용됨: ${applied.join(' · ')} → PILOT·JOINT 전체` : '입력된 값이 없습니다';
             jVerifyFlash(['j_ft','p_ft','j_gate','pf_gate','j_taxi']);
+        }
+        // ── 헤더 "📎 전체 보고서 PDF" — PILOT/JOINT/NOTAM/WEATHER 4개 탭 중 선택해 PDF 생성 ──
+        function toggleReportPdfBox(){
+            const box = $('reportPdfBox'), btn = $('btnReportPdf');
+            if (!box) return;
+            closeOtherHeaderBoxes('reportPdfBox');
+            const nowHidden = box.classList.toggle('hidden');
+            if (btn) btn.setAttribute('aria-expanded', nowHidden ? 'false' : 'true');
         }
         // ============ 상단 탭 (Pilot / Joint / NOTAM) ============
         const TABS = ['pilot', 'joint', 'notam', 'weather'];
@@ -4082,8 +4095,6 @@ Features to locate: ${JSON.stringify(features)}`;
 
         /* ═══════════════ JOINT BRIEFING (Phase 1) ═══════════════ */
         let currentJointAlert = 'BLUE';
-        const JB = { BLUE:'#1565C0', BLUE_MID:'#1976D2', BLUE_LIGHT:'#E3F2FD', BLUE_BORDER:'#90CAF9',
-            SECTION_BG:'#F5F5F5', ROW_LINE:'#EEEEEE', DARK:'#212121', GRAY:'#757575', WHITE:'#FFFFFF' };
         const JB_ALERT_C  = { GREEN:'#2E7D32', BLUE:'#1565C0', YELLOW:'#F9A825', ORANGE:'#E65100', RED:'#B71C1C' };
         const JB_ALERT_TC = { GREEN:'#FFFFFF', BLUE:'#FFFFFF', YELLOW:'#212121', ORANGE:'#FFFFFF', RED:'#FFFFFF' };
         const JB_LEVELS = ['GREEN','BLUE','YELLOW','ORANGE','RED'];
@@ -4188,93 +4199,134 @@ Features to locate: ${JSON.stringify(features)}`;
             };
         }
 
-        // ── pdfmake 레이아웃 헬퍼 (SKILL.md reportlab 재현) ──
-        function jbDim(hex){ const n = parseInt(hex.slice(1),16), r=(n>>16)&255, g=(n>>8)&255, b=n&255;
-            const f = v => Math.round(v*0.4).toString(16).padStart(2,'0'); return '#'+f(r)+f(g)+f(b); }
-        function jbGridLayout(rowFills){ return {
-            hLineWidth:()=>0.5, vLineWidth:()=>0.5, hLineColor:()=>'#CCCCCC', vLineColor:()=>'#CCCCCC',
-            fillColor:(rowIndex)=> rowFills[rowIndex] || null,
-            paddingTop:()=>3, paddingBottom:()=>3, paddingLeft:()=>4, paddingRight:()=>4 }; }
-        function jbSecHeader(t){ return { table:{widths:['*'],body:[[{text:t,bold:true,color:JB.BLUE,fontSize:11,fillColor:JB.BLUE_LIGHT,margin:[6,5,6,5]}]]},
-            layout:{hLineWidth:()=>0.5,vLineWidth:()=>0.5,hLineColor:()=>JB.BLUE_BORDER,vLineColor:()=>JB.BLUE_BORDER}, margin:[0,8,0,4] }; }
-        function jbWxTitle(t){ return { table:{widths:['*'],body:[[{text:t,bold:true,color:JB.WHITE,fontSize:9,fillColor:JB.BLUE_MID,margin:[6,4,6,4]}]]}, layout:'noBorders', margin:[0,3,0,2] }; }
-        function jbWxRows(rows){ const body = rows.map(r => [
-            {text:r[0],bold:true,color:JB.GRAY,fontSize:9}, {text:r[1],color:JB.DARK,fontSize:9} ]);
-            return { table:{widths:[120,'*'],body}, layout:{ hLineWidth:(i,node)=> (i>0 && i<node.table.body.length)?0.3:0,
-                vLineWidth:()=>0, hLineColor:()=>JB.ROW_LINE, paddingTop:()=>3, paddingBottom:()=>3, paddingLeft:()=>4, paddingRight:()=>4 }, margin:[0,0,0,4] }; }
-        function jbFuelTable(f){
-            const H = t => ({text:t,bold:true,color:JB.WHITE,fontSize:8.5});
-            const L = t => ({text:t,fontSize:8.5,color:JB.DARK});
-            const V = (t,red) => ({text:t,bold:true,fontSize:8.5,alignment:'right',color:red?'#B71C1C':JB.DARK});
-            const body = [
-                [H('Item'),H('Formula'),{text:'Value (LBS)',bold:true,color:JB.WHITE,fontSize:8.5,alignment:'right'}],
-                [L('Final Reserve'),L('From FPL'),V(jfmt(f.finalRes))],
-                [L('Emergency Fuel'),L('= Final Reserve'),V(jfmt(f.emer))],
-                [L('Min Fuel'),L('= 1.3 × Final Reserve'),V(jfmt(f.minF))],
-                [L('ALTN Fuel'),L('From FPL'),V(jfmt(f.altn))],
-                [{text:'Divert Min Fuel',bold:true,fontSize:8.5,color:'#B71C1C'},L('= ALTN Fuel + Min Fuel'),V(jfmt(f.divert),true)],
-                [L('Divert Min +10min'),L('= Divert Min + ~10min burn'),V(jfmt(f.b10))],
-                [L('Divert Min +20min'),L('= Divert Min + ~20min burn'),V(jfmt(f.b20))],
-                [L('Divert Min +30min'),L('= Divert Min + ~30min burn'),V(jfmt(f.b30))],
-                [L('Planned T/O Fuel'),L('From FPL'),V(jfmt(f.tof))] ];
-            const fills = [JB.BLUE_MID,JB.SECTION_BG,JB.WHITE,JB.SECTION_BG,JB.WHITE,'#FFEBEE',JB.SECTION_BG,JB.WHITE,JB.SECTION_BG,JB.WHITE];
-            return { table:{widths:[130,'*',70],body}, layout:jbGridLayout(fills), margin:[0,2,0,2] }; }
-        function jbOilTable(o){
-            const H = t => ({text:t,bold:true,color:JB.WHITE,fontSize:8.5});
-            const L = t => ({text:t,fontSize:8.5,color:JB.DARK});
-            const M = t => ({text:t,fontSize:8.5,alignment:'center',color:JB.DARK});
-            const body = [
-                [H('Condition'),H('Rule'),{text:'Min Oil',bold:true,color:JB.WHITE,fontSize:8.5,alignment:'center'}],
-                [L('OAT < 0°C & F/T < 14h'),L('13 qts flat'),M('13 qts')],
-                [L('OAT < 0°C & F/T ≥ 14h'),L('6 + 0.5 qt/h'),M('variable')],
-                [L('OAT ≥ 0°C & F/T < 8h'),L('10 qts flat'),M('10 qts')],
-                [L('OAT ≥ 0°C & F/T ≥ 8h'),L('6 + 0.5 qt/h'),M('variable')],
-                [{text:'THIS FLIGHT',bold:true,fontSize:8.5},{text:o.rule,fontSize:8.5},{text:Math.trunc(o.min)+' qts',bold:true,alignment:'center',color:'#1B5E20'}] ];
-            const fills = [JB.BLUE_MID,JB.SECTION_BG,JB.WHITE,JB.SECTION_BG,JB.WHITE,'#E8F5E9'];
-            return { table:{widths:[110,'*',50],body}, layout:jbGridLayout(fills), margin:[0,2,0,2] }; }
-
         // ── 화면에 보이는 내용을 그대로 PDF로 캡처 (html2canvas → jsPDF, 여러 페이지로 자동 분할) ──
         // buildJointDocDefinition()(고정 서식의 pdfmake 문서)는 더 이상 쓰지 않음 — 사용자 요청으로 폐기,
         // 대신 탭에 실제로 보이는 화면(입력한 값·편집한 서식 그대로)을 캡처해서 PDF로 만든다.
         // 부수 효과로 pdfmake의 오래된 한글(CJK) 미지원 한계도 자동으로 해결됨(화면은 웹폰트로 한글이 정상 표시되므로).
-        async function capturePanelToPdf(containerId, filename, statusElId){
-            const st = statusElId ? document.getElementById(statusElId) : null;
-            const setS = m => { if (st) st.textContent = m; };
+        // 요소 하나를 캔버스로 캡처(접혀있는 details는 잠깐 펼쳤다가 원복) — 단독 PDF 저장과 통합 PDF 둘 다 이 헬퍼를 공유.
+        async function captureElementCanvas(containerId){
             const el = document.getElementById(containerId);
-            if (!el){ setS('❌ 캡처할 영역을 찾지 못했습니다.'); return; }
-            if (typeof html2canvas !== 'function' || !window.jspdf){ setS('❌ PDF 생성 라이브러리 로드 실패 — 온라인 상태에서 새로고침 후 다시 시도.'); return; }
-            setS('🖨 화면 내용을 PDF로 캡처 중…');
-            // 접혀있는 <details class="jcard">도 전부 펼쳐서 캡처(내용 누락 방지) → 끝나면 원래 상태로 복원
+            if (!el) throw new Error('캡처할 영역을 찾지 못했습니다: ' + containerId);
+            if (typeof html2canvas !== 'function') throw new Error('PDF 생성 라이브러리 로드 실패 — 온라인 상태에서 새로고침 후 다시 시도.');
+            // 통합/일괄 PDF는 현재 화면에 보이지 않는 다른 탭도 캡처해야 함 — 숨겨진 탭(display:none)은
+            // 크기가 0이라 html2canvas가 그라디언트 배경을 그리다 NaN으로 죽음(addColorStop 에러) → 캡처 직전 잠깐 보이게 함
+            const pane = el.closest('.tabpane');
+            const paneWasHidden = pane && pane.classList.contains('hidden');
+            if (paneWasHidden) pane.classList.remove('hidden');
             const details = Array.from(el.querySelectorAll('details'));
             const prevOpen = details.map(d => d.open);
             details.forEach(d => { d.open = true; });
-            await new Promise(r => setTimeout(r, 120)); // 펼침 반영 레이아웃 리플로우 대기
+            await new Promise(r => setTimeout(r, 120)); // 펼침/보임 반영 레이아웃 리플로우 대기
             try {
-                const canvas = await html2canvas(el, { scale:2, backgroundColor:'#FBF9F4', useCORS:true, windowWidth: el.scrollWidth });
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'pt', 'a4');
-                const pageW = pdf.internal.pageSize.getWidth(), pageH = pdf.internal.pageSize.getHeight();
-                const imgW = pageW, imgH = canvas.height * imgW / canvas.width;
-                const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                let heightLeft = imgH, position = 0;
+                return await html2canvas(el, { scale:2, backgroundColor:'#FBF9F4', useCORS:true, windowWidth: el.scrollWidth });
+            } finally {
+                details.forEach((d,i) => { d.open = prevOpen[i]; });
+                if (paneWasHidden) pane.classList.add('hidden');
+            }
+        }
+        // 캡처한 캔버스를 jsPDF 문서에 여러 페이지로 이어붙임. startNewPage=true면 새 섹션을 새 페이지에서 시작
+        // (통합 PDF에서 탭 사이 경계용) — 첫 섹션은 jsPDF가 이미 만들어둔 1페이지를 그대로 씀.
+        function appendCanvasToPdf(pdf, canvas, startNewPage){
+            const pageW = pdf.internal.pageSize.getWidth(), pageH = pdf.internal.pageSize.getHeight();
+            const imgW = pageW, imgH = canvas.height * imgW / canvas.width;
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            if (startNewPage) pdf.addPage();
+            let heightLeft = imgH, position = 0;
+            pdf.addImage(imgData, 'JPEG', 0, position, imgW, imgH);
+            heightLeft -= pageH;
+            while (heightLeft > 0){
+                position = heightLeft - imgH; // 다음 페이지에서 이미지를 위로 밀어 이어 붙임
+                pdf.addPage();
                 pdf.addImage(imgData, 'JPEG', 0, position, imgW, imgH);
                 heightLeft -= pageH;
-                while (heightLeft > 0){
-                    position = heightLeft - imgH; // 다음 페이지에서 이미지를 위로 밀어 이어 붙임
-                    pdf.addPage();
-                    pdf.addImage(imgData, 'JPEG', 0, position, imgW, imgH);
-                    heightLeft -= pageH;
-                }
+            }
+        }
+        async function capturePanelToPdf(containerId, filename, statusElId){
+            const st = statusElId ? document.getElementById(statusElId) : null;
+            const setS = m => { if (st) st.textContent = m; };
+            if (!window.jspdf){ setS('❌ PDF 생성 라이브러리 로드 실패 — 온라인 상태에서 새로고침 후 다시 시도.'); return; }
+            setS('🖨 화면 내용을 PDF로 캡처 중…');
+            try {
+                const canvas = await captureElementCanvas(containerId);
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'pt', 'a4');
+                appendCanvasToPdf(pdf, canvas, false);
                 pdf.save(filename);
                 setS('✅ ' + filename + ' 생성됨');
             } catch(e){ setS('❌ PDF 생성 실패: ' + e.message); }
-            finally { details.forEach((d,i) => { d.open = prevOpen[i]; }); }
         }
         function generateJointPdf(){
             recalcJointMemo();
             const d = getJointFormData();
             const fname = 'JointBriefing_' + (d.flight_no||'').replace(/\s+/g,'') + '_' + (d.date||'') + '.pdf';
             capturePanelToPdf('jointBody', fname, 'jointPdfStatus');
+        }
+        function generatePilotPdf(){
+            recalcJointMemo();
+            const flt = ((document.getElementById('pf_flightno') && document.getElementById('pf_flightno').value) || (document.getElementById('j_flightno') && document.getElementById('j_flightno').value) || 'FLIGHT').replace(/\s+/g,'');
+            const date = (document.getElementById('pf_date') && document.getElementById('pf_date').value) || (document.getElementById('j_date') && document.getElementById('j_date').value) || '';
+            capturePanelToPdf('pilotBody', 'PilotBriefing_' + flt + '_' + date + '.pdf', 'pilotPdfStatus');
+        }
+        function generateNotamPdf(){
+            const r = (typeof analysisData !== 'undefined' && analysisData && analysisData.route) || {};
+            const fname = 'NotamBriefing_' + (r.departure||'DEP') + (r.destination||'DEST') + '_' + new Date().toISOString().slice(0,10) + '.pdf';
+            capturePanelToPdf('analysisResult', fname, 'notamPdfStatus');
+        }
+        function generateWeatherPdf(){
+            const flt = ((document.getElementById('j_flightno') && document.getElementById('j_flightno').value) || 'FLIGHT').replace(/\s+/g,'');
+            const date = (document.getElementById('j_date') && document.getElementById('j_date').value) || '';
+            capturePanelToPdf('weatherBody', 'WeatherBriefing_' + flt + '_' + date + '.pdf', 'wbFullReportStatus');
+        }
+
+        // ── 전체 보고서 PDF: PILOT/JOINT/NOTAM/WEATHER 4개 탭 중 선택한 것만 PDF로 ──
+        const REPORT_TABS = [
+            { key:'pilot',   chk:'rptSelPilot',   container:'pilotBody',     label:'PILOT' },
+            { key:'joint',   chk:'rptSelJoint',   container:'jointBody',     label:'JOINT' },
+            { key:'notam',   chk:'rptSelNotam',   container:'analysisResult',label:'NOTAM' },
+            { key:'weather', chk:'rptSelWeather', container:'weatherBody',   label:'WEATHER' }
+        ];
+        function selectedReportTabs(){
+            return REPORT_TABS.filter(t => { const e = document.getElementById(t.chk); return e && e.checked; });
+        }
+        function reportFileTag(){
+            const flt = ((document.getElementById('j_flightno') && document.getElementById('j_flightno').value) || 'FLIGHT').replace(/\s+/g,'');
+            const date = (document.getElementById('j_date') && document.getElementById('j_date').value) || '';
+            return flt + (date ? '_' + date : '');
+        }
+        // 선택한 탭들을 각각 별도 PDF 파일로 (기존 개별 PDF 생성 버튼과 동일한 결과, 한번에 여러 개)
+        async function generateSelectedTabPdfs(){
+            const st = document.getElementById('wbFullReportStatus');
+            const setS = m => { if (st) st.textContent = m; };
+            const sel = selectedReportTabs();
+            if (!sel.length){ setS('⚠ 최소 한 개 탭을 선택하세요.'); return; }
+            const tag = reportFileTag();
+            for (const t of sel){
+                setS(`🖨 ${t.label} PDF 생성 중…`);
+                await capturePanelToPdf(t.container, `${t.label}Briefing_${tag}.pdf`, 'wbFullReportStatus');
+                await new Promise(r => setTimeout(r, 200)); // 브라우저 다운로드 팝업이 겹치지 않도록 살짝 텀
+            }
+            setS(`✅ ${sel.length}개 PDF 생성 완료`);
+        }
+        // 선택한 탭들을 한 파일로 이어붙여 통합 PDF 1개로 (탭마다 새 페이지에서 시작)
+        async function generateCombinedReportPdf(){
+            const st = document.getElementById('wbFullReportStatus');
+            const setS = m => { if (st) st.textContent = m; };
+            const sel = selectedReportTabs();
+            if (!sel.length){ setS('⚠ 최소 한 개 탭을 선택하세요.'); return; }
+            if (!window.jspdf){ setS('❌ PDF 생성 라이브러리 로드 실패 — 온라인 상태에서 새로고침 후 다시 시도.'); return; }
+            try {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'pt', 'a4');
+                for (let i = 0; i < sel.length; i++){
+                    const t = sel[i];
+                    setS(`🖨 (${i+1}/${sel.length}) ${t.label} 캡처 중…`);
+                    const canvas = await captureElementCanvas(t.container);
+                    appendCanvasToPdf(pdf, canvas, i > 0);
+                }
+                const fname = 'FullBriefing_' + reportFileTag() + '.pdf';
+                pdf.save(fname);
+                setS('✅ ' + fname + ' 생성됨 (' + sel.map(t=>t.label).join(' · ') + ')');
+            } catch(e){ setS('❌ 통합 PDF 생성 실패: ' + e.message); }
         }
 
         // 손글씨 브리핑 노트 렌더용 강조 헬퍼
@@ -4473,14 +4525,18 @@ Features to locate: ${JSON.stringify(features)}`;
             const crewIntro = g('j_crew_intro');
             const gate = g('pf_gate');
             const em = v => v ? v : '<span class="empty">—</span>';
+            // Security Alert Level — 노트 제목 줄 옆에 수평으로 작게 배치 (별도 박스 대신 노트 안에서 직접 선택)
+            const lvl = JB_LEVELS.includes(currentJointAlert) ? currentJointAlert : 'BLUE';
+            const alertBtns = JB_LEVELS.map(l => `<button type="button" class="jalert__b jalert__b--mini" data-lvl="${l}" data-on="${l===lvl?'1':'0'}" onclick="setJointAlert('${l}')">${l}</button>`).join('');
             let html = '';
-            html += `<div class="t">✈️ 비행 브리핑: ${escapeHtml(flt)}</div>`;
+            html += `<div class="t trow"><span>✈️ 비행 브리핑: ${escapeHtml(flt)}</span><span class="jalert jalert--mini" id="jAlertRow" title="Security Alert Level (미지정 시 BLUE)">${alertBtns}</span></div>`;
             if (crewIntro) html += `<div class="blk"><span class="h">■ 운항승무원:</span><br>${escapeHtml(crewIntro).replace(/\n/g,'<br>')}</div>`;
             html += `<div class="blk"><span class="h">■ 비행시간:</span> <span class="ftemph">✓ ${escapeHtml(ft)}</span>` + (eta ? ` · 도착예정(Local) ${escapeHtml(eta)}` : etaZOnly ? ` · <span class="empty">도착예정 ${escapeHtml(etaZOnly)}</span>` : ' · <span class="empty">도착예정시간 미상 — ETD(Z)/ETA(Z) 확인 필요</span>') + `</div>`;
             html += `<div class="blk"><span class="h">■ 날씨:</span><br>- ${escapeHtml(dep)}: ${em(escapeHtml(depDesc))}<br>- ${escapeHtml(arr)}: ${em(escapeHtml(arrDesc))}</div>`;
             html += `<div class="blk"><span class="h">■ 난기류:</span> ${turbSummary || em('')}</div>`;
-            if (gate) html += `<div class="blk"><span class="h">■ GATE:</span> ${escapeHtml(gate)}</div>`;
             if (jSummaryMemoApplied.trim()) html += `<div class="blk"><span class="h">■ 메모:</span><br>${escapeHtml(jSummaryMemoApplied.trim()).replace(/\n/g,'<br>')}</div>`;
+            // 노트 마지막 부분 — PILOT BRIEFING의 GATE 삼각형 표시를 그대로 복사해서 보여줌
+            if (gate) html += `<div class="blk gatemini-row"><span class="h">■ GATE:</span><div class="gatewrap gatewrap--mini"><svg viewBox="0 0 220 190" class="gatesvg" xmlns="http://www.w3.org/2000/svg"><polygon points="110,14 206,176 14,176" fill="none" stroke="#C15F3C" stroke-width="7" stroke-linejoin="round"/></svg><div class="gatewrap__val">${escapeHtml(gate)}</div></div></div>`;
             html += `<div class="sig">안전 비행! _ 기장</div>`;
             el.innerHTML = html;
         }
@@ -4852,162 +4908,43 @@ TEXT:
                     + (enrRoute ? `<div class="pfwx-cond"><b>Route</b> ${escapeHtml(enrRoute)}</div>` : '') + `</div>`;
             }
             targets.forEach(el => { el.innerHTML = html; });
+            renderJointWeatherKoSummary();
         }
 
-        // ══════════ WEATHER BRIEFING 탭 — 기상 차트(SIGWX/바람·기온 등) 이미지 분석 ══════════
-        // 업로드한 차트(이미지 또는 PDF, PDF는 페이지별로 분리)를 이 비행의 항로/시간대와 함께
-        // Gemini(멀티모달)에 보내 관련 구간·예상 통과시각·대략적 위치(bounding box %)를 받아 오버레이 표시.
-        let wbCharts = [];   // {id, name, dataUrl, base64, mime, segments: null|[], status: ''|'analyzing'|'done'|'error', error}
-        let wbChartSeq = 0;
-        const WB_COLORS = ['#dc2626','#2563eb','#059669','#d97706','#7c3aed','#db2777','#0891b2'];
-
-        function addImageChart(file){
-            return new Promise((resolve, reject) => {
-                const r = new FileReader();
-                r.onload = (e) => {
-                    const dataUrl = e.target.result;
-                    const base64 = (dataUrl.split(',')[1] || '');
-                    wbCharts.push({ id:'wbc_'+(wbChartSeq++), name:file.name, dataUrl, base64, mime:file.type || 'image/png', segments:null, status:'' });
-                    resolve();
-                };
-                r.onerror = () => reject(new Error('이미지 읽기 실패'));
-                r.readAsDataURL(file);
-            });
-        }
-        // PDF는 pdf.js로 페이지마다 캔버스에 렌더 → PNG로 변환 (Gemini에 보낼 이미지 = 화면에 보여줄 이미지, 좌표 100% 일치)
-        // 페이지가 많은 패킷(수십 장)일 수 있어 페이지별 진행 상황을 onProgress로 알려준다.
-        async function addPdfChartPages(file, onProgress){
-            const pdfjsLib = window.pdfjsLib;
-            if (!pdfjsLib) throw new Error('PDF.js 라이브러리 로드 실패');
-            const arrayBuffer = await file.arrayBuffer();
-            const pdf = await openPdfDocument(pdfjsLib, arrayBuffer);
-            const baseName = file.name.replace(/\.pdf$/i, '');
-            for (let i = 1; i <= pdf.numPages; i++){
-                if (onProgress) onProgress(i, pdf.numPages);
-                const page = await pdf.getPage(i);
-                const viewport = page.getViewport({ scale: 1.8 }); // 해상도(기호/글씨 인식) vs 속도 절충
-                const canvas = document.createElement('canvas');
-                canvas.width = viewport.width; canvas.height = viewport.height;
-                await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
-                const dataUrl = canvas.toDataURL('image/png');
-                const base64 = (dataUrl.split(',')[1] || '');
-                wbCharts.push({ id:'wbc_'+(wbChartSeq++), name:`${baseName} p.${i}`, dataUrl, base64, mime:'image/png', segments:null, status:'' });
-                renderWbChartList(); // 페이지 렌더 즉시 화면에 추가 — 오래 걸려도 진행 상황이 보임
-            }
-        }
-        async function handleWbChartFiles(input){
-            const files = Array.from((input && input.files) || []);
-            if (!files.length) return;
-            const st = document.getElementById('wbChartStatus');
-            const setS = m => { if (st) st.textContent = m; };
-            for (const file of files){
-                const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
-                try {
-                    if (isPdf){
-                        await addPdfChartPages(file, (p, n) => setS(`📄 ${file.name} — 페이지 렌더링 중 (${p}/${n})…`));
-                    } else {
-                        setS(`📄 ${file.name} 불러오는 중…`);
-                        await addImageChart(file);
-                    }
-                } catch(e){ setS(`❌ ${file.name} 처리 실패: ${e.message}`); }
-            }
-            input.value = '';
-            setS(wbCharts.length ? `✅ ${wbCharts.length}개 차트 로드됨 · "🛰 차트 분석"을 눌러 분석하세요.` : '');
-            renderWbChartList();
-        }
-        function removeWbChart(id){ wbCharts = wbCharts.filter(c => c.id !== id); renderWbChartList(); }
-
-        function renderWbChartList(){
-            const el = document.getElementById('wbChartList'); if (!el) return;
-            if (!wbCharts.length){ el.innerHTML = '<p class="pfwx-empty">업로드된 차트가 없습니다.</p>'; return; }
-            el.innerHTML = wbCharts.map(renderWbChartCard).join('');
-        }
-        // 심각도(한글: 경미/보통/심각)에 따른 표시 클래스 — 심각=빨강 강조, 경미=옅게, 보통=기본
-        function wbSevClass(severity){
-            const s = (severity || '').trim();
-            if (s === '심각' || /SEV/i.test(s)) return 'wb-sev-severe';
-            if (s === '경미' || /LIGHT/i.test(s)) return 'wb-sev-light';
-            return '';
-        }
-        function renderWbChartCard(c){
-            const segs = c.segments || [];
-            const overlays = segs.map((s, i) => {
-                const b = s.box; if (!b) return '';
-                const x1 = Math.max(0, Math.min(100, +b.x1 || 0)), x2 = Math.max(0, Math.min(100, +b.x2 || 0));
-                const y1 = Math.max(0, Math.min(100, +b.y1 || 0)), y2 = Math.max(0, Math.min(100, +b.y2 || 0));
-                const left = Math.min(x1,x2), top = Math.min(y1,y2), w = Math.abs(x2-x1), h = Math.abs(y2-y1);
-                if (!w || !h) return '';
-                const color = WB_COLORS[i % WB_COLORS.length];
-                const sevCls = wbSevClass(s.severity);
-                return `<div class="wbchart-box" style="left:${left}%;top:${top}%;width:${w}%;height:${h}%;border-color:${color}">
-                    <span class="wbchart-tag ${sevCls}" style="background:${color}">${escapeHtml(s.time||'')} ${escapeHtml(s.name||'')}</span>
-                </div>`;
-            }).join('');
-            const validCaption = c.chartValid ? `<p class="jnote">📋 차트 표기 범위: ${escapeHtml(c.chartValid)}</p>` : '';
-            let listHtml;
-            if (c.status === 'analyzing') listHtml = '<p class="jnote">🛰 분석 중…</p>';
-            else if (c.status === 'error') listHtml = `<p class="jnote" style="color:var(--red)">❌ ${escapeHtml(c.error||'분석 실패')}</p>`;
-            else if (c.status === 'done' && c.applicable === false) listHtml = `<p class="pfwx-empty">이 비행의 고도/시간대 범위 밖 — 분석 제외${c.reason ? ' ('+escapeHtml(c.reason)+')' : ''}</p>`;
-            else if (segs.length) listHtml = '<div class="wbchart-list">' + segs.map((s,i) => {
-                const color = WB_COLORS[i % WB_COLORS.length];
-                const sevCls = wbSevClass(s.severity);
-                return `<div class="wbchart-item ${sevCls}"><span class="wbchart-dot" style="background:${color}"></span><b>${escapeHtml(s.time||'–')}</b> — ${escapeHtml(s.name||'')}${s.detail?': '+escapeHtml(s.detail):''}${s.severity?` <i>(${escapeHtml(s.severity)})</i>`:''}</div>`;
-            }).join('') + '</div>';
-            else listHtml = (c.status === 'done' ? '<p class="pfwx-empty">이 항로·시간대에 해당하는 특이 기상 없음</p>' : '<p class="pfwx-empty">아직 분석되지 않았습니다 · 상단 "🛰 차트 분석" 버튼을 누르세요.</p>');
-            return `<div class="wbchart-card">
-                <div class="wbchart-head"><span>${escapeHtml(c.name)}</span><button type="button" class="btn btn--sm btn--ghost" onclick="removeWbChart('${c.id}')">✕ 삭제</button></div>
-                <div class="wbchart-imgwrap"><img src="${c.dataUrl}" alt="${escapeHtml(c.name)}">${overlays}</div>
-                ${validCaption}
-                ${listHtml}
-            </div>`;
-        }
-        function buildWbFlightContext(){
+        // JOINT 탭 Weather 카드 상단 — 원문/구조화 필드(접혀있음)를 대신해 평문 한글로 간단히 요약해서 보여줌.
+        // 데이터 소스(raw METAR/TAF, 구조화 필드)는 그대로 남겨둠 — PILOT 탭 TAF 시간대 하이라이트가 여전히 이 값들을 씀.
+        function renderJointWeatherKoSummary(){
+            const el = document.getElementById('jWxKoSummary'); if (!el) return;
             const g = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
-            const et = computeEtdEta();
-            return { dep:g('j_dep'), arr:g('j_arr'), date:g('j_date'), etdZ:et.etdZ, etaZ:et.etaZ,
-                route:g('j_wx_enr_route'), altitude:g('j_wx_enr_alt'), flightTime:g('j_ft') };
-        }
-        async function analyzeOneChart(chart, ctx, key){
-            const prompt = `You are an airline dispatcher analyzing a weather chart image (SIGWX, wind/temperature chart, significant weather chart, or similar) for one specific flight. FLIGHT CONTEXT: departure ${ctx.dep||'?'} at ${ctx.etdZ?ctx.etdZ+'Z':'unknown time'} on ${ctx.date||'unknown date'}; arrival ${ctx.arr||'?'} at ${ctx.etaZ?ctx.etaZ+'Z':'unknown time'}; flight time ${ctx.flightTime||'unknown'}; cruise altitude ${ctx.altitude||'unknown'}; route: ${ctx.route||'(not provided)'}.
-STEP 1 — APPLICABILITY GATE (do this FIRST, before looking for any features): weather chart packets are typically issued as a SET of charts, each covering its OWN altitude/flight-level band (e.g. "SFC-FL100", "FL250-450") and its OWN valid time (a fixed time like "1200Z" for a SIGWX snapshot, or a validity window). Read the chart's own title/legend/header text to determine its stated altitude band and valid time. Compare that against THIS flight's cruise altitude (${ctx.altitude||'unknown'}) and its actual transit time window (ETD ${ctx.etdZ?ctx.etdZ+'Z':'unknown'} to ETA ${ctx.etaZ?ctx.etaZ+'Z':'unknown'}). Set "applicable":true only if the chart's altitude band overlaps this flight's cruise altitude AND the chart's valid time falls within (or reasonably close to) the flight's transit window — otherwise "applicable":false. Always fill "chart_valid" with a short factual note of what the chart itself states (e.g. "FL250-450, valid 1200Z" or "SFC-FL100, valid 0600Z-1200Z") — fill this even when applicable is false. If applicable is false, also fill "reason" briefly explaining why (e.g. "이 차트는 FL100-250 구간이며 이 비행의 순항고도 FL350과 겹치지 않음"), in Korean, and return an EMPTY "segments" array — do not analyze features on a chart that doesn't even cover this flight's altitude/time.
-STEP 2 — only if applicable is true: identify every weather feature/hazard shown on THIS chart that is actually relevant to this route, altitude and time window — jet streams, CB/thunderstorm areas, turbulence (CAT/CHOP) zones, icing, volcanic ash, significant fronts, freezing level anomalies. IGNORE anything clearly far from the route. For each relevant feature return, ALL IN KOREAN (this is a Korean-language cockpit briefing display, on-screen only — write natural Korean, not a literal word-for-word translation): "name" (짧은 한글 명칭, 예: "제트기류 core 130KT" — 고유 수치/약어는 그대로 두되 설명은 한글로), "detail" (그 현상이 무엇이고 이 비행에 왜 중요한지, 한글 문장), "severity" (한글로 "경미"/"보통"/"심각"/"해당없음" 중 하나), "time" = 이 지점을 통과할 것으로 예상되는 ETD 기준 경과시간, "약 +H:MM (이륙 후)" 형식의 한글 문자열로 — 항로상 위치와 차트 유효시각을 근거로 산출(정말 추정 불가능할 때만 "") — and "box" = the feature's approximate location on the IMAGE as PERCENTAGES of the image's width/height: {"x1":0-100,"y1":0-100,"x2":0-100,"y2":0-100} where (x1,y1) is the top-left corner and (x2,y2) is the bottom-right corner of a box loosely bounding the feature (best-effort/approximate, not pixel-perfect — this field stays numeric, not Korean). If applicable but genuinely nothing relevant is found, return an empty array — do not force irrelevant entries.
-Respond with STRICT JSON ONLY, no markdown/code fences: {"applicable":true,"chart_valid":"","reason":"","segments":[{"name":"","detail":"","severity":"","time":"","box":{"x1":0,"y1":0,"x2":0,"y2":0}}]}`;
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(key)}`;
-            const res = await geminiFetch(url, {
-                contents: [{ parts: [ { text: prompt }, { inlineData: { mimeType: chart.mime, data: chart.base64 } } ] }],
-                generationConfig: { responseMimeType: 'application/json', temperature: 0.2, maxOutputTokens: 4096 }
-            }, (delay) => { const st = document.getElementById('wbChartStatus'); if (st) st.textContent = `요청 한도 도달 · ${Math.round(delay/1000)}초 후 재시도`; });
-            if (!res.ok){ const t = await res.text(); throw new Error((typeof apiErrText === 'function') ? apiErrText(res.status, t) : ('HTTP ' + res.status)); }
-            const data = await res.json();
-            const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-            const clean = raw.replace(/```json|```/g, '').trim();
-            let obj; try { obj = JSON.parse(clean); } catch(e){ throw new Error('JSON 파싱 실패 — 응답이 잘렸을 수 있습니다'); }
-            return {
-                applicable: obj.applicable !== false, // 필드 자체가 없으면 기본 true(구버전 응답 호환)
-                chartValid: obj.chart_valid || '',
-                reason: obj.reason || '',
-                segments: Array.isArray(obj.segments) ? obj.segments : []
+            const line = (loc, sky, tx, tn, wind, vis, qnh, cond) => {
+                const desc = koreanWxSummary(sky, cond, jTempKo(tx, tn));
+                const bits = [];
+                if (wind) bits.push(`바람 ${wind}`);
+                if (vis) bits.push(`시정 ${vis}`);
+                if (qnh) bits.push(`QNH ${qnh}`);
+                if (!desc && !bits.length) return '';
+                return `<li><b>${escapeHtml(loc)}</b> — ${escapeHtml(desc || '자료 없음')}${bits.length ? ' · ' + escapeHtml(bits.join(' · ')) : ''}</li>`;
             };
-        }
-        async function analyzeWeatherCharts(){
-            const st = document.getElementById('wbChartStatus');
-            const setS = m => { if (st) st.textContent = m; };
-            const key = (document.getElementById('apiKey') && document.getElementById('apiKey').value || '').trim();
-            if (!wbCharts.length){ setS('⚠ 먼저 차트 이미지/PDF를 업로드하세요.'); return; }
-            if (!key){ setS('⚠ Gemini API Key가 필요합니다 (⚙ Settings).'); return; }
-            if (typeof geminiFetch !== 'function'){ setS('❌ geminiFetch 헬퍼를 찾지 못했습니다.'); return; }
-            const ctx = buildWbFlightContext();
-            for (let i = 0; i < wbCharts.length; i++){
-                const c = wbCharts[i];
-                c.status = 'analyzing'; renderWbChartList();
-                setS(`🛰 분석 중… (${i+1}/${wbCharts.length}) ${c.name}`);
-                try {
-                    const r = await analyzeOneChart(c, ctx, key);
-                    c.segments = r.segments; c.applicable = r.applicable; c.chartValid = r.chartValid; c.reason = r.reason; c.status = 'done';
-                } catch(e){ c.status = 'error'; c.error = e.message; }
-                renderWbChartList();
+            const dep = g('j_dep') || '출발지', arr = g('j_arr') || '목적지';
+            const altName = (g('j_wx_alt_title').match(/[-–]\s*([A-Za-z0-9]+)/) || [])[1] || '교체공항';
+            let items = '';
+            items += line(dep, g('j_wx_dep_sky'), g('j_wx_dep_tx'), g('j_wx_dep_tn'), g('j_wx_dep_wind'), g('j_wx_dep_vis'), g('j_wx_dep_qnh'), g('j_wx_dep_cond'));
+            items += line(arr, g('j_wx_arr_sky'), g('j_wx_arr_tx'), g('j_wx_arr_tn'), g('j_wx_arr_wind'), g('j_wx_arr_vis'), '', g('j_wx_arr_cond'));
+            items += line(altName, g('j_wx_alt_sky'), g('j_wx_alt_tx'), g('j_wx_alt_tn'), g('j_wx_alt_wind'), g('j_wx_alt_vis'), '', g('j_wx_alt_cond'));
+            const enrAlt = g('j_wx_enr_alt'), enrWind = g('j_wx_enr_wind'), enrRoute = g('j_wx_enr_route');
+            if (enrAlt || enrWind || enrRoute){
+                const bits = [];
+                if (enrRoute) bits.push(enrRoute.replace(/->/g, '→'));
+                if (enrAlt) bits.push(`순항고도 ${enrAlt}`);
+                if (enrWind) bits.push(`바람 ${enrWind}`);
+                items += `<li><b>항로</b> — ${escapeHtml(bits.join(' · '))}</li>`;
             }
-            setS('✅ 분석 완료');
+            const turbRows = getTurbRows().filter(t => turbSeverityOk(t.detail));
+            if (turbRows.length){
+                const hasModSevere = turbRows.some(t => turbSeverityLevel(t.detail) !== 'light');
+                items += `<li><b>난기류</b> — 항로상 ${hasModSevere ? '중~강 난기류 구간이 있어 좌석벨트 상시 착용을 권고합니다' : '약한 난기류만 예상됩니다'}</li>`;
+            }
+            el.innerHTML = items ? `<ul>${items}</ul>` : '<p class="pfwx-empty">아직 입력된 기상 정보가 없습니다 — 아래 원문·상세 입력에서 채우거나 APPLY로 추출하세요.</p>';
         }
 
         // ══════════ 종합 운항 분석 리포트 (서사형 · Weather Briefing 탭 3번 섹션) ══════════
@@ -5045,16 +4982,12 @@ Respond with STRICT JSON ONLY, no markdown/code fences: {"applicable":true,"char
         function buildFlightReportContext(){
             const d = getJointFormData();
             const turb = getTurbRows().map(t => `- ${t.time}: ${t.detail}`).join('\n') || '(없음)';
-            const chartLines = wbCharts.filter(c => c.status === 'done' && c.applicable !== false && (c.segments||[]).length)
-                .map(c => `[${c.name}] ${c.chartValid || ''}\n` + c.segments.map(s => `  - ${s.time||''} ${s.name||''}: ${s.detail||''} (${s.severity||''})`).join('\n'))
-                .join('\n');
             return {
                 flight_no: d.flight_no, dep: d.dep, arr: d.arr, ac_type: d.ac_type, ac_reg: d.ac_reg,
                 date_label: d.date_label || d.date, flight_time: d.flight_time, schedule: d.schedule,
                 enroute_alt: jgv('j_wx_enr_alt'), enroute_route: jgv('j_wx_enr_route'), enroute_wind: jgv('j_wx_enr_wind'), enroute_speed: jgv('j_wx_enr_speed'),
                 turbulence: turb,
-                final_lbs: jgv('j_final'), altn_lbs: jgv('j_altn'), trip_lbs: jgv('j_trip'), tof_lbs: jgv('j_tof'), oat: jgv('j_oat'),
-                chartAnalysis: chartLines || '(업로드/분석된 Weather Chart 없음)'
+                final_lbs: jgv('j_final'), altn_lbs: jgv('j_altn'), trip_lbs: jgv('j_trip'), tof_lbs: jgv('j_tof'), oat: jgv('j_oat')
             };
         }
         async function generateFlightAnalysisReport(){
@@ -5066,15 +4999,13 @@ Respond with STRICT JSON ONLY, no markdown/code fences: {"applicable":true,"char
             if (!src){ setS('⚠ 공유 PDF가 없습니다 — 상단 📄 PDF 열기로 먼저 업로드하세요.'); return; }
             if (!key){ setS('⚠ Gemini API Key가 필요합니다 (⚙ Settings).'); return; }
             if (typeof geminiFetch !== 'function'){ setS('❌ geminiFetch 헬퍼를 찾지 못했습니다.'); return; }
-            setS('🛰 OFP/FPL 원문 + 기상 데이터를 종합해 리포트 작성 중…');
+            setS('🛰 OFP/FPL 원문을 종합해 리포트 작성 중…');
             const ctx = buildFlightReportContext();
-            const prompt = `You are an airline dispatcher writing a comprehensive Korean-language flight-operations analysis report for a pilot, based on the ATTACHED raw OFP/FPL/dispatch-release text (navigation log, step-climb altitudes, wind/temp table, fuel plan, EDTO/ETP data, SIGWX/turbulence data) plus already-analyzed weather-chart findings and turbulence rows provided below as hints (use them, but ALSO read the raw OFP text yourself for anything they don't cover — altitude steps, jet stream speeds, CB tops, EDTO/ETP alternate airports, shear-rate/SR index values, etc. are usually only in the raw OFP nav log).
+            const prompt = `You are an airline dispatcher writing a comprehensive Korean-language flight-operations analysis report for a pilot, based on the ATTACHED raw OFP/FPL/dispatch-release text (navigation log, step-climb altitudes, wind/temp table, fuel plan, EDTO/ETP data, SIGWX/turbulence data) plus turbulence rows provided below as hints (use them, but ALSO read the raw OFP text yourself for anything they don't cover — altitude steps, jet stream speeds, CB tops, EDTO/ETP alternate airports, shear-rate/SR index values, etc. are usually only in the raw OFP nav log).
 FLIGHT CONTEXT: ${ctx.flight_no}, ${ctx.dep} -> ${ctx.arr}, ${ctx.date_label}, A/C ${ctx.ac_type}/${ctx.ac_reg}, Flight Time ${ctx.flight_time}, Schedule ${ctx.schedule}.
 KNOWN ENROUTE (from Joint tab, may be incomplete): altitude ${ctx.enroute_alt || '?'}, route ${ctx.enroute_route || '?'}, wind ${ctx.enroute_wind || '?'}.
 KNOWN TURBULENCE ROWS (already extracted, elapsed-time-from-departure + detail):
 ${ctx.turbulence}
-KNOWN WEATHER-CHART ANALYSIS (SIGWX/wind charts already analyzed in-app, if any):
-${ctx.chartAnalysis}
 KNOWN FUEL (LBS): final_reserve=${ctx.final_lbs||'?'}, altn=${ctx.altn_lbs||'?'}, trip=${ctx.trip_lbs||'?'}, takeoff_fuel=${ctx.tof_lbs||'?'}. Cruise OAT(C)=${ctx.oat||'?'}.
 
 Write the report in Korean, in EXACTLY this markdown structure (use the literal emoji/headers shown; adapt section COUNT/labels/timing under "## 2" to however many genuinely distinct phases this flight's actual altitude-step/turbulence/wind data supports — do not force a fixed number of stages, and do not invent phases/data not supported by the source; if a sub-item genuinely isn't derivable from the source, write "정보 없음" for it rather than guessing):
@@ -5166,116 +5097,6 @@ RAW OFP/FPL TEXT:
             } finally {
                 if (btn) btn.disabled = false;
             }
-        }
-
-        // ── NOTAM 탭 PDF 생성 ──
-        function buildNotamDocDefinition(){
-            const d = (typeof analysisData !== 'undefined' && analysisData) ? analysisData : {};
-            const r = d.route || {};
-            const notams = Array.isArray(d.notams) ? d.notams : [];
-            const rank = { warning:0, caution:1, advisory:2 };
-            const labelKo = { warning:'MUST KNOW', caution:'NEED TO KNOW', advisory:'GOOD TO KNOW' };
-            const colorKo = { warning:'#C13322', caution:'#B26A00', advisory:'#0E7C8F' };
-            const sorted = notams.slice().sort((a,b) => (rank[a.severity] ?? 9) - (rank[b.severity] ?? 9));
-            const stamp = new Date().toISOString().slice(0,16).replace('T',' ') + 'Z';
-            const content = [];
-            content.push({text:'NOTAM Briefing', color:JB.BLUE, bold:true, fontSize:18});
-            content.push({text:'Generated: ' + stamp, color:JB.GRAY, fontSize:8, margin:[0,2,0,2]});
-            content.push({text:'Note: this PDF font does not support Korean glyphs — the Korean detail/reason text below may not render. Refer to the on-screen NOTAM BRIEFING tab for full Korean text.', italics:true, color:JB.GRAY, fontSize:7, margin:[0,0,0,6]});
-            content.push(jbSecHeader('Route'));
-            content.push({text:`${r.departure||'-'} -> ${r.destination||'-'}` + ((r.alternates && r.alternates.length) ? ' / ALTN ' + r.alternates.join(', ') : ''), fontSize:10, margin:[0,2,0,2]});
-            if (r.etd_utc || r.eta_utc || r.flight_time) content.push({text:`ETD ${r.etd_utc||'-'}Z · ETA ${r.eta_utc||'-'}Z` + (r.flight_time?` · F/T ${r.flight_time}`:''), fontSize:9, color:JB.GRAY, margin:[0,0,0,6]});
-            content.push(jbSecHeader('NOTAM List (' + sorted.length + ')'));
-            if (!sorted.length){
-                content.push({text:'No NOTAMs analyzed yet.', italics:true, color:JB.GRAY, fontSize:9});
-            } else {
-                sorted.forEach(n => {
-                    const sev = n.severity || 'advisory';
-                    content.push({ columns:[
-                        {width:95, text:labelKo[sev]||sev.toUpperCase(), bold:true, color:colorKo[sev]||JB.GRAY, fontSize:8},
-                        {width:'*', text:`[${n.icao||'-'}] ${n.title||n.feature||n.notam_id||''}`, bold:true, fontSize:9}
-                    ], margin:[0,5,0,0]});
-                    if (n.detail) content.push({text:n.detail, fontSize:8.5, color:JB.DARK, margin:[95,0,0,0]});
-                    if (n.valid)  content.push({text:'Valid: ' + n.valid, fontSize:7.5, color:JB.GRAY, margin:[95,0,0,3]});
-                });
-            }
-            content.push({canvas:[{type:'line',x1:0,y1:2,x2:511,y2:2,lineWidth:0.5,lineColor:'#CCCCCC'}], margin:[0,8,0,2]});
-            content.push({text:'Generated: ' + stamp + ' | For Internal Use Only', color:JB.GRAY, fontSize:8});
-            return { pageSize:'A4', pageMargins:[42,42,42,42], content, defaultStyle:{fontSize:9} };
-        }
-        function generateNotamPdf(){
-            const st = document.getElementById('notamPdfStatus');
-            if (typeof pdfMake === 'undefined'){ if (st) st.textContent = '❌ pdfmake 로드 실패 — 온라인 상태에서 새로고침 후 다시 시도'; return; }
-            if (!(typeof analysisData !== 'undefined' && analysisData)){ if (st) st.textContent = '⚠ 분석 결과가 없습니다. 먼저 분석을 실행하세요.'; return; }
-            try {
-                const def = buildNotamDocDefinition();
-                const r = analysisData.route || {};
-                const fname = 'NotamBriefing_' + (r.departure||'DEP') + (r.destination||'DEST') + '_' + new Date().toISOString().slice(0,10) + '.pdf';
-                pdfMake.createPdf(def).download(fname);
-                if (st) st.textContent = '✅ ' + fname + ' 생성됨';
-            } catch(e){ if (st) st.textContent = '❌ 오류: ' + e.message; }
-        }
-
-        // ── Pilot 탭 PDF 생성 (Preflight Briefing + Gate + Pilot Memo) ──
-        function buildPilotDocDefinition(){
-            const g = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
-            const ck = id => { const e = document.getElementById(id); return !!(e && e.checked); };
-            const flt = g('pf_flightno') || g('j_flightno') || '-';
-            const date = g('pf_date') || g('j_date') || '-';
-            const gate = g('pf_gate');
-            const jd = getJointFormData();
-            const chk = v => v ? '[X]' : '[ ]';
-            const content = [];
-            content.push({text:'Pilot Briefing', color:JB.BLUE, bold:true, fontSize:18});
-            content.push({text:`Flight ${flt} · ${date}` + (gate ? ` · GATE ${gate}` : ''), color:JB.GRAY, fontSize:9, margin:[0,2,0,4]});
-            content.push({text:'Note: this PDF font does not support Korean glyphs — any Korean free-text notes below may not render. Refer to the on-screen briefing (PILOT tab) for full Korean text.', italics:true, color:JB.GRAY, fontSize:7, margin:[0,0,0,6]});
-
-            content.push(jbSecHeader('1 · Weather Information (shared with Joint Briefing)'));
-            ['departure','arrival','alternate','enroute'].forEach(k => {
-                content.push(jbWxTitle(jd.wx[k].title));
-                content.push(jbWxRows(jd.wx[k].rows));
-            });
-
-            content.push(jbSecHeader('2 · NOTAM Info'));
-            const notamSumEl = document.getElementById('pf_notam_sum');
-            content.push({text:(notamSumEl ? notamSumEl.textContent : '') || '-', fontSize:9, margin:[0,2,0,2]});
-            if (g('pf_notam_note')) content.push({text:'Note: ' + g('pf_notam_note'), fontSize:8.5, color:JB.GRAY, margin:[0,0,0,4]});
-
-            content.push(jbSecHeader('3 · Operational Flight Plan'));
-            content.push({text:`Flight No ${flt} · Date ${date}`, fontSize:9, margin:[0,2,0,2]});
-            content.push({text: ck('pf_mel_none') ? 'MEL/CDL: none applicable (aircraft normal)' : ('MEL/CDL: ' + (g('pf_mel_detail') || '-')), fontSize:9});
-            if (g('pf_ofp_note')) content.push({text:g('pf_ofp_note'), fontSize:8.5, color:JB.GRAY, margin:[0,2,0,4]});
-
-            content.push(jbSecHeader('4 · ATS Flight Plan Copy'));
-            content.push({text:`${chk(ck('pf_ats_date'))} DATE match    ${chk(ck('pf_ats_route'))} ROUTE match    ${chk(ck('pf_rvsm'))} RVSM approved`, fontSize:9});
-            if (g('pf_auth_other')) content.push({text:'Other authorization: ' + g('pf_auth_other'), fontSize:8.5, color:JB.DARK});
-            content.push({text:`${chk(ck('pf_overfly'))} Overfly Permit    ${chk(ck('pf_asd'))} ASD    ${chk(ck('pf_landing_permit'))} Landing Permit`, fontSize:9, margin:[0,2,0,4]});
-
-            content.push(jbSecHeader('5 · Other Operational Notes'));
-            content.push({text:g('pf_other') || '-', fontSize:9, margin:[0,2,0,4]});
-
-            content.push(jbSecHeader('Pilot Memo'));
-            content.push(jbWxTitle('A. Fuel Calculation (Units: LBS, No Rounding Up)'));
-            content.push(jbFuelTable(jComputeFuel()));
-            content.push(jbWxTitle('B. Required Minimum Oil'));
-            content.push(jbOilTable(jComputeOil()));
-
-            content.push({canvas:[{type:'line',x1:0,y1:2,x2:511,y2:2,lineWidth:0.5,lineColor:'#CCCCCC'}], margin:[0,8,0,2]});
-            content.push({text:'Generated: ' + new Date().toISOString().slice(0,16).replace('T',' ') + 'Z', color:JB.GRAY, fontSize:8});
-            return { pageSize:'A4', pageMargins:[42,42,42,42], content, defaultStyle:{fontSize:9} };
-        }
-        function generatePilotPdf(){
-            const st = document.getElementById('pilotPdfStatus');
-            if (typeof pdfMake === 'undefined'){ if (st) st.textContent = '❌ pdfmake 로드 실패 — 온라인 상태에서 새로고침 후 다시 시도'; return; }
-            try {
-                recalcJointMemo();
-                const def = buildPilotDocDefinition();
-                const flt = ((document.getElementById('pf_flightno') && document.getElementById('pf_flightno').value) || (document.getElementById('j_flightno') && document.getElementById('j_flightno').value) || 'FLIGHT').replace(/\s+/g,'');
-                const date = (document.getElementById('pf_date') && document.getElementById('pf_date').value) || (document.getElementById('j_date') && document.getElementById('j_date').value) || '';
-                const fname = 'PilotBriefing_' + flt + '_' + date + '.pdf';
-                pdfMake.createPdf(def).download(fname);
-                if (st) st.textContent = '✅ ' + fname + ' 생성됨';
-            } catch(e){ if (st) st.textContent = '❌ 오류: ' + e.message; }
         }
 
         function initJoint(){ setJointAlert('BLUE'); setTurbRows([]); recalcJointMemo(); renderJointSummaryNote(); renderGateTriangle(); try { renderPilotFlightInfo(); renderPilotWeather(); } catch(_){} }
