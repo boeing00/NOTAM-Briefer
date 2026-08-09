@@ -3321,6 +3321,23 @@ TEXT:
             return s.slice(start, end).replace(/\s+/g,' ').trim();
         }
         function isSubseq(a, b){ let i = 0; for (let j = 0; j < b.length && i < a.length; j++){ if (b[j] === a[i]) i++; } return i === a.length; }
+        function looksAirwayTok(t){ return /^[A-Z]{1,3}\d{1,4}$/.test(t || ''); }
+        // FPL Field 15는 항로상 모든 리포팅포인트를 나열하지만, 서술형(Page 2) 항로는
+        // 같은 항로(airway)를 계속 타고 가는 중간 지점 이름을 생략하고 항로명만 한 번 적을 때가 많음
+        // — 예) "…R580 MAKMU R580 OPHET R580…" 처럼 같은 항로가 앞뒤로 반복되며 그 사이에 지점 하나씩
+        // 끼어있는 패턴은 실제로는 그 항로 위의 중간 지점일 뿐, 항로가 어긋난 게 아님 → 접어서 비교.
+        function collapseSameAirwayHops(tokens){
+            const t = tokens.slice();
+            let i = 0;
+            while (i <= t.length - 3){
+                if (t[i] === t[i+2] && looksAirwayTok(t[i]) && !looksAirwayTok(t[i+1])){
+                    t.splice(i+1, 2);   // 중간 지점 + 반복된 항로명 제거, 앞의 항로명만 유지
+                    continue;           // 같은 위치에서 재검사(연쇄 반복 대비 — R580 MAKMU R580 OPHET R580 등)
+                }
+                i++;
+            }
+            return t;
+        }
         function compareTokens(a, b){
             if (!a.length || !b.length) return { status:'none' };
             const eq = a.length === b.length && a.every((x,i) => x === b[i]);
@@ -3337,8 +3354,8 @@ TEXT:
             let bStr = extractNarrativeRoute(srcText, fpl) || '';
             let bLabel = bStr ? 'Page 2 항로내용' : '';
             if (!bStr && route && route.route_string){ bStr = route.route_string; bLabel = 'AI 추출 route_string'; }
-            const aTok = trimEnds(tokenizeRoute(aStr), fpl);
-            const bTok = trimEnds(tokenizeRoute(bStr), fpl);
+            const aTok = collapseSameAirwayHops(trimEnds(tokenizeRoute(aStr), fpl));
+            const bTok = collapseSameAirwayHops(trimEnds(tokenizeRoute(bStr), fpl));
             return { fpl:!!fpl, aStr, bStr, bLabel, aTok, bTok, cmp: compareTokens(aTok, bTok), have: !!(aStr && bStr) };
         }
         function renderRouteCheck(chk){
@@ -3371,10 +3388,15 @@ TEXT:
             const out = $('xcheckOut'); if (!out) return;
             const src = ($('packageInput') && $('packageInput').value) || '';
             const fpl = extractFplRoute(src);
-            const a = trimEnds(tokenizeRoute($('xcheckA').value), fpl);
-            const b = trimEnds(tokenizeRoute($('xcheckB').value), fpl);
+            const aRaw = trimEnds(tokenizeRoute($('xcheckA').value), fpl);
+            const bRaw = trimEnds(tokenizeRoute($('xcheckB').value), fpl);
+            const a = collapseSameAirwayHops(aRaw);
+            const b = collapseSameAirwayHops(bRaw);
             if (!a.length || !b.length){ out.innerHTML = `<div class="rchk rchk--warn" style="margin:0">대조하려면 양쪽 항로를 모두 입력하세요.</div>`; return; }
             const cmp = compareTokens(a, b);
+            const foldedNote = (aRaw.length !== a.length || bRaw.length !== b.length)
+                ? `<p class="jnote">↺ 같은 항로가 앞뒤로 반복되며 그 사이에 낀 리포팅포인트는 접어서 비교했습니다 (①${aRaw.length}→${a.length}지점, ②${bRaw.length}→${b.length}지점) — 항로가 어긋난 게 아니라 서술형 표기가 중간 지점을 생략했을 뿐입니다.</p>`
+                : '';
             const rowHtml = (label, arr, other) => {
                 const toks = arr.map((t,i) => `<span class="xtok ${other[i]===t?'xtok--ok':'xtok--bad'}">${escapeHtml(t)}</span>`).join('');
                 return `<div class="xrow"><span class="xrow__lab">${label} · ${arr.length}지점</span>${toks}</div>`;
@@ -3385,7 +3407,7 @@ TEXT:
             else verdict = `<span class="xverdict" style="background:rgba(240,85,79,.15);color:var(--red)">⚠ 불일치 · ${cmp.div>=0?`${cmp.div+1}번째 지점부터 상이`:'지점 구성 상이'}</span>`;
             const diff = ((cmp.onlyA && cmp.onlyA.length) ? `<p class="xrow__lab">①에만: ${cmp.onlyA.map(escapeHtml).join(', ')}</p>` : '')
                        + ((cmp.onlyB && cmp.onlyB.length) ? `<p class="xrow__lab">②에만: ${cmp.onlyB.map(escapeHtml).join(', ')}</p>` : '');
-            out.innerHTML = verdict + rowHtml('① FPL Field 15', a, b) + rowHtml('② 대조 대상', b, a) + diff;
+            out.innerHTML = verdict + foldedNote + rowHtml('① FPL Field 15', a, b) + rowHtml('② 대조 대상', b, a) + diff;
         }
 
         // 내 FPL 항로 토큰 집합(웨이포인트·항로만; 좌표/공항코드 제외)
