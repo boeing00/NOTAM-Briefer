@@ -4277,15 +4277,6 @@ Features to locate: ${JSON.stringify(features)}`;
             if (!txt) return '';
             return escapeHtml(txt).replace(/(OVC00[0-4]|BKN00[0-3]|VV00[0-4]|TEMPO|BECMG|\bTS\b|CB|\bFG\b|\bBR\b|SHRA|\+RA|GR|\bFZ\w*|LVP|RVR\s?\d+|SEV)/gi, '<span class="hi">$1</span>');
         }
-        function jTurbCell(time, detail){
-            if (!time && !detail) return '';
-            const d = detail || '';
-            let dd;
-            if (/\bSEV(ERE)?\b/i.test(d)) dd = `<span class="sev">${escapeHtml(d)}</span>`;
-            else if (/\bMOD(ERATE)?\b/i.test(d)) dd = escapeHtml(d); // MODERATE — 기본 스타일
-            else dd = `<span class="sev-light">${escapeHtml(d)}</span>`; // LIGHT뿐인 항목 — 옅게 (turbSeverityOk를 통과했으므로 여기 도달하면 LIGHT류로 간주)
-            return `${escapeHtml(time || '')}${detail ? ': ' + dd : ''}`;
-        }
         // ── Expected Turbulence: 구간 수 제한 없는 동적 행 (CFP/OFP의 waypoint별 SIGWX 구간을 있는 만큼 다 기입) ──
         function addTurbRow(time, detail){
             const list = document.getElementById('turbList'); if (!list) return;
@@ -4327,11 +4318,61 @@ Features to locate: ${JSON.stringify(features)}`;
             if (tn) return `최저 ${tn}°`;
             return '';
         }
+        // detail 텍스트에서 심각도 등급 판정 (jTurbCell 강조, turbSeverityOk 필터, 요약문 버킷 분류가 모두 공유)
+        function turbSeverityLevel(detail){
+            const d = (detail || '').toUpperCase();
+            if (/\bSEV(ERE)?\b/.test(d)) return 'severe';
+            if (/\bMOD(ERATE)?\b/.test(d)) return 'moderate';
+            if (/\bLIGHT\b|\bLGT\b|\bLT\b|\bCHOP\b|\bTURB/.test(d)) return 'light';
+            return null;
+        }
         // Expected Turbulence: LIGHT 이상만 요약/PDF에 반영 (NIL/SMOOTH/CALM 등은 제외, 심각도 표현이 없는 항목도 제외)
         function turbSeverityOk(detail){
             const d = (detail || '').toUpperCase();
             if (/\bNIL\b|\bNONE\b|\bSMOOTH\b|\bCALM\b|NO\s+(SIGNIFICANT\s+)?TURB/.test(d)) return false;
-            return /\bLIGHT\b|\bLGT\b|\bLT\b|\bMOD(ERATE)?\b|\bSEV(ERE)?\b|\bCHOP\b|\bTURB/.test(d);
+            return turbSeverityLevel(detail) !== null;
+        }
+        // "Around +1:10" / "+1:10" / "1시간 10분" 등에서 이륙 후 경과분(정수)을 뽑아냄
+        function parseElapsedMin(s){
+            s = (s || '').trim();
+            let m = /(\d{1,2}):(\d{2})/.exec(s);
+            if (m) return parseInt(m[1],10)*60 + parseInt(m[2],10);
+            m = /(\d{1,2})\s*시간(?:\s*(\d{1,2})\s*분)?/.exec(s);
+            if (m) return parseInt(m[1],10)*60 + (m[2] ? parseInt(m[2],10) : 0);
+            return null;
+        }
+        function fmtElapsedHM(min){
+            if (min == null) return '';
+            const h = Math.floor(min/60), m = min % 60;
+            return m ? `${h}시간 ${m}분` : `${h}시간`;
+        }
+        // Joint Summary 노트용 — 개별 구간 나열 대신 "이륙후 X~Y LIGHT TURB 예상, Y~Z MODERATE TO SEVERE TURB 예상"
+        // 식으로 LIGHT / MODERATE-TO-SEVERE 두 구간으로만 뭉쳐서 표시 (turbList의 상세 지리정보는 Joint PDF·편집 화면에 그대로 남음)
+        function summarizeTurbulenceText(){
+            const parsed = getTurbRows()
+                .filter(t => turbSeverityOk(t.detail))
+                .map(t => ({ startMin: parseElapsedMin(t.time), lvl: turbSeverityLevel(t.detail) }))
+                .filter(t => t.startMin != null)
+                .sort((a,b) => a.startMin - b.startMin);
+            if (!parsed.length) return '';
+            const bucketOf = lvl => (lvl === 'moderate' || lvl === 'severe') ? 'MODERATE TO SEVERE TURB' : 'LIGHT TURB';
+            const ranges = [];
+            parsed.forEach(p => {
+                const bucket = bucketOf(p.lvl);
+                const last = ranges[ranges.length - 1];
+                if (last && last.bucket === bucket) return; // 같은 구간이 이어짐 — 시작시간 유지
+                ranges.push({ bucket, startMin: p.startMin, endMin: null });
+            });
+            const ftH = jFlightHours(), totalMin = ftH > 0 ? Math.round(ftH*60) : null;
+            for (let i = 0; i < ranges.length; i++){
+                ranges[i].endMin = (i+1 < ranges.length) ? ranges[i+1].startMin : totalMin;
+            }
+            const parts = ranges.map(r => {
+                const end = r.endMin != null ? fmtElapsedHM(r.endMin) : '도착';
+                const text = `${fmtElapsedHM(r.startMin)}~${end} ${r.bucket} 예상`;
+                return r.bucket === 'LIGHT TURB' ? `<span class="sev-light">${escapeHtml(text)}</span>` : `<span class="sev">${escapeHtml(text)}</span>`;
+            });
+            return '이륙후 ' + parts.join(', ');
         }
         function koreanWxSummary(sky, cond, temp){
             const t = ((sky||'') + ' ' + (cond||'')).toUpperCase();
@@ -4419,14 +4460,14 @@ Features to locate: ${JSON.stringify(features)}`;
             const dep = g('j_dep') || 'DEP', arr = g('j_arr') || 'ARR';
             const depDesc = koreanWxSummary(g('j_wx_dep_sky'), g('j_wx_dep_cond'), jTempKo(g('j_wx_dep_tx'), g('j_wx_dep_tn')));
             const arrDesc = koreanWxSummary(g('j_wx_arr_sky'), g('j_wx_arr_cond'), jTempKo(g('j_wx_arr_tx'), g('j_wx_arr_tn')));
-            const turbCells = getTurbRows().filter(t => turbSeverityOk(t.detail)).map(t => jTurbCell(t.time, t.detail)).filter(Boolean);
+            const turbSummary = summarizeTurbulenceText();
             const gate = g('pf_gate');
             const em = v => v ? v : '<span class="empty">—</span>';
             let html = '';
             html += `<div class="t">✈️ 비행 브리핑: ${escapeHtml(flt)}</div>`;
             html += `<div class="blk"><span class="h">■ 비행시간:</span> <span class="ftemph">✓ ${escapeHtml(ft)}</span>` + (eta ? ` · 도착예정(Local) ${escapeHtml(eta)}` : etaZOnly ? ` · <span class="empty">도착예정 ${escapeHtml(etaZOnly)}</span>` : ' · <span class="empty">도착예정시간 미상 — ETD(Z)/ETA(Z) 확인 필요</span>') + `</div>`;
             html += `<div class="blk"><span class="h">■ 날씨:</span><br>- ${escapeHtml(dep)}: ${em(escapeHtml(depDesc))}<br>- ${escapeHtml(arr)}: ${em(escapeHtml(arrDesc))}</div>`;
-            html += `<div class="blk"><span class="h">■ 난기류:</span><br>` + (turbCells.length ? turbCells.map(c => `- ${c}`).join('<br>') : `- ${em('')}`) + `</div>`;
+            html += `<div class="blk"><span class="h">■ 난기류:</span> ${turbSummary || em('')}</div>`;
             if (gate) html += `<div class="blk"><span class="h">■ GATE:</span> ${escapeHtml(gate)}</div>`;
             html += `<div class="sig">안전 비행! _ 기장</div>`;
             el.innerHTML = html;
