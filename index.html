@@ -775,7 +775,19 @@
                         <summary>Summary</summary>
                         <div class="jcard__body">
                             <div class="jbtnrow"><button class="btn btn--sm btn--cyan" onclick="autoJointSummary()">↻ 요약 노트 생성</button></div>
-                            <div id="jSummaryNote" class="jsum-paper"></div>
+                            <div style="display:flex;gap:.8rem;align-items:flex-start;flex-wrap:wrap">
+                                <div id="jSummaryNote" class="jsum-paper" style="flex:1 1 240px"></div>
+                                <div class="jfield" style="flex:0 0 auto;max-width:170px">
+                                    <label>Security Alert Level (미지정 시 BLUE)</label>
+                                    <div class="jalert" id="jAlertRow" style="flex-direction:column">
+                                        <button class="jalert__b" data-lvl="GREEN"  onclick="setJointAlert('GREEN')">GREEN</button>
+                                        <button class="jalert__b" data-lvl="BLUE"   onclick="setJointAlert('BLUE')">BLUE</button>
+                                        <button class="jalert__b" data-lvl="YELLOW" onclick="setJointAlert('YELLOW')">YELLOW</button>
+                                        <button class="jalert__b" data-lvl="ORANGE" onclick="setJointAlert('ORANGE')">ORANGE</button>
+                                        <button class="jalert__b" data-lvl="RED"    onclick="setJointAlert('RED')">RED</button>
+                                    </div>
+                                </div>
+                            </div>
                             <details class="jsum-edit">
                                 <summary>요약 텍스트 (PDF·Chat용 · 편집)</summary>
                                 <div class="jfield"><label>운항승무원 소개</label><textarea id="j_crew_intro" class="jinput" rows="2" placeholder="예: 기장 김민수 / 부기장 이영희 / 사무장 박지현" oninput="renderJointSummaryNote()"></textarea></div>
@@ -805,16 +817,6 @@
                                 <div class="jfield"><label>DEP UTC±</label><input id="j_dep_off" class="jinput" placeholder="+9:00" oninput="renderJointSummaryNote(); renderPilotWeather();"></div>
                                 <div class="jfield"><label>ETA (Z/UTC)</label><input id="j_eta_z" class="jinput" placeholder="01:09 (비어있으면 ETD+비행시간으로 추정)" oninput="renderJointSummaryNote(); renderPilotWeather();"></div>
                                 <div class="jfield"><label>ARR UTC±</label><input id="j_arr_off" class="jinput" placeholder="-7:00" oninput="renderJointSummaryNote(); renderPilotWeather();"></div>
-                            </div>
-                            <div class="jfield">
-                                <label>Security Alert Level (미지정 시 BLUE)</label>
-                                <div class="jalert" id="jAlertRow">
-                                    <button class="jalert__b" data-lvl="GREEN"  onclick="setJointAlert('GREEN')">GREEN</button>
-                                    <button class="jalert__b" data-lvl="BLUE"   onclick="setJointAlert('BLUE')">BLUE</button>
-                                    <button class="jalert__b" data-lvl="YELLOW" onclick="setJointAlert('YELLOW')">YELLOW</button>
-                                    <button class="jalert__b" data-lvl="ORANGE" onclick="setJointAlert('ORANGE')">ORANGE</button>
-                                    <button class="jalert__b" data-lvl="RED"    onclick="setJointAlert('RED')">RED</button>
-                                </div>
                             </div>
                         </div>
                     </details>
