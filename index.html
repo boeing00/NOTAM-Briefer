@@ -401,7 +401,9 @@
         .jfield>label{font-family:"IBM Plex Mono";font-size:.64rem;letter-spacing:.07em;color:var(--muted);text-transform:uppercase}
         .jinput{font-family:"IBM Plex Mono";font-size:.78rem;color:var(--text);background:#FFFDF8;border:1px solid var(--line);border-radius:8px;padding:.5rem .6rem;outline:none;width:100%}
         .jinput:focus{border-color:var(--cyan-dim)}
-        textarea.jinput{resize:vertical;line-height:1.55}
+        /* 여러 줄 입력창(요약/메모/원문 붙여넣기 등)은 테두리·모서리 박스를 없애 "팝업창" 느낌을 제거 — 배경색만 유지해 편집 영역은 구분되게 함 */
+        textarea.jinput{resize:vertical;line-height:1.55;border:none;border-radius:0;box-shadow:none}
+        textarea.jinput:focus{outline:2px solid var(--cyan-dim);outline-offset:1px}
         .jcard{border:1px solid var(--line);border-radius:12px;background:var(--raised);overflow:hidden}
         .jcard>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:.5rem;padding:.7rem .9rem;
             background:linear-gradient(180deg,#FBF8F1,#F5F0E5);
@@ -750,10 +752,6 @@
                                 <summary>요약 텍스트 (PDF·Chat용 · 편집)</summary>
                                 <textarea id="j_summary" class="jinput" rows="3" placeholder="편명 · 구간 · 핵심 기상 · Alert Level 요점 (요약 노트 생성 시 자동 작성 · 편집 가능)"></textarea>
                             </details>
-                            <div class="jfield" style="margin-top:.5rem">
-                                <label>비행시간 (요약 노트 전용 · 조정 시 즉시 반영)</label>
-                                <input id="j_sum_ft" class="jinput" placeholder="비워두면 Flight Information의 값 사용" style="max-width:240px" oninput="renderJointSummaryNote()">
-                            </div>
                         </div>
                     </details>
 
@@ -852,58 +850,58 @@
 
                     <!-- 3) Security (고정) -->
                     <details class="jcard">
-                        <summary>Security · 고정</summary>
+                        <summary>보안(Security) · 고정</summary>
                         <div class="jcard__body jfixed">
-                            <ul><li>Emphasize that all crew are security staff.</li></ul>
-                            <p class="jnote">Alert Level 은 Flight Information 에서 선택 (기본 BLUE) — PDF에 5버튼으로 표시됩니다.</p>
-                            <div class="jsub">Cockpit Entry Procedure (Two-Crew Rule)</div>
+                            <ul><li>모든 승무원이 보안 요원임을 강조합니다.</li></ul>
+                            <p class="jnote">Alert Level은 Flight Information에서 선택 (기본 BLUE) — PDF에 5버튼으로 표시됩니다.</p>
+                            <div class="jsub">조종실 출입 절차 (2인 규정)</div>
                             <ul>
-                                <li>Intercom call → Authorization by flight crew (pre-arranged code word if required by PIC)</li>
-                                <li>Flight crew may request crew member's name if in doubt – names can be confirmed during Joint Briefing</li>
-                                <li>Cabin crew must confirm no passenger is in the Clear Zone</li>
-                                <li>Close curtain in front of cockpit door → pre-arranged knocks → enter normal access code on keypad</li>
-                                <li>A cabin crew must be present at cockpit door to monitor entry/exit status</li>
-                                <li>Cockpit door unlocked via Flight Deck Door Lock Panel (Boeing) / Cockpit Door Control Panel (Airbus), or manually after camera/peep hole check</li>
+                                <li>인터폰 호출 → 운항승무원의 승인 (필요 시 기장이 지정한 사전 암호 사용)</li>
+                                <li>운항승무원은 의심스러운 경우 객실승무원의 이름을 확인 요청할 수 있음 – 이름은 합동 브리핑 중 확인 가능</li>
+                                <li>객실승무원은 클리어존(Clear Zone)에 승객이 없음을 확인해야 함</li>
+                                <li>조종실 문 앞 커튼 폐쇄 → 사전 약속된 노크 → 키패드에 정상 출입 코드 입력</li>
+                                <li>출입 상태 감시를 위해 객실승무원 1명이 조종실 문 앞에 대기해야 함</li>
+                                <li>조종실 문은 Flight Deck Door Lock Panel(보잉) / Cockpit Door Control Panel(에어버스)로 잠금 해제하거나, 카메라·피프홀 확인 후 수동으로 개방</li>
                             </ul>
-                            <div class="jsub">Emergency Alert Signal</div>
-                            <ul><li>Push "EMER" – Interphone call to cockpit is strictly prohibited during sterile phase</li></ul>
+                            <div class="jsub">비상 경보 신호</div>
+                            <ul><li>"EMER" 버튼 작동 – Sterile 단계 중 조종실로의 인터폰 호출은 엄격히 금지됨</li></ul>
                         </div>
                     </details>
 
                     <!-- 4) Sterile Cockpit (고정) -->
                     <details class="jcard">
-                        <summary>Sterile Cockpit Procedure · 고정</summary>
+                        <summary>Sterile Cockpit 절차 · 고정</summary>
                         <div class="jcard__body jfixed"><ul>
-                            <li>Below 10,000 feet – No non-essential communication</li>
-                            <li>Emergency Alert Signal: Push EMER only for genuine emergencies</li>
+                            <li>10,000ft 이하 – 불필요한 교신 금지</li>
+                            <li>비상 경보 신호: 실제 비상 상황에서만 EMER 버튼 작동</li>
                         </ul></div>
                     </details>
 
                     <!-- 5) Emergency (고정) -->
                     <details class="jcard">
-                        <summary>Emergency Procedure · 고정</summary>
+                        <summary>비상 절차(Emergency) · 고정</summary>
                         <div class="jcard__body jfixed">
-                            <div class="jsub">Rejected Takeoff</div>
+                            <div class="jsub">이륙 중단 (Rejected Takeoff)</div>
                             <ul>
-                                <li>Remain at jump seat with harness fastened until aircraft completely stopped</li>
-                                <li>Await PIC announcement before any action</li>
+                                <li>항공기가 완전히 정지할 때까지 하네스를 착용한 채 점프시트에서 대기</li>
+                                <li>어떠한 조치도 취하기 전에 기장의 방송(Announcement)을 기다림</li>
                             </ul>
-                            <div class="jsub">PA &amp; Evacuation Signal</div>
+                            <div class="jsub">PA 및 비상탈출 신호</div>
                             <table class="jtbl">
-                                <thead><tr><th>PIC Announcement</th><th>Cabin Crew Judgment</th><th>Cabin Crew Procedures</th></tr></thead>
+                                <thead><tr><th>기장 방송(PIC Announcement)</th><th>객실승무원 판단</th><th>객실승무원 절차</th></tr></thead>
                                 <tbody>
-                                    <tr><td>"This is the Captain" / "Remain seated, remain seated."</td><td>Not necessary to execute emergency evacuation.</td><td>Hold each original position to prepare subsequent mission.</td></tr>
-                                    <tr><td>"Attention, crew at station."</td><td>Expected to execute emergency evacuation.</td><td>Prepare emergency evacuation at each original position.</td></tr>
-                                    <tr><td>"This is the Captain. Evacuate, evacuate!"</td><td>Mandatory to execute emergency evacuation.</td><td>Conduct passenger's emergency evacuation.</td></tr>
+                                    <tr><td>"This is the Captain" / "Remain seated, remain seated."</td><td>비상탈출 실시 불필요</td><td>각자 위치를 유지하며 다음 임무 준비</td></tr>
+                                    <tr><td>"Attention, crew at station."</td><td>비상탈출 실시 예상</td><td>각자 위치에서 비상탈출 준비</td></tr>
+                                    <tr><td>"This is the Captain. Evacuate, evacuate!"</td><td>비상탈출 실시 필수</td><td>승객 비상탈출 진행</td></tr>
                                 </tbody>
                             </table>
-                            <div class="jsub">Brace Signal (Below 1,000 ft AGL – approx. 1 min before landing)</div>
+                            <div class="jsub">브레이스 신호 (지상 1,000ft 이하 – 착륙 약 1분 전)</div>
                             <table class="jtbl">
-                                <thead><tr><th>Flight Crew</th><th>Cabin Crew</th></tr></thead>
+                                <thead><tr><th>운항승무원</th><th>객실승무원</th></tr></thead>
                                 <tbody>
-                                    <tr><td>Brace Signal: Cycle the seat belt sign (4 times chime bell) / PA: "Brace for impact, Brace for impact."</td><td>Shouting "Brace" – Fasten seat belt and harness, brace for impact until aircraft completely stopped.</td></tr>
-                                    <tr><td>Emergency Light / Emergency Exit Light: ON</td><td>Passenger Cabin Emergency Light: ON (at the appropriate time)</td></tr>
-                                    <tr><td colspan="2">Turn on the emergency light to assist in passenger evacuation.</td></tr>
+                                    <tr><td>브레이스 신호: 좌석벨트 사인 4회 점멸 / PA: "Brace for impact, Brace for impact."</td><td>"Brace" 외침 – 좌석벨트·하네스 착용, 항공기가 완전히 정지할 때까지 대비 자세 유지</td></tr>
+                                    <tr><td>비상등 / 비상구 조명: ON</td><td>객실 비상조명: ON (적절한 시점에)</td></tr>
+                                    <tr><td colspan="2">승객 비상탈출을 돕기 위해 비상조명을 켭니다.</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -4047,9 +4045,11 @@ Features to locate: ${JSON.stringify(features)}`;
                         wrow('Visibility', jgv('j_wx_alt_vis')), wrow('Conditions', jgv('j_wx_alt_cond')) ] },
                     enroute: { title: 'Enroute', rows: [
                         wrow('Altitude', jgv('j_wx_enr_alt')), wrow('Route', jgv('j_wx_enr_route')) ] },
-                    turbulence: { title: 'Expected Turbulence', rows: [
-                        ...(getTurbRows().length ? getTurbRows().map(t => [ t.time || '–', t.detail || '–' ]) : [[ '–', '–' ]]),
-                        [ 'Pax Safety', 'Turn on Seat Belt Sign before entering CB areas – PA announcement required' ] ] }
+                    turbulence: { title: 'Expected Turbulence', rows: (() => {
+                        const t = getTurbRows().filter(t => turbSeverityOk(t.detail));
+                        return [ ...(t.length ? t.map(r => [ r.time || '–', r.detail || '–' ]) : [[ '–', '–' ]]),
+                            [ 'Pax Safety', 'Turn on Seat Belt Sign before entering CB areas – PA announcement required' ] ];
+                    })() }
                 }
             };
         }
@@ -4256,12 +4256,27 @@ Features to locate: ${JSON.stringify(features)}`;
         }
         // 기상 원문(Sky/Conditions) → 한국어 요약 서술어(눈/비/안개/흐림/구름조금/맑음) + 온도
         // TX(최고)/TN(최저) 두 값을 하나의 표시 문자열로 결합 (하나만 있어도 표시)
+        // PDF 표(영문, pdfmake 기본 폰트는 한글 미지원)에 쓰는 TX/TN 표기 — 절대 한글로 바꾸지 말 것
         function jTempStr(tx, tn){
             tx = (tx||'').trim(); tn = (tn||'').trim();
             if (tx && tn) return `TX ${tx} / TN ${tn}`;
             if (tx) return `TX ${tx}`;
             if (tn) return `TN ${tn}`;
             return '';
+        }
+        // Joint Summary 노트(화면 전용, 손글씨 스타일) 표기 — 한글 라벨 사용 가능
+        function jTempKo(tx, tn){
+            tx = (tx||'').trim(); tn = (tn||'').trim();
+            if (tx && tn) return `최고 ${tx}° / 최저 ${tn}°`;
+            if (tx) return `최고 ${tx}°`;
+            if (tn) return `최저 ${tn}°`;
+            return '';
+        }
+        // Expected Turbulence: LIGHT 이상만 요약/PDF에 반영 (NIL/SMOOTH/CALM 등은 제외, 심각도 표현이 없는 항목도 제외)
+        function turbSeverityOk(detail){
+            const d = (detail || '').toUpperCase();
+            if (/\bNIL\b|\bNONE\b|\bSMOOTH\b|\bCALM\b|NO\s+(SIGNIFICANT\s+)?TURB/.test(d)) return false;
+            return /\bLIGHT\b|\bLGT\b|\bLT\b|\bMOD(ERATE)?\b|\bSEV(ERE)?\b|\bCHOP\b|\bTURB/.test(d);
         }
         function koreanWxSummary(sky, cond, temp){
             const t = ((sky||'') + ' ' + (cond||'')).toUpperCase();
@@ -4330,10 +4345,10 @@ Features to locate: ${JSON.stringify(features)}`;
             if (!et.etdZ && !et.etaZ) return '';
             const dep = jgv('j_dep') || 'DEP', arr = jgv('j_arr') || 'ARR';
             const depPart = et.etdZ
-                ? `${dep} ${et.etdZ}Z` + (et.etdLocal ? ` / ${et.etdLocal}${fmtDayShift(et.etdLocalDayShift)} Local` : '')
+                ? `${dep} ${et.etdZ}Z` + (et.etdLocal ? ` / ${et.etdLocal}${fmtDayShift(et.etdLocalDayShift)} Local` : ' (Local 계산 불가 — DEP UTC± 필요)')
                 : dep;
             const arrPart = et.etaZ
-                ? `${arr} ${et.etaZ}Z${fmtDayShift(et.etaZDayShift)}` + (et.etaLocal ? ` / ${et.etaLocal}${fmtDayShift(et.etaLocalDayShift)} Local` : '') + (et.etaDerived ? ' (est.)' : '')
+                ? `${arr} ${et.etaZ}Z${fmtDayShift(et.etaZDayShift)}` + (et.etaLocal ? ` / ${et.etaLocal}${fmtDayShift(et.etaLocalDayShift)} Local` : ' (Local 계산 불가 — ARR UTC± 필요)') + (et.etaDerived ? ' (est.)' : '')
                 : arr;
             return `${depPart} > ${arrPart}`;
         }
@@ -4341,19 +4356,20 @@ Features to locate: ${JSON.stringify(features)}`;
             const el = document.getElementById('jSummaryNote'); if (!el) return;
             const g = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
             const flt = (g('j_flightno') || 'OZ ----').replace(/\s+/g, '');
-            const ft = g('j_sum_ft') || g('j_ft') || '--:--';
-            const sumFtOverride = g('j_sum_ft') || g('j_ft'); // 빈 문자열이면 undefined로 넘겨 jFlightHours()의 ETD/ETA-Z 역산 폴백을 타게 함
-            const et = computeEtdEta(sumFtOverride || undefined);
+            const ft = g('j_ft') || '--:--';
+            const et = computeEtdEta(g('j_ft') || undefined); // 빈 문자열이면 undefined로 넘겨 jFlightHours()의 ETD/ETA-Z 역산 폴백을 타게 함
             const eta = et.etaLocal ? `${et.etaLocal}${fmtDayShift(et.etaLocalDayShift)}${et.etaDerived ? ' (est.)' : ''}` : '';
+            // Z는 있는데 ARR UTC±가 없어서 Local만 못 구한 경우 — "미상"이 아니라 Z값이라도 명확히 보여줌
+            const etaZOnly = (!eta && et.etaZ) ? `${et.etaZ}Z${fmtDayShift(et.etaZDayShift)} (Local 계산 불가 — ARR UTC± 필요)` : '';
             const dep = g('j_dep') || 'DEP', arr = g('j_arr') || 'ARR';
-            const depDesc = koreanWxSummary(g('j_wx_dep_sky'), g('j_wx_dep_cond'), jTempStr(g('j_wx_dep_tx'), g('j_wx_dep_tn')));
-            const arrDesc = koreanWxSummary(g('j_wx_arr_sky'), g('j_wx_arr_cond'), jTempStr(g('j_wx_arr_tx'), g('j_wx_arr_tn')));
-            const turbCells = getTurbRows().map(t => jTurbCell(t.time, t.detail)).filter(Boolean);
+            const depDesc = koreanWxSummary(g('j_wx_dep_sky'), g('j_wx_dep_cond'), jTempKo(g('j_wx_dep_tx'), g('j_wx_dep_tn')));
+            const arrDesc = koreanWxSummary(g('j_wx_arr_sky'), g('j_wx_arr_cond'), jTempKo(g('j_wx_arr_tx'), g('j_wx_arr_tn')));
+            const turbCells = getTurbRows().filter(t => turbSeverityOk(t.detail)).map(t => jTurbCell(t.time, t.detail)).filter(Boolean);
             const gate = g('pf_gate');
             const em = v => v ? v : '<span class="empty">—</span>';
             let html = '';
             html += `<div class="t">✈️ 비행 브리핑: ${escapeHtml(flt)}</div>`;
-            html += `<div class="blk"><span class="h">■ 비행시간:</span> <span class="ftemph">✓ ${escapeHtml(ft)}</span>` + (eta ? ` · 도착예정(Local) ${escapeHtml(eta)}` : ' · <span class="empty">도착예정시간 미상 — ETD(Z)/ETA(Z) 확인 필요</span>') + `</div>`;
+            html += `<div class="blk"><span class="h">■ 비행시간:</span> <span class="ftemph">✓ ${escapeHtml(ft)}</span>` + (eta ? ` · 도착예정(Local) ${escapeHtml(eta)}` : etaZOnly ? ` · <span class="empty">도착예정 ${escapeHtml(etaZOnly)}</span>` : ' · <span class="empty">도착예정시간 미상 — ETD(Z)/ETA(Z) 확인 필요</span>') + `</div>`;
             html += `<div class="blk"><span class="h">■ 날씨:</span><br>- ${escapeHtml(dep)}: ${em(escapeHtml(depDesc))}<br>- ${escapeHtml(arr)}: ${em(escapeHtml(arrDesc))}</div>`;
             html += `<div class="blk"><span class="h">■ 난기류:</span><br>` + (turbCells.length ? turbCells.map(c => `- ${c}`).join('<br>') : `- ${em('')}`) + `</div>`;
             if (gate) html += `<div class="blk"><span class="h">■ GATE:</span> ${escapeHtml(gate)}</div>`;
@@ -4467,7 +4483,7 @@ Features to locate: ${JSON.stringify(features)}`;
             if (!key){ setS('⚠ Gemini API Key가 필요합니다 — 상단 헤더에서 입력 또는 🔓 잠금해제 후 다시 시도.'); return; }
             if (typeof geminiFetch !== 'function'){ setS('❌ Gemini 호출 헬퍼(geminiFetch)를 찾지 못했습니다.'); return; }
             setS('🛰 FPL/OFP에서 Joint 데이터 추출 중…');
-            const prompt = `You are an airline dispatcher preparing a cabin-crew JOINT BRIEFING from a flight package (FPL / OFP / Dispatch Release / weather). Extract the fields below into STRICT JSON only (no markdown, no code fences). If a value is unknown use an empty string (numbers: 0). Fuel units = LBS (convert if the plan uses x100LBS or KG). RULES: "flight_no" MUST include the operating carrier's IATA (or ICAO if IATA unknown) code directly attached to the number, e.g. "OZ204" or "OZ 204" — NEVER just the bare digits "204" — even if the source prints the flight number and the airline name in separate places, combine them yourself using the known carrier code for that airline; enroute "route" uses GEOGRAPHIC NAMES ONLY (no waypoint codes, e.g. "Incheon -> Yellow Sea -> central Japan -> Narita"); "turbulence" MUST be a THOROUGH waypoint-by-waypoint analysis of the CFP/OFP's route/flight-log data (ETO per waypoint, cruise FL steps, enroute wind/temp table, and any SIGWX/turbulence chart or forecast text in the package) — output ONE ARRAY ENTRY PER DISTINCT TURBULENCE-RELEVANT SEGMENT you can identify (do not artificially cap it at 1 or 2; a long route legitimately has several), each with: "time" = elapsed time from departure for that segment's start, e.g. "Around +1:30", derived from the actual waypoint ETO minus the ETD (not guessed), "detail" = the geographic segment name (not waypoint codes) + turbulence/SIGWX severity + affected FL range + source (e.g. "SIGWX chart", "PIREP", "enroute forecast"); if the source genuinely shows no turbulence-relevant data at all, return an empty array rather than inventing generic rows; "flight_time" as "H:MM"; "taxi" from the block-out / TAXI field else ""; "date_label" like "2026.05.03, Sun"; "temp_tx"/"temp_tn" are the TAF forecast MAX/MIN temperature for that airport (from the TAF's TX.../TN... groups if present, else your best estimate from the METAR/TAF text) — leave blank only if truly not derivable; "schedule.etd_z"/"schedule.eta_z" MUST be the ZULU/UTC times AS LITERALLY PRINTED in the document (e.g. an OFP line "ETD 1440Z" -> "14:40", "ETA 0109Z" -> "01:09") — COPY THE DIGITS, do not convert or calculate anything, this is the one value in the whole schema that must never involve arithmetic; if only local times are printed with no Z time anywhere, leave etd_z/eta_z empty rather than guessing. "schedule.dep_utc_offset"/"schedule.arr_utc_offset" are the DEP/ARR airport's UTC offset for the flight date as a signed value like "+9:00" or "-7:00" (standard time zone of that airport/city, accounting for DST if applicable that date) — the app computes local time itself from Z + offset, so do not try to state a local clock time anywhere in this object. "mel" reports the aircraft's MEL/CDL (Minimum Equipment List / Configuration Deviation List) status from the dispatch release / OFP / tech log pages — "none":true ONLY if the document explicitly states the aircraft has no open MEL/CDL items (or the section is absent), otherwise "none":false and "detail" MUST list every MEL/CDL item found (item number, ATA/system, restriction or procedure), one per line, verbatim/summarized from the source — never leave both "none" and "detail" empty if the document mentions MEL/CDL at all; for weather "period" and the sky/temp/wind/vis/cond values in each block, pick the TAF FM/BECMG/TEMPO group (or METAR) that actually covers that airport's estimated LOCAL time (departure = ETD, arrival/alternate = ETA) — NOT just the first/base group in the TAF — and record which group you used in "period" so it can be verified; weather "raw" must be the COMPLETE ORIGINAL METAR+TAF text for that airport COPIED VERBATIM (every group, not just the one you picked) so the app can highlight the relevant time segment itself — never summarize or truncate "raw".
+            const prompt = `You are an airline dispatcher preparing a cabin-crew JOINT BRIEFING from a flight package (FPL / OFP / Dispatch Release / weather). Extract the fields below into STRICT JSON only (no markdown, no code fences). If a value is unknown use an empty string (numbers: 0). Fuel units = LBS (convert if the plan uses x100LBS or KG). RULES: "flight_no" MUST include the operating carrier's IATA (or ICAO if IATA unknown) code directly attached to the number, e.g. "OZ204" or "OZ 204" — NEVER just the bare digits "204" — even if the source prints the flight number and the airline name in separate places, combine them yourself using the known carrier code for that airline; enroute "route" uses GEOGRAPHIC NAMES ONLY (no waypoint codes, e.g. "Incheon -> Yellow Sea -> central Japan -> Narita"); "turbulence" MUST be a THOROUGH waypoint-by-waypoint analysis of the CFP/OFP's route/flight-log data (ETO per waypoint, cruise FL steps, enroute wind/temp table, and any SIGWX/turbulence chart or forecast text in the package) — output ONE ARRAY ENTRY PER DISTINCT TURBULENCE-RELEVANT SEGMENT you can identify (do not artificially cap it at 1 or 2; a long route legitimately has several), each with: "time" = elapsed time from departure for that segment's start, e.g. "Around +1:30", derived from the actual waypoint ETO minus the ETD (not guessed), "detail" = the geographic segment name (not waypoint codes) + turbulence/SIGWX severity + affected FL range + source (e.g. "SIGWX chart", "PIREP", "enroute forecast"); ONLY include a segment if its reported/forecast severity is LIGHT or greater (LIGHT, LIGHT-MODERATE, MODERATE, MODERATE-SEVERE, or SEVERE / significant CAT or CHOP) — do NOT include segments that are smooth/calm/nil/no-significant-turbulence, and if the source genuinely shows no LIGHT-or-greater turbulence anywhere, return an empty array rather than inventing rows; "flight_time" as "H:MM"; "taxi" from the block-out / TAXI field else ""; "date_label" like "2026.05.03, Sun"; "temp_tx"/"temp_tn" are the TAF forecast MAX/MIN temperature for that airport (from the TAF's TX.../TN... groups if present, else your best estimate from the METAR/TAF text) — leave blank only if truly not derivable; "schedule.etd_z"/"schedule.eta_z" MUST be the ZULU/UTC times AS LITERALLY PRINTED in the document (e.g. an OFP line "ETD 1440Z" -> "14:40", "ETA 0109Z" -> "01:09") — COPY THE DIGITS, do not convert or calculate anything, this is the one value in the whole schema that must never involve arithmetic; if only local times are printed with no Z time anywhere, leave etd_z/eta_z empty rather than guessing. "schedule.dep_utc_offset"/"schedule.arr_utc_offset" are the DEP/ARR airport's UTC offset for the flight date as a signed value like "+9:00" or "-7:00" (standard time zone of that airport/city, accounting for DST if applicable that date) — the app computes local time itself from Z + offset, so do not try to state a local clock time anywhere in this object. "mel" reports the aircraft's MEL/CDL (Minimum Equipment List / Configuration Deviation List) status from the dispatch release / OFP / tech log pages — "none":true ONLY if the document explicitly states the aircraft has no open MEL/CDL items (or the section is absent), otherwise "none":false and "detail" MUST list every MEL/CDL item found (item number, ATA/system, restriction or procedure), one per line, verbatim/summarized from the source — never leave both "none" and "detail" empty if the document mentions MEL/CDL at all; for weather "period" and the sky/temp/wind/vis/cond values in each block, pick the TAF FM/BECMG/TEMPO group (or METAR) that actually covers that airport's estimated LOCAL time (departure = ETD, arrival/alternate = ETA) — NOT just the first/base group in the TAF — and record which group you used in "period" so it can be verified; weather "raw" must be the COMPLETE ORIGINAL METAR+TAF text for that airport COPIED VERBATIM (every group, not just the one you picked) so the app can highlight the relevant time segment itself — never summarize or truncate "raw".
 JSON shape:
 {"airline":"","flight_no":"e.g. OZ 123","date":"YYYY-MM-DD","date_label":"YYYY.MM.DD, Day","dep":"IATA","arr":"IATA","route_label":"DEP > ARR","ac_type":"e.g. A21N","ac_reg":"e.g. HL8364","flight_time":"H:MM","gate_spot":"","schedule":{"etd_z":"HH:MM, from the document's Z/UTC time, no conversion","dep_utc_offset":"e.g. +9:00","eta_z":"HH:MM, from the document's Z/UTC time, no conversion","arr_utc_offset":"e.g. -7:00"},"pax":"F x / C y / Y z","taxi":"","alert_level":"BLUE","weather":{"departure":{"title":"Departure - IATA (City / Airport)","period":"the exact METAR/TAF group this row was taken from, e.g. 'TAF FM021200Z' or 'METAR 021200Z' or 'TAF BECMG 1214/1216'","raw":"the FULL, VERBATIM, UNMODIFIED METAR + TAF text block for this airport exactly as printed in the source document, newlines as \\n, nothing paraphrased or omitted","sky":"","temp_tx":"TAF/forecast MAX temp, number only e.g. 28","temp_tn":"TAF/forecast MIN temp, number only e.g. 18","wind":"","vis":"","qnh":"","cond":""},"arrival":{"title":"Arrival - IATA (City / Airport)","period":"the exact METAR/TAF group covering the ESTIMATED ARRIVAL TIME, e.g. 'TAF FM021800Z'","raw":"the FULL verbatim METAR + TAF text block for this airport","sky":"","temp_tx":"forecast MAX temp e.g. 24","temp_tn":"forecast MIN temp e.g. 15","wind":"","vis":"","cond":""},"alternate":{"title":"Alternate - IATA (City / Airport)","period":"the exact METAR/TAF group used","raw":"the FULL verbatim METAR + TAF text block for this airport","sky":"","temp_tx":"forecast MAX temp","temp_tn":"forecast MIN temp","wind":"","vis":"","cond":""},"enroute":{"altitude":"e.g. FL360 -> FL340","route":"geographic names only","wind":"representative cruise wind e.g. 270/80KT"},"turbulence":[{"time":"Around +H:MM","detail":"geographic segment - severity, FL range (source)"} /* as many entries as the CFP's route/SIGWX data actually supports, not limited to 2 */]},"fuel":{"final_reserve_lbs":0,"altn_lbs":0,"trip_lbs":0,"tof_lbs":0},"oat_cruise_c":0,"mel":{"none":true,"detail":"item number, system, restriction — one per line, or empty if none applies"}}
 TEXT:
@@ -4598,8 +4614,8 @@ TEXT:
             const el = document.getElementById('pfWxView'); if (!el) return;
             const g = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
             const et = computeEtdEta();
-            const etd = et.etdZ ? `${et.etdZ}Z${et.etdLocal ? ` / ${et.etdLocal}${fmtDayShift(et.etdLocalDayShift)} Local` : ''}` : '';
-            const eta = et.etaZ ? `${et.etaZ}Z${fmtDayShift(et.etaZDayShift)}${et.etaLocal ? ` / ${et.etaLocal}${fmtDayShift(et.etaLocalDayShift)} Local` : ''}${et.etaDerived ? ' (est.)' : ''}` : '';
+            const etd = et.etdZ ? `${et.etdZ}Z${et.etdLocal ? ` / ${et.etdLocal}${fmtDayShift(et.etdLocalDayShift)} Local` : ' (Local 계산 불가 — DEP UTC± 필요)'}` : '';
+            const eta = et.etaZ ? `${et.etaZ}Z${fmtDayShift(et.etaZDayShift)}${et.etaLocal ? ` / ${et.etaLocal}${fmtDayShift(et.etaLocalDayShift)} Local` : ' (Local 계산 불가 — ARR UTC± 필요)'}${et.etaDerived ? ' (est.)' : ''}` : '';
             const depTargetMin = computeUtcDayMinute('dep'), etaTargetMin = computeUtcDayMinute('eta');
             const altName = (g('j_wx_alt_title').match(/[-–]\s*([A-Za-z0-9]+)/) || [])[1] || '';
             const block = (titleKo, timeLabel, timeVal, period, raw, targetMin, sky, temp, wind, vis, qnh, cond) => {
