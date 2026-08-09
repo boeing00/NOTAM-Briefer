@@ -457,6 +457,9 @@
         .jsum-paper .sub{font-size:1.25rem}
         .jsum-paper .hi{background:#fef08a;padding:0 .15rem;border-radius:2px}
         .jsum-paper .sev{color:#dc2626;font-weight:700;text-decoration:underline}
+        .jsum-paper .sev-light{opacity:.55}
+        .wb-sev-severe{color:var(--red);font-weight:700}
+        .wb-sev-light{opacity:.55}
         .jsum-paper .ftemph{color:#059669;font-weight:800;font-size:2.05rem}
         .jsum-paper .sig{text-align:right;color:#6b7280;font-size:1.35rem;margin-top:.9rem}
         .jsum-paper .empty{color:#b8ab86}
@@ -4276,7 +4279,11 @@ Features to locate: ${JSON.stringify(features)}`;
         }
         function jTurbCell(time, detail){
             if (!time && !detail) return '';
-            const dd = /SEV|severe/i.test(detail || '') ? `<span class="sev">${escapeHtml(detail)}</span>` : escapeHtml(detail || '');
+            const d = detail || '';
+            let dd;
+            if (/\bSEV(ERE)?\b/i.test(d)) dd = `<span class="sev">${escapeHtml(d)}</span>`;
+            else if (/\bMOD(ERATE)?\b/i.test(d)) dd = escapeHtml(d); // MODERATE — 기본 스타일
+            else dd = `<span class="sev-light">${escapeHtml(d)}</span>`; // LIGHT뿐인 항목 — 옅게 (turbSeverityOk를 통과했으므로 여기 도달하면 LIGHT류로 간주)
             return `${escapeHtml(time || '')}${detail ? ': ' + dd : ''}`;
         }
         // ── Expected Turbulence: 구간 수 제한 없는 동적 행 (CFP/OFP의 waypoint별 SIGWX 구간을 있는 만큼 다 기입) ──
@@ -4769,6 +4776,13 @@ TEXT:
             if (!wbCharts.length){ el.innerHTML = '<p class="pfwx-empty">업로드된 차트가 없습니다.</p>'; return; }
             el.innerHTML = wbCharts.map(renderWbChartCard).join('');
         }
+        // 심각도(한글: 경미/보통/심각)에 따른 표시 클래스 — 심각=빨강 강조, 경미=옅게, 보통=기본
+        function wbSevClass(severity){
+            const s = (severity || '').trim();
+            if (s === '심각' || /SEV/i.test(s)) return 'wb-sev-severe';
+            if (s === '경미' || /LIGHT/i.test(s)) return 'wb-sev-light';
+            return '';
+        }
         function renderWbChartCard(c){
             const segs = c.segments || [];
             const overlays = segs.map((s, i) => {
@@ -4778,21 +4792,26 @@ TEXT:
                 const left = Math.min(x1,x2), top = Math.min(y1,y2), w = Math.abs(x2-x1), h = Math.abs(y2-y1);
                 if (!w || !h) return '';
                 const color = WB_COLORS[i % WB_COLORS.length];
+                const sevCls = wbSevClass(s.severity);
                 return `<div class="wbchart-box" style="left:${left}%;top:${top}%;width:${w}%;height:${h}%;border-color:${color}">
-                    <span class="wbchart-tag" style="background:${color}">${escapeHtml(s.time||'')} ${escapeHtml(s.name||'')}</span>
+                    <span class="wbchart-tag ${sevCls}" style="background:${color}">${escapeHtml(s.time||'')} ${escapeHtml(s.name||'')}</span>
                 </div>`;
             }).join('');
+            const validCaption = c.chartValid ? `<p class="jnote">📋 차트 표기 범위: ${escapeHtml(c.chartValid)}</p>` : '';
             let listHtml;
             if (c.status === 'analyzing') listHtml = '<p class="jnote">🛰 분석 중…</p>';
             else if (c.status === 'error') listHtml = `<p class="jnote" style="color:var(--red)">❌ ${escapeHtml(c.error||'분석 실패')}</p>`;
+            else if (c.status === 'done' && c.applicable === false) listHtml = `<p class="pfwx-empty">이 비행의 고도/시간대 범위 밖 — 분석 제외${c.reason ? ' ('+escapeHtml(c.reason)+')' : ''}</p>`;
             else if (segs.length) listHtml = '<div class="wbchart-list">' + segs.map((s,i) => {
                 const color = WB_COLORS[i % WB_COLORS.length];
-                return `<div class="wbchart-item"><span class="wbchart-dot" style="background:${color}"></span><b>${escapeHtml(s.time||'–')}</b> — ${escapeHtml(s.name||'')}${s.detail?': '+escapeHtml(s.detail):''}${s.severity?` <i>(${escapeHtml(s.severity)})</i>`:''}</div>`;
+                const sevCls = wbSevClass(s.severity);
+                return `<div class="wbchart-item ${sevCls}"><span class="wbchart-dot" style="background:${color}"></span><b>${escapeHtml(s.time||'–')}</b> — ${escapeHtml(s.name||'')}${s.detail?': '+escapeHtml(s.detail):''}${s.severity?` <i>(${escapeHtml(s.severity)})</i>`:''}</div>`;
             }).join('') + '</div>';
             else listHtml = (c.status === 'done' ? '<p class="pfwx-empty">이 항로·시간대에 해당하는 특이 기상 없음</p>' : '<p class="pfwx-empty">아직 분석되지 않았습니다 · 상단 "🛰 차트 분석" 버튼을 누르세요.</p>');
             return `<div class="wbchart-card">
                 <div class="wbchart-head"><span>${escapeHtml(c.name)}</span><button type="button" class="btn btn--sm btn--ghost" onclick="removeWbChart('${c.id}')">✕ 삭제</button></div>
                 <div class="wbchart-imgwrap"><img src="${c.dataUrl}" alt="${escapeHtml(c.name)}">${overlays}</div>
+                ${validCaption}
                 ${listHtml}
             </div>`;
         }
@@ -4803,7 +4822,10 @@ TEXT:
                 route:g('j_wx_enr_route'), altitude:g('j_wx_enr_alt'), flightTime:g('j_ft') };
         }
         async function analyzeOneChart(chart, ctx, key){
-            const prompt = `You are an airline dispatcher analyzing a weather chart image (SIGWX, wind/temperature chart, significant weather chart, or similar) for one specific flight. FLIGHT CONTEXT: departure ${ctx.dep||'?'} at ${ctx.etdZ?ctx.etdZ+'Z':'unknown time'} on ${ctx.date||'unknown date'}; arrival ${ctx.arr||'?'} at ${ctx.etaZ?ctx.etaZ+'Z':'unknown time'}; flight time ${ctx.flightTime||'unknown'}; cruise altitude ${ctx.altitude||'unknown'}; route: ${ctx.route||'(not provided)'}. TASK: identify every weather feature/hazard shown on THIS chart that is actually relevant to this route, altitude and time window — jet streams, CB/thunderstorm areas, turbulence (CAT/CHOP) zones, icing, volcanic ash, significant fronts, freezing level anomalies. IGNORE anything clearly far from the route or outside the flight's altitude/time. For each relevant feature return, ALL IN KOREAN (this is a Korean-language cockpit briefing display, on-screen only — write natural Korean, not a literal word-for-word translation): "name" (짧은 한글 명칭, 예: "제트기류 core 130KT" — 고유 수치/약어는 그대로 두되 설명은 한글로), "detail" (그 현상이 무엇이고 이 비행에 왜 중요한지, 한글 문장), "severity" (한글로 "경미"/"보통"/"심각"/"해당없음" 중 하나), "time" = 이 지점을 통과할 것으로 예상되는 ETD 기준 경과시간, "약 +H:MM (이륙 후)" 형식의 한글 문자열로 — 항로상 위치와 차트 유효시각을 근거로 산출(정말 추정 불가능할 때만 "") — and "box" = the feature's approximate location on the IMAGE as PERCENTAGES of the image's width/height: {"x1":0-100,"y1":0-100,"x2":0-100,"y2":0-100} where (x1,y1) is the top-left corner and (x2,y2) is the bottom-right corner of a box loosely bounding the feature (best-effort/approximate, not pixel-perfect — this field stays numeric, not Korean). If this chart has nothing relevant to this specific flight, return an empty array — do not force irrelevant entries. Respond with STRICT JSON ONLY, no markdown/code fences: {"segments":[{"name":"","detail":"","severity":"","time":"","box":{"x1":0,"y1":0,"x2":0,"y2":0}}]}`;
+            const prompt = `You are an airline dispatcher analyzing a weather chart image (SIGWX, wind/temperature chart, significant weather chart, or similar) for one specific flight. FLIGHT CONTEXT: departure ${ctx.dep||'?'} at ${ctx.etdZ?ctx.etdZ+'Z':'unknown time'} on ${ctx.date||'unknown date'}; arrival ${ctx.arr||'?'} at ${ctx.etaZ?ctx.etaZ+'Z':'unknown time'}; flight time ${ctx.flightTime||'unknown'}; cruise altitude ${ctx.altitude||'unknown'}; route: ${ctx.route||'(not provided)'}.
+STEP 1 — APPLICABILITY GATE (do this FIRST, before looking for any features): weather chart packets are typically issued as a SET of charts, each covering its OWN altitude/flight-level band (e.g. "SFC-FL100", "FL250-450") and its OWN valid time (a fixed time like "1200Z" for a SIGWX snapshot, or a validity window). Read the chart's own title/legend/header text to determine its stated altitude band and valid time. Compare that against THIS flight's cruise altitude (${ctx.altitude||'unknown'}) and its actual transit time window (ETD ${ctx.etdZ?ctx.etdZ+'Z':'unknown'} to ETA ${ctx.etaZ?ctx.etaZ+'Z':'unknown'}). Set "applicable":true only if the chart's altitude band overlaps this flight's cruise altitude AND the chart's valid time falls within (or reasonably close to) the flight's transit window — otherwise "applicable":false. Always fill "chart_valid" with a short factual note of what the chart itself states (e.g. "FL250-450, valid 1200Z" or "SFC-FL100, valid 0600Z-1200Z") — fill this even when applicable is false. If applicable is false, also fill "reason" briefly explaining why (e.g. "이 차트는 FL100-250 구간이며 이 비행의 순항고도 FL350과 겹치지 않음"), in Korean, and return an EMPTY "segments" array — do not analyze features on a chart that doesn't even cover this flight's altitude/time.
+STEP 2 — only if applicable is true: identify every weather feature/hazard shown on THIS chart that is actually relevant to this route, altitude and time window — jet streams, CB/thunderstorm areas, turbulence (CAT/CHOP) zones, icing, volcanic ash, significant fronts, freezing level anomalies. IGNORE anything clearly far from the route. For each relevant feature return, ALL IN KOREAN (this is a Korean-language cockpit briefing display, on-screen only — write natural Korean, not a literal word-for-word translation): "name" (짧은 한글 명칭, 예: "제트기류 core 130KT" — 고유 수치/약어는 그대로 두되 설명은 한글로), "detail" (그 현상이 무엇이고 이 비행에 왜 중요한지, 한글 문장), "severity" (한글로 "경미"/"보통"/"심각"/"해당없음" 중 하나), "time" = 이 지점을 통과할 것으로 예상되는 ETD 기준 경과시간, "약 +H:MM (이륙 후)" 형식의 한글 문자열로 — 항로상 위치와 차트 유효시각을 근거로 산출(정말 추정 불가능할 때만 "") — and "box" = the feature's approximate location on the IMAGE as PERCENTAGES of the image's width/height: {"x1":0-100,"y1":0-100,"x2":0-100,"y2":0-100} where (x1,y1) is the top-left corner and (x2,y2) is the bottom-right corner of a box loosely bounding the feature (best-effort/approximate, not pixel-perfect — this field stays numeric, not Korean). If applicable but genuinely nothing relevant is found, return an empty array — do not force irrelevant entries.
+Respond with STRICT JSON ONLY, no markdown/code fences: {"applicable":true,"chart_valid":"","reason":"","segments":[{"name":"","detail":"","severity":"","time":"","box":{"x1":0,"y1":0,"x2":0,"y2":0}}]}`;
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(key)}`;
             const res = await geminiFetch(url, {
                 contents: [{ parts: [ { text: prompt }, { inlineData: { mimeType: chart.mime, data: chart.base64 } } ] }],
@@ -4814,7 +4836,12 @@ TEXT:
             const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
             const clean = raw.replace(/```json|```/g, '').trim();
             let obj; try { obj = JSON.parse(clean); } catch(e){ throw new Error('JSON 파싱 실패 — 응답이 잘렸을 수 있습니다'); }
-            return Array.isArray(obj.segments) ? obj.segments : [];
+            return {
+                applicable: obj.applicable !== false, // 필드 자체가 없으면 기본 true(구버전 응답 호환)
+                chartValid: obj.chart_valid || '',
+                reason: obj.reason || '',
+                segments: Array.isArray(obj.segments) ? obj.segments : []
+            };
         }
         async function analyzeWeatherCharts(){
             const st = document.getElementById('wbChartStatus');
@@ -4828,8 +4855,10 @@ TEXT:
                 const c = wbCharts[i];
                 c.status = 'analyzing'; renderWbChartList();
                 setS(`🛰 분석 중… (${i+1}/${wbCharts.length}) ${c.name}`);
-                try { c.segments = await analyzeOneChart(c, ctx, key); c.status = 'done'; }
-                catch(e){ c.status = 'error'; c.error = e.message; }
+                try {
+                    const r = await analyzeOneChart(c, ctx, key);
+                    c.segments = r.segments; c.applicable = r.applicable; c.chartValid = r.chartValid; c.reason = r.reason; c.status = 'done';
+                } catch(e){ c.status = 'error'; c.error = e.message; }
                 renderWbChartList();
             }
             setS('✅ 분석 완료');
