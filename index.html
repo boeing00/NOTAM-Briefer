@@ -873,6 +873,7 @@
                                 <div class="jfield"><label>Wind</label><input id="j_wx_enr_wind" class="jinput" placeholder="270/80KT"></div>
                                 <div class="jfield"><label>Route (지리 명칭만, 웨이포인트 코드 금지 · PDF 폰트 제약상 화살표는 -> 로 입력)</label><input id="j_wx_enr_route" class="jinput" placeholder="Incheon -> Yellow Sea -> central Japan -> Narita"></div>
                             </div>
+                            <div class="jfield"><label>Enroute Weather 원문 (SIGWX/WINTEM 등 OFP 항로 기상 섹션 · 줄바꿈 그대로 붙여넣기)</label><textarea id="j_wx_enr_raw" class="jinput" rows="3" oninput="autoGrowTextarea(this)" placeholder="OFP의 ENROUTE WEATHER 섹션 원문"></textarea></div>
                             <div class="jsub">Expected Turbulence <span class="jnote" style="margin:0 0 0 .4rem">— CFP(OFP) 항로상 SIGWX/난기류 구간을 waypoint 단위로 자세히 나눠서 기입</span></div>
                             <div id="turbList"></div>
                             <div class="jbtnrow"><button type="button" class="btn btn--sm btn--cyan" onclick="addTurbRow()">+ 구간 추가</button></div>
@@ -4470,6 +4471,82 @@ Features to locate: ${JSON.stringify(features)}`;
             if (tn) return `최저 ${tn}°`;
             return '';
         }
+        // ── OFP 원문에서 "DEPARTURE/ARRIVAL/ALTERNATE/ENROUTE WEATHER" 섹션 원문을 그대로 잘라냄 ──
+        // (출처: ckpt-prep-stack의 extractWeatherSection() 그대로 이식) — 헤더 텍스트를 찾고, 그 다음
+        // 나오는 첫 "-----" 구분선 이후부터, 다음 구분선(ENROUTE는 SIGWX/WINTEM 등 다음 섹션 키워드)
+        // 전까지의 줄들을 그대로 모음. LLM에게 "원문을 요약/누락 없이 그대로 베껴 적어라"고 시키는 것보다
+        // 훨씬 신뢰도가 높음 — 이 헤더가 OFP에 없으면 빈 배열을 반환하고 기존 LLM 추출 결과가 그대로 쓰임.
+        function extractWeatherSectionFromOfp(fullText, headerName){
+            if (!fullText) return [];
+            const headerIdx = fullText.toUpperCase().indexOf(headerName.toUpperCase());
+            if (headerIdx === -1) return [];
+            const remainingText = fullText.substring(headerIdx + headerName.length);
+            const firstDividerMatch = remainingText.match(/-{5,}/);
+            if (!firstDividerMatch) return [];
+            const weatherText = remainingText.substring(firstDividerMatch.index + firstDividerMatch[0].length);
+            const lines = [];
+            const rawLines = weatherText.split('\n');
+            for (let i = 0; i < rawLines.length; i++){
+                const line = rawLines[i].trim();
+                if (/^Page\s+\d+/i.test(line)) continue;
+                if (headerName.toUpperCase() === 'ENROUTE WEATHER'){
+                    const noSpace = line.toLowerCase().replace(/\s+/g, '');
+                    if (['wintem','sigwx','sigchart','notam','planvalid','averagewind','herebyrelease','mel/cdlitems'].some(k => noSpace.includes(k))) break;
+                } else {
+                    if (/^-{5,}$/.test(line)) break;
+                }
+                if (line.length > 0) lines.push(line);
+            }
+            return lines;
+        }
+        // ── OFP 항법로그에서 SR(Shear Rate) 컬럼을 직접 파싱해 난기류 구간을 결정론적으로 추출 ──
+        // Jeppesen Aviator CFP의 정확한 텍스트 레이아웃(waypoint/좌표/ACTM/SR 컬럼 위치)에 맞춘 정규식이라
+        // 이 포맷과 정확히 일치할 때만 매치됨 — 다른 OFP 포맷이면 매치가 하나도 없어 빈 배열을 반환하고
+        // 조용히 기존 LLM(Gemini) 추정 결과가 그대로 쓰임(폴백, 부작용 없음).
+        // (출처: github.com/flyingjet777/ckpt-prep-stack의 extractTurbulenceZones() 로직을 그대로 이식 —
+        //  SR>=4인 waypoint를 연속 구간으로 묶고, 구간 내 SR>=7이 하나라도 있으면 심각으로 승격)
+        function actmToElapsed(actm){
+            const m = /^(\d{2})\.(\d{2})$/.exec(actm || ''); if (!m) return '';
+            return `Around +${parseInt(m[1],10)}:${m[2]}`;
+        }
+        function extractTurbulenceZonesFromOfp(fullText){
+            if (!fullText) return [];
+            const coordRe = /^([A-Z0-9]{2,10})\s+[WE]\d{2,3}\s+\d{1,2}\.\d\s+\d{3}\s+\/\s+(?:\d{2,3}|\.\.)\s+(?:\d{3,4}|\.\.\.)\s+(\d{2}\.\d{2})\s+(\d{4})\//;
+            const srRe = /\b\d{5}(?:[PM]\d{3}|\s+\d{3})\s+(\d{2})\s+(\d{3})\b/;
+            const lines = fullText.split('\n');
+            const wpts = [];
+            for (let i = 0; i < lines.length; i++){
+                const lineStr = lines[i].trim();
+                // REFILE/대체경로/문서 끝 이후는 주 항로가 아니므로 중단(경로 혼입 방지)
+                if (lineStr.includes('REFILE FLT PLAN') || lineStr.includes('END OF JEPPESEN') || lineStr.includes('ROUTE TO ALTN')) break;
+                const matchCoord = lineStr.match(coordRe);
+                if (matchCoord){
+                    const wpt = matchCoord[1], actm = matchCoord[2];
+                    let sr = '00';
+                    const prevLine = lines[i-1] || '';
+                    const srMatch = prevLine.match(srRe) || lineStr.match(srRe);
+                    if (srMatch) sr = srMatch[1];
+                    wpts.push({ wpt, sr, actm });
+                }
+            }
+            if (!wpts.length) return [];
+            const zones = []; let current = [];
+            wpts.forEach(pt => {
+                if (parseInt(pt.sr, 10) >= 4) current.push(pt);
+                else { if (current.length){ zones.push(current); current = []; } }
+            });
+            if (current.length) zones.push(current);
+            return zones.map(zone => {
+                const startPt = zone[0], endPt = zone[zone.length - 1];
+                const srs = zone.map(p => parseInt(p.sr, 10));
+                const minSr = Math.min(...srs), maxSr = Math.max(...srs);
+                const srStr = minSr === maxSr ? String(minSr).padStart(2,'0') : `${String(minSr).padStart(2,'0')}-${String(maxSr).padStart(2,'0')}`;
+                const hasSevere = srs.some(s => s >= 7);
+                const label = startPt.wpt === endPt.wpt ? startPt.wpt : `${startPt.wpt} / ${endPt.wpt}`;
+                const sevWord = hasSevere ? 'MODERATE TO SEVERE' : 'MODERATE';
+                return { time: actmToElapsed(startPt.actm), detail: `${label} — ${sevWord} Turbulence (SR ${srStr}, OFP 항법로그 실측)` };
+            });
+        }
         // detail 텍스트에서 심각도 등급 판정 (jTurbCell 강조, turbSeverityOk 필터, 요약문 버킷 분류가 모두 공유)
         function turbSeverityLevel(detail){
             const d = (detail || '').toUpperCase();
@@ -4854,8 +4931,31 @@ TEXT:
                 let obj; try { obj = JSON.parse(clean); } catch(e){ throw new Error('JSON 파싱 실패 — 응답이 잘렸을 수 있습니다' + (truncated ? ' (토큰 한도 초과 확인됨 — 문서를 줄이거나 모델을 바꿔 재시도)' : ' (모델을 Flash로, 문서를 짧게)')); }
                 applyJointExtract(obj);
                 document.querySelectorAll('#jointBody details.jcard').forEach(d => { d.open = true; });
+                // OFP 원문이 Jeppesen Aviator 항법로그 포맷(SR 컬럼)과 일치하면, LLM이 짐작한 난기류 구간을
+                // 이 결정론적 파싱 결과로 덮어씀(다른 포맷이면 매치가 없어 조용히 아무 효과 없음)
+                let detTurbUsed = false;
+                try {
+                    const detTurb = extractTurbulenceZonesFromOfp(src);
+                    if (detTurb.length){ setTurbRows(detTurb); detTurbUsed = true; }
+                } catch(_){}
+                // 마찬가지로 OFP에 "DEPARTURE/ARRIVAL/ALTERNATE/ENROUTE WEATHER" 헤더가 있으면
+                // LLM이 베낀 원문 대신 이 결정론적 추출 결과로 덮어씀(더 신뢰도 높음 — 누락/요약 위험 없음)
+                let detWxUsed = [];
+                try {
+                    const depSec = extractWeatherSectionFromOfp(src, 'DEPARTURE WEATHER');
+                    const arrSec = extractWeatherSectionFromOfp(src, 'ARRIVAL WEATHER');
+                    const altSec = extractWeatherSectionFromOfp(src, 'ALTERNATE WEATHER');
+                    const enrSec = extractWeatherSectionFromOfp(src, 'ENROUTE WEATHER');
+                    if (depSec.length){ jset('j_wx_dep_raw', depSec.join('\n')); detWxUsed.push('DEP'); }
+                    if (arrSec.length){ jset('j_wx_arr_raw', arrSec.join('\n')); detWxUsed.push('ARR'); }
+                    if (altSec.length){ jset('j_wx_alt_raw', altSec.join('\n')); detWxUsed.push('ALTN'); }
+                    if (enrSec.length){ jset('j_wx_enr_raw', enrSec.join('\n')); detWxUsed.push('ENR'); }
+                    ['j_wx_dep_raw','j_wx_arr_raw','j_wx_alt_raw','j_wx_enr_raw'].forEach(id => autoGrowTextarea(document.getElementById(id)));
+                } catch(_){}
                 const offWarn = validateUtcOffsets(), rawWarn = validateWeatherRaw();
                 setS('✅ 추출 완료 · 확인 필요 → ① Flight Time  ② Alert Level  ③ Taxi Time  ④ DEP/ARR UTC± (강조 표시). 검토·수정 후 PDF를 생성하세요.'
+                    + (detTurbUsed ? '  ✈ 난기류는 OFP 항법로그 SR 실측값으로 대체됨.' : '')
+                    + (detWxUsed.length ? `  🌦 날씨 원문(${detWxUsed.join('·')})은 OFP 섹션 실측값으로 대체됨.` : '')
                     + (offWarn.length ? `  ⚠ ${offWarn.join(' · ')} — 도착예정(Local)이 틀릴 수 있으니 직접 확인하세요.` : '')
                     + (rawWarn.length ? `  ⚠ ${rawWarn.join(' · ')} — 해당 공항은 날씨 하이라이트가 표시되지 않습니다. JOINT 탭에서 원문을 직접 붙여넣으세요.` : '')
                     + (truncated ? '  ⚠ 응답이 토큰 한도로 잘려 일부 항목이 누락됐을 수 있습니다 — 값들을 확인하세요.' : ''));
@@ -5004,13 +5104,14 @@ TEXT:
             html += block(`출발지 (${g('j_dep')||'DEP'})`, 'ETD', etd, g('j_wx_dep_period'), g('j_wx_dep_raw'), depTargetMin, g('j_wx_dep_sky'), jTempStr(g('j_wx_dep_tx'), g('j_wx_dep_tn')), g('j_wx_dep_wind'), g('j_wx_dep_vis'), g('j_wx_dep_qnh'), g('j_wx_dep_cond'));
             html += block(`목적지 (${g('j_arr')||'ARR'})`, 'ETA', eta, g('j_wx_arr_period'), g('j_wx_arr_raw'), etaTargetMin, g('j_wx_arr_sky'), jTempStr(g('j_wx_arr_tx'), g('j_wx_arr_tn')), g('j_wx_arr_wind'), g('j_wx_arr_vis'), '', g('j_wx_arr_cond'));
             html += block(`교체공항${altName?` (${altName})`:''}`, 'ETA', eta, g('j_wx_alt_period'), g('j_wx_alt_raw'), etaTargetMin, g('j_wx_alt_sky'), jTempStr(g('j_wx_alt_tx'), g('j_wx_alt_tn')), g('j_wx_alt_wind'), g('j_wx_alt_vis'), '', g('j_wx_alt_cond'));
-            const enrAlt = g('j_wx_enr_alt'), enrSpeed = g('j_wx_enr_speed'), enrWind = g('j_wx_enr_wind'), enrRoute = g('j_wx_enr_route');
-            if (enrAlt || enrSpeed || enrWind || enrRoute){
+            const enrAlt = g('j_wx_enr_alt'), enrSpeed = g('j_wx_enr_speed'), enrWind = g('j_wx_enr_wind'), enrRoute = g('j_wx_enr_route'), enrRaw = g('j_wx_enr_raw');
+            if (enrAlt || enrSpeed || enrWind || enrRoute || enrRaw){
                 html += `<div class="jsub">항로 (Enroute)</div><div class="pfwx-grid">`
                     + (enrAlt ? `<div><b>Altitude</b> ${escapeHtml(enrAlt)}</div>` : '')
                     + (enrSpeed ? `<div><b>Speed</b> ${escapeHtml(enrSpeed)}</div>` : '')
                     + (enrWind ? `<div><b>Wind</b> ${escapeHtml(enrWind)}</div>` : '')
-                    + (enrRoute ? `<div class="pfwx-cond"><b>Route</b> ${escapeHtml(enrRoute)}</div>` : '') + `</div>`;
+                    + (enrRoute ? `<div class="pfwx-cond"><b>Route</b> ${escapeHtml(enrRoute)}</div>` : '') + `</div>`
+                    + (enrRaw ? `<p class="jnote">📡 Enroute Weather (OFP 원문)</p><pre class="raw-pre">${escapeHtml(enrRaw)}</pre>` : '');
             }
             targets.forEach(el => { el.innerHTML = html; });
             renderJointWeatherKoSummary();
