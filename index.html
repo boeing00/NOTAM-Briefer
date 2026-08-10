@@ -505,12 +505,6 @@
         .jsum-paper .gatewrap--mini{width:56px}
         .jsum-paper .gatewrap--mini .gatewrap__val{font-size:1rem;color:#1e40af;font-weight:800}
         @media(max-width:640px){.jbar{grid-template-columns:1fr 1fr}.jgrid3{grid-template-columns:1fr}.jgrid2{grid-template-columns:1fr}.jgrid4{grid-template-columns:1fr 1fr}.pfwx-grid{grid-template-columns:1fr 1fr}.turbrow{grid-template-columns:1fr}}
-        /* ── Google Chat 공유 ─────────────────────────────── */
-        .gchat-body{padding:.2rem .95rem .95rem;border-top:1px solid var(--line)}
-        .gchat-row{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin:.55rem 0}
-        .gchat-row input{flex:1;min-width:220px}
-        .gchat-note{font-family:"IBM Plex Sans KR";font-size:.74rem;line-height:1.65;color:var(--muted);margin:.5rem 0 0}
-        .gchat-note code{font-family:"IBM Plex Mono";font-size:.7rem;background:#F2EDE1;padding:.05rem .25rem;border-radius:4px}
     </style>
 </head>
 <body>
@@ -595,27 +589,6 @@
             <button class="tabbtn" id="tabbtn-weather" role="tab" onclick="switchTab('weather')">WEATHER BRIEFING<span class="tabbtn__sub">종합 리포트</span></button>
         </nav>
 
-        <!-- ══ Google Chat 공유 설정 (전 탭 공통) ═══════════ -->
-        <details class="panel cloud-panel" id="gchatPanel">
-            <summary>
-                <span class="cloud-panel__title">💬 GOOGLE CHAT 공유</span>
-                <span class="cloud-panel__sub">브리핑을 Space로 전송</span>
-                <span id="gchatStatus" class="cloudstat">미설정</span>
-            </summary>
-            <div class="gchat-body">
-                <p class="cloud-hint">Google Chat Space → <b>앱 및 통합 → Webhook 관리 → Webhook 추가</b> 로 발급한 URL을 붙여넣으세요.
-                    URL은 이 기기(localStorage)에만 저장됩니다.</p>
-                <div class="gchat-row">
-                    <input type="password" id="gchatUrl" class="cdu" spellcheck="false" placeholder="https://chat.googleapis.com/v1/spaces/.../messages?key=...&amp;token=...">
-                    <button class="btn btn--sm btn--go" onclick="saveGchatUrl()">저장</button>
-                    <button class="btn btn--sm btn--ghost" onclick="clearGchatUrl()">해제</button>
-                    <button class="btn btn--sm btn--cyan" onclick="testGchat()">🔌 테스트 전송</button>
-                </div>
-                <div id="gchatOut" class="statusline"></div>
-                <p class="gchat-note">브라우저에서 직접 호출이 CORS로 막히면 자동으로 <code>no-cors</code> 전송으로 재시도하고,
-                    그래도 실패하면 메시지를 <b>클립보드에 복사</b>합니다. 안정적인 전송이 필요하면 Apps Script 릴레이 URL을 대신 넣어도 동작합니다.</p>
-            </div>
-        </details>
 
         <!-- ══ TAB 1 · PILOT BRIEFING ══════════════════════ -->
         <div class="stack tabpane hidden" id="pane-pilot">
@@ -624,7 +597,6 @@
                     <h2 class="panel__title">PILOT BRIEFING</h2>
                     <div class="btnrow">
                         <button class="btn btn--sm btn--go" onclick="generatePilotPdf()">⤓ PDF 생성</button>
-                        <button class="btn btn--sm btn--cyan" onclick="shareToChat('pilot')">💬 Chat 공유</button>
                     </div>
                 </div>
                 <div id="pilotBody" class="jform">
@@ -786,7 +758,6 @@
                     <h2 class="panel__title">JOINT BRIEFING</h2>
                     <div class="btnrow">
                         <button class="btn btn--sm btn--go" onclick="generateJointPdf()">⤓ PDF 생성</button>
-                        <button class="btn btn--sm btn--cyan" onclick="shareToChat('joint')">💬 Chat 공유</button>
                     </div>
                 </div>
                 <div id="jointBody" class="jform">
@@ -808,7 +779,7 @@
                             <div class="jbtnrow"><button class="btn btn--sm btn--cyan" onclick="autoJointSummary()">↻ 요약 노트 생성</button></div>
                             <div id="jSummaryNote" class="jsum-paper"></div>
                             <details class="jsum-edit">
-                                <summary>요약 텍스트 (PDF·Chat용 · 편집)</summary>
+                                <summary>요약 텍스트 (PDF용 · 편집)</summary>
                                 <div class="jfield"><label>운항승무원 소개</label><textarea id="j_crew_intro" class="jinput" rows="2" placeholder="예: 기장 김민수 / 부기장 이영희 / 사무장 박지현" oninput="renderJointSummaryNote()"></textarea></div>
                                 <textarea id="j_summary" class="jinput" rows="3" placeholder="편명 · 구간 · 핵심 기상 · Alert Level 요점 (요약 노트 생성 시 자동 작성 · 편집 가능) — 아래 ✓ 적용을 누르면 위 SUMMARY 노트에도 반영됩니다"></textarea>
                                 <div class="jbtnrow"><button class="btn btn--sm btn--go" onclick="applyJointSummaryMemo()">✓ SUMMARY에 적용</button><span id="jSummaryMemoStatus" class="jnote"></span></div>
@@ -1071,7 +1042,6 @@
                     <label class="legend__toggle" title="내 FPL 항로/사용 활주로에 직접 관련된 것만 MUST KNOW(RED). 나머지는 GOOD TO KNOW로 낮춤."><input type="checkbox" id="directRed" onchange="toggleDirectRed()"> 직접 관련만 RED</label>
                     <button class="linkbtn" onclick="resetOverrides()">분류 초기화</button>
                     <button class="btn btn--sm btn--go" style="margin-left:auto" onclick="generateNotamPdf()">⤓ PDF 생성</button>
-                    <button class="btn btn--sm btn--cyan" onclick="shareToChat('notam')">💬 Chat 공유</button>
                     <span id="notamPdfStatus" class="jnote" style="flex-basis:100%"></span>
                 </div>
                 <div id="rwyFilter" class="rwyfilter hidden">
@@ -3997,115 +3967,6 @@ Features to locate: ${JSON.stringify(features)}`;
         }
         function loadActiveTab(){ try { return localStorage.getItem('activeTab') || TAB_DEFAULT; } catch(_){ return TAB_DEFAULT; } }
 
-        // ============ Google Chat 공유 ============
-        function loadGchatUrl(){ try { return localStorage.getItem('gchatWebhook') || ''; } catch(_){ return ''; } }
-        function updateGchatUI(){
-            const el = $('gchatStatus'); if (!el) return;
-            const url = loadGchatUrl();
-            el.textContent = url ? '연결됨' : '미설정';
-            el.className = 'cloudstat' + (url ? ' cloudstat--on' : '');
-            const inp = $('gchatUrl'); if (inp && url && !inp.value) inp.value = url;
-        }
-        function gchatMsg(txt, bad){
-            const o = $('gchatOut'); if (o){ o.textContent = txt; o.style.color = bad ? 'var(--red)' : 'var(--green)'; }
-        }
-        function saveGchatUrl(){
-            const v = ($('gchatUrl').value || '').trim();
-            if (!v){ gchatMsg('URL을 입력하세요', true); return; }
-            if (!/^https:\/\//i.test(v)){ gchatMsg('https:// 로 시작하는 URL이어야 합니다', true); return; }
-            try { localStorage.setItem('gchatWebhook', v); } catch(_){}
-            updateGchatUI(); gchatMsg('저장되었습니다');
-        }
-        function clearGchatUrl(){
-            try { localStorage.removeItem('gchatWebhook'); } catch(_){}
-            const inp = $('gchatUrl'); if (inp) inp.value = '';
-            updateGchatUI(); gchatMsg('설정을 해제했습니다');
-        }
-        function testGchat(){ postToChat('✅ *Pilot Ops Center* 연결 테스트 — ' + new Date().toISOString().slice(0,16).replace('T',' ') + 'Z'); }
-
-        // Chat 메시지 전송: ① CORS 정상 호출 → ② no-cors 재시도 → ③ 클립보드 복사
-        async function postToChat(text){
-            const url = loadGchatUrl();
-            if (!url){
-                gchatMsg('Webhook URL이 없습니다. 먼저 저장하세요.', true);
-                if ($('gchatPanel')) $('gchatPanel').open = true;
-                return false;
-            }
-            // Google Chat 메시지 본문 제한(약 4096자) 대비
-            const body = JSON.stringify({ text: text.length > 3900 ? text.slice(0, 3900) + '\n… (이하 생략)' : text });
-            gchatMsg('전송 중…');
-            try {
-                const r = await fetch(url, { method:'POST', headers:{ 'Content-Type':'application/json; charset=UTF-8' }, body });
-                if (r.ok){ gchatMsg('Chat으로 전송했습니다'); return true; }
-                gchatMsg('전송 실패 (HTTP ' + r.status + ')', true);
-            } catch(e){
-                // CORS 차단 — 응답을 읽을 수 없는 no-cors 모드로 재시도(fire-and-forget)
-                try {
-                    await fetch(url, { method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=UTF-8' }, body });
-                    gchatMsg('전송 요청을 보냈습니다 (no-cors · Space에서 수신 확인 필요)');
-                    return true;
-                } catch(e2){ /* 아래 클립보드 폴백 */ }
-            }
-            try {
-                await navigator.clipboard.writeText(text);
-                gchatMsg('전송 실패 — 메시지를 클립보드에 복사했습니다. Chat에 붙여넣으세요.', true);
-            } catch(_){
-                gchatMsg('전송·복사 모두 실패했습니다. Apps Script 릴레이 사용을 권장합니다.', true);
-            }
-            return false;
-        }
-
-        // 탭별 공유 본문 생성 — Pilot/Joint는 항목 확정 후 채웁니다
-        function buildChatText(tab){
-            const stamp = new Date().toISOString().slice(0,16).replace('T',' ') + 'Z';
-            if (tab === 'notam'){
-                if (!analysisData) return null;
-                const lines = ['*NOTAM BRIEFING* · ' + stamp];
-                try {
-                    const r = analysisData.route || {};
-                    if (r.departure || r.destination) lines.push((r.departure || '?') + ' → ' + (r.destination || '?')
-                        + ((r.alternates || []).length ? ' / ALTN ' + r.alternates.join(', ') : '')
-                        + (r.etd_utc ? ' · ETD ' + r.etd_utc + 'Z' : ''));
-                    const all = Array.isArray(analysisData.notams) ? analysisData.notams : [];
-                    const cnt = { warning:0, caution:0, advisory:0 };
-                    all.forEach(n => { const s = (n.severity || '').toLowerCase(); if (cnt[s] !== undefined) cnt[s]++; });
-                    lines.push(`MUST KNOW ${cnt.warning} · NEED TO KNOW ${cnt.caution} · GOOD TO KNOW ${cnt.advisory}`);
-                    const w = all.filter(n => (n.severity || '').toLowerCase() === 'warning');
-                    if (w.length) lines.push('', '*MUST KNOW*');
-                    w.slice(0, 20).forEach(n => lines.push('• [' + (n.icao || '-') + '] ' + (n.title || n.feature || n.id || '')));
-                    if (w.length > 20) lines.push('… 외 ' + (w.length - 20) + '건');
-                } catch(_){}
-                return lines.join('\n');
-            }
-            if (tab === 'joint'){
-                try {
-                    const d = getJointFormData();
-                    const lines = ['*JOINT BRIEFING* · ' + stamp];
-                    lines.push(`${d.flight_no}  ${d.route_label}` + (d.date ? '  (' + d.date + ')' : ''));
-                    if (d.ac_type || d.ac_reg) lines.push(`A/C ${d.ac_type}/${d.ac_reg} · F/T ${d.flight_time} · PAX ${d.pax}`);
-                    lines.push(`Alert Level ${d.alert_level} · Taxi ${d.taxi}`);
-                    if (d.summary) lines.push('', d.summary);
-                    return lines.join('\n');
-                } catch(_){ return '*JOINT BRIEFING* · ' + stamp; }
-            }
-            if (tab === 'pilot'){
-                try {
-                    const f = jComputeFuel(), o = jComputeOil();
-                    const lines = ['*PILOT MEMO* · ' + stamp];
-                    if (f.finalRes || f.trip || f.tof) lines.push(`Divert Min Fuel ${jfmt(f.divert)} · Min Fuel ${jfmt(f.minF)} · Planned T/O ${jfmt(f.tof)} (LBS)`);
-                    lines.push(`Buffer +10/+20/+30 min: ${jfmt(f.b10)} / ${jfmt(f.b20)} / ${jfmt(f.b30)} LBS`);
-                    lines.push(`Required Min Oil ${Math.trunc(o.min)} qts (OAT ${o.oat}°C · F/T ${o.ftH.toFixed(2)}h)`);
-                    return lines.join('\n');
-                } catch(_){ return '*PILOT MEMO* · ' + stamp; }
-            }
-            return '*PILOT BRIEFING* · ' + stamp;
-        }
-        function shareToChat(tab){
-            if ($('gchatPanel')) $('gchatPanel').open = true;
-            const txt = buildChatText(tab);
-            if (!txt){ gchatMsg('공유할 분석 결과가 없습니다. 먼저 ANALYZE를 실행하세요.', true); return; }
-            postToChat(txt);
-        }
 
         /* ═══════════════ JOINT BRIEFING (Phase 1) ═══════════════ */
         let currentJointAlert = 'BLUE';
@@ -4745,7 +4606,7 @@ Features to locate: ${JSON.stringify(features)}`;
             html += `<div class="sig">안전 비행! _ 기장</div>`;
             el.innerHTML = html;
         }
-        // 요약 텍스트(PDF·Chat용) 박스에 사용자가 자유롭게 입력한 내용을 SUMMARY 노트에 반영.
+        // 요약 텍스트(PDF용) 박스에 사용자가 자유롭게 입력한 내용을 SUMMARY 노트에 반영.
         // 입력 중 다른 필드 변경으로 노트가 다시 그려져도 "✓ SUMMARY에 적용"을 누르기 전까지는
         // 직전에 적용된 내용을 그대로 유지 — 타이핑 중간에 끊겨 보이지 않도록 실시간 반영 대신 버튼식으로 설계.
         let jSummaryMemoApplied = '';
@@ -5310,7 +5171,6 @@ RAW OFP/FPL TEXT:
         document.addEventListener('DOMContentLoaded', () => {
             switchTab(loadActiveTab());
             initJoint();
-            updateGchatUI();
             renderButtons(); tickZulu(); setInterval(tickZulu, 1000);
             // 레거시 평문키가 있고 금고가 없으면 이관용으로 채워줌(이후 PIN 저장 권장)
             try { if (!hasVault()){ const k = localStorage.getItem('geminiKey'); if (k) $('apiKey').value = k; } } catch(e){}
