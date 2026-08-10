@@ -4643,7 +4643,9 @@ Features to locate: ${JSON.stringify(features)}`;
                 const cls = lvl === 'severe' ? 'sev-severe' : 'sev-moderate';
                 return `<span class="${cls}">${lines.map(escapeHtml).join('<br>')}</span>`;
             });
-            return parts.join('<br>');
+            // 항목 사이는 빈 줄(<br><br>)로 확실히 구분 — 항목 내부 줄(AT/SR/TIME AFTER DEP)은 촘촘하게,
+            // 다음 항목과는 눈에 띄게 떨어지도록.
+            return parts.join('<br><br>');
         }
         function koreanWxSummary(sky, cond, temp){
             const t = ((sky||'') + ' ' + (cond||'')).toUpperCase();
