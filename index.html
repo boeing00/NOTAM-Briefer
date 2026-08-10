@@ -480,10 +480,6 @@
         .pfwx-grid b{color:var(--muted);font-weight:600;margin-right:.25rem}
         .pfwx-cond{grid-column:1/-1}
         .pfwx-empty{font-family:"IBM Plex Sans KR";font-size:.8rem;color:var(--dim)}
-        .wxraw{white-space:pre-wrap;word-break:break-word;font-family:"IBM Plex Mono";font-size:.72rem;line-height:1.65;color:var(--text);
-            background:#FFFDF8;border:1px solid var(--line);border-radius:8px;padding:.6rem .7rem;max-height:280px;overflow:auto;margin:.3rem 0 .8rem}
-        .wxraw mark.wx-hi-main{background:#FEF08A;color:#1e293b;padding:0 1px;border-radius:2px}
-        .wxraw mark.wx-hi-temp{background:#FCA5A5;color:#1e293b;padding:0 1px;border-radius:2px;font-weight:600}
         /* 종합 운항 분석 리포트 (Weather Briefing 탭) — Gemini가 만든 마크다운을 mdToHtml()로 렌더 */
         .wbreport{font-family:"IBM Plex Sans KR",sans-serif;font-size:.86rem;line-height:1.7;color:var(--text);
             background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:1rem 1.15rem;overflow-x:auto}
@@ -844,7 +840,6 @@
                                         <div class="jfield"><label>Title</label><input id="j_wx_dep_title" class="jinput" placeholder="Departure – ICN (Seoul / Incheon Intl)"></div>
                                         <div class="jfield"><label>METAR/TAF 구간 (참고)</label><input id="j_wx_dep_period" class="jinput" placeholder="e.g. TAF FM021200Z 또는 METAR 021200Z"></div>
                                     </div>
-                                    <div class="jfield"><label>원문 (METAR/TAF 전체 · 줄바꿈 그대로 붙여넣기 — PILOT 탭에서 해당 시간대 하이라이트)</label><textarea id="j_wx_dep_raw" class="jinput" rows="4" placeholder="METAR RKSI 021200Z ...&#10;TAF RKSI 021100Z 0212/0318 ... FM021800Z ..."></textarea></div>
                                     <div class="jgrid3">
                                         <div class="jfield"><label>Sky</label><input id="j_wx_dep_sky" class="jinput"></div>
                                         <div class="jfield"><label>TX (최고)</label><input id="j_wx_dep_tx" class="jinput" placeholder="e.g. 28 or TX28/0500Z"></div>
@@ -861,7 +856,6 @@
                                         <div class="jfield"><label>Title</label><input id="j_wx_arr_title" class="jinput" placeholder="Arrival – NRT (Tokyo / Narita Intl)"></div>
                                         <div class="jfield"><label>METAR/TAF 구간 (참고)</label><input id="j_wx_arr_period" class="jinput" placeholder="e.g. TAF FM021800Z 또는 METAR 021800Z"></div>
                                     </div>
-                                    <div class="jfield"><label>원문 (METAR/TAF 전체 · 줄바꿈 그대로 붙여넣기 — PILOT 탭에서 해당 시간대 하이라이트)</label><textarea id="j_wx_arr_raw" class="jinput" rows="4" placeholder="METAR RJAA 021800Z ...&#10;TAF RJAA 021700Z 0218/0324 ... FM022100Z ..."></textarea></div>
                                     <div class="jgrid3">
                                         <div class="jfield"><label>Sky</label><input id="j_wx_arr_sky" class="jinput"></div>
                                         <div class="jfield"><label>TX (최고)</label><input id="j_wx_arr_tx" class="jinput" placeholder="e.g. 24 or TX24/0500Z"></div>
@@ -877,7 +871,6 @@
                                         <div class="jfield"><label>Title</label><input id="j_wx_alt_title" class="jinput" placeholder="Alternate – HND (Tokyo / Haneda Intl)"></div>
                                         <div class="jfield"><label>METAR/TAF 구간 (참고)</label><input id="j_wx_alt_period" class="jinput" placeholder="e.g. TAF FM021800Z 또는 METAR 021800Z"></div>
                                     </div>
-                                    <div class="jfield"><label>원문 (METAR/TAF 전체 · 줄바꿈 그대로 붙여넣기 — PILOT 탭에서 해당 시간대 하이라이트)</label><textarea id="j_wx_alt_raw" class="jinput" rows="4" placeholder="METAR RJTT 021800Z ...&#10;TAF RJTT 021700Z 0218/0324 ... FM022100Z ..."></textarea></div>
                                     <div class="jgrid3">
                                         <div class="jfield"><label>Sky</label><input id="j_wx_alt_sky" class="jinput"></div>
                                         <div class="jfield"><label>TX (최고)</label><input id="j_wx_alt_tx" class="jinput"></div>
@@ -4776,16 +4769,13 @@ Features to locate: ${JSON.stringify(features)}`;
                 j_pax:'F 0 / C 12 / Y 174',
                 j_etd_z:'01:00', j_dep_off:'+9:00', j_eta_z:'03:20', j_arr_off:'+9:00',
                 j_wx_dep_title:'Departure – ICN (Seoul / Incheon Intl)', j_wx_dep_period:'TAF base (before FM030300Z)',
-                j_wx_dep_raw:'METAR RKSI 030100Z 27008KT 9999 FEW030 SCT100 18/09 Q1015 NOSIG=\nTAF RKSI 022300Z 0300/0324 25006KT 9999 SCT100\n  FM030300Z 27008KT 9999 FEW030 SCT100\n  FM031200Z 30010KT 9999 SCT030\n  BECMG 0318/0320 24012KT',
                 j_wx_dep_sky:'FEW030 SCT100',
                 j_wx_dep_tx:'18', j_wx_dep_tn:'09', j_wx_dep_wind:'270/08KT', j_wx_dep_vis:'10km+',
                 j_wx_dep_qnh:'1015 hPa', j_wx_dep_cond:'VMC – Normal departure expected',
                 j_wx_arr_title:'Arrival – NRT (Tokyo / Narita Intl)', j_wx_arr_period:'TAF FM030200Z',
-                j_wx_arr_raw:'METAR RJAA 030300Z 16010KT 9999 SCT025 BKN080 22/14 Q1012 NOSIG=\nTAF RJAA 022300Z 0300/0324 16008KT 9999 SCT025\n  FM030200Z 18012KT 9999 BKN080\n  TEMPO 0302/0305 3000 SHRA\n  FM031200Z 20010KT 9999 SCT030',
                 j_wx_arr_sky:'SCT025 BKN080',
                 j_wx_arr_tx:'22', j_wx_arr_tn:'14', j_wx_arr_wind:'160/12KT', j_wx_arr_vis:'9999', j_wx_arr_cond:'TEMPO 3000 SHRA – monitor before descent',
                 j_wx_alt_title:'Alternate – HND (Tokyo / Haneda Intl)', j_wx_alt_period:'TAF FM030200Z',
-                j_wx_alt_raw:'METAR RJTT 030300Z 19010KT 9999 BKN030 21/13 Q1013 NOSIG=\nTAF RJTT 022300Z 0300/0324 19008KT 9999 BKN030\n  FM030200Z 20010KT 9999 BKN030\n  FM031500Z 22012KT 9999 SCT040',
                 j_wx_alt_sky:'BKN030',
                 j_wx_alt_tx:'21', j_wx_alt_tn:'13', j_wx_alt_wind:'190/10KT', j_wx_alt_vis:'9999', j_wx_alt_cond:'VMC',
                 j_wx_enr_alt:'FL360 -> FL340', j_wx_enr_speed:'M0.82', j_wx_enr_wind:'270/45KT', j_wx_enr_route:'Incheon -> Yellow Sea -> central Japan -> Narita',
@@ -4841,9 +4831,9 @@ Features to locate: ${JSON.stringify(features)}`;
             jset('j_etd_z',sch.etd_z); jset('j_dep_off',sch.dep_utc_offset);
             jset('j_eta_z',sch.eta_z); jset('j_arr_off',sch.arr_utc_offset);
             const w = o.weather || {};
-            if (w.departure){ const x = w.departure; jset('j_wx_dep_title',x.title); jset('j_wx_dep_period',x.period); jset('j_wx_dep_raw',x.raw); jset('j_wx_dep_sky',x.sky); jset('j_wx_dep_tx',x.temp_tx); jset('j_wx_dep_tn',x.temp_tn); jset('j_wx_dep_wind',x.wind); jset('j_wx_dep_vis',x.vis); jset('j_wx_dep_qnh',x.qnh); jset('j_wx_dep_cond',x.cond); }
-            if (w.arrival){ const x = w.arrival; jset('j_wx_arr_title',x.title); jset('j_wx_arr_period',x.period); jset('j_wx_arr_raw',x.raw); jset('j_wx_arr_sky',x.sky); jset('j_wx_arr_tx',x.temp_tx); jset('j_wx_arr_tn',x.temp_tn); jset('j_wx_arr_wind',x.wind); jset('j_wx_arr_vis',x.vis); jset('j_wx_arr_cond',x.cond); }
-            if (w.alternate){ const x = w.alternate; jset('j_wx_alt_title',x.title); jset('j_wx_alt_period',x.period); jset('j_wx_alt_raw',x.raw); jset('j_wx_alt_sky',x.sky); jset('j_wx_alt_tx',x.temp_tx); jset('j_wx_alt_tn',x.temp_tn); jset('j_wx_alt_wind',x.wind); jset('j_wx_alt_vis',x.vis); jset('j_wx_alt_cond',x.cond); }
+            if (w.departure){ const x = w.departure; jset('j_wx_dep_title',x.title); jset('j_wx_dep_period',x.period); jset('j_wx_dep_sky',x.sky); jset('j_wx_dep_tx',x.temp_tx); jset('j_wx_dep_tn',x.temp_tn); jset('j_wx_dep_wind',x.wind); jset('j_wx_dep_vis',x.vis); jset('j_wx_dep_qnh',x.qnh); jset('j_wx_dep_cond',x.cond); }
+            if (w.arrival){ const x = w.arrival; jset('j_wx_arr_title',x.title); jset('j_wx_arr_period',x.period); jset('j_wx_arr_sky',x.sky); jset('j_wx_arr_tx',x.temp_tx); jset('j_wx_arr_tn',x.temp_tn); jset('j_wx_arr_wind',x.wind); jset('j_wx_arr_vis',x.vis); jset('j_wx_arr_cond',x.cond); }
+            if (w.alternate){ const x = w.alternate; jset('j_wx_alt_title',x.title); jset('j_wx_alt_period',x.period); jset('j_wx_alt_sky',x.sky); jset('j_wx_alt_tx',x.temp_tx); jset('j_wx_alt_tn',x.temp_tn); jset('j_wx_alt_wind',x.wind); jset('j_wx_alt_vis',x.vis); jset('j_wx_alt_cond',x.cond); }
             if (w.enroute){ jset('j_wx_enr_alt',w.enroute.altitude); jset('j_wx_enr_route',w.enroute.route); jset('j_wx_enr_speed',w.enroute.speed); jset('j_wx_enr_wind',w.enroute.wind); }
             if (Array.isArray(w.turbulence)) setTurbRows(w.turbulence);
             const f = o.fuel || {};
@@ -4891,12 +4881,6 @@ Features to locate: ${JSON.stringify(features)}`;
             }
             return warnings;
         }
-        // Weather raw(METAR/TAF 원문) 필드가 비어있으면 Pilot/Weather Briefing 탭의 하이라이트 기능이
-        // 조용히 아무것도 못 하게 되므로 — 비어있는 airport를 눈에 띄게 경고 (원문 자체는 앱이 만들어낼 수 없음)
-        function validateWeatherRaw(){
-            const checks = [ ['j_wx_dep_raw','DEP'], ['j_wx_arr_raw','ARR'], ['j_wx_alt_raw','ALTN'] ];
-            return checks.filter(([id]) => !jgv(id)).map(([,label]) => `${label} 원문(METAR/TAF) 비어있음`);
-        }
 
         // Gemini structured-output 스키마 — 이 스키마 없이 프롬프트 텍스트만으로 JSON 모양을 설명하면
         // 모델이 (특히 응답이 길어질 때) 일부 필드를 조용히 통째로 빠뜨리는 경우가 있었음(예: weather.turbulence
@@ -4908,8 +4892,8 @@ Features to locate: ${JSON.stringify(features)}`;
             const N = { type:'NUMBER' };
             const wxBlock = (withQnh) => ({
                 type:'OBJECT',
-                properties: Object.assign({ title:S, period:S, raw:S, sky:S, temp_tx:S, temp_tn:S, wind:S, vis:S, cond:S }, withQnh ? { qnh:S } : {}),
-                required: ['title','period','raw','sky','temp_tx','temp_tn','wind','vis','cond'].concat(withQnh ? ['qnh'] : [])
+                properties: Object.assign({ title:S, period:S, sky:S, temp_tx:S, temp_tn:S, wind:S, vis:S, cond:S }, withQnh ? { qnh:S } : {}),
+                required: ['title','period','sky','temp_tx','temp_tn','wind','vis','cond'].concat(withQnh ? ['qnh'] : [])
             });
             return {
                 type:'OBJECT',
@@ -4943,9 +4927,9 @@ Features to locate: ${JSON.stringify(features)}`;
             if (!key){ setS('⚠ Gemini API Key가 필요합니다 — 상단 헤더에서 입력 또는 🔓 잠금해제 후 다시 시도.'); return false; }
             if (typeof geminiFetch !== 'function'){ setS('❌ Gemini 호출 헬퍼(geminiFetch)를 찾지 못했습니다.'); return false; }
             setS('🛰 FPL/OFP에서 Joint 데이터 추출 중…');
-            const prompt = `You are an airline dispatcher preparing a cabin-crew JOINT BRIEFING from a flight package (FPL / OFP / Dispatch Release / weather). Extract the fields below into STRICT JSON only (no markdown, no code fences). If a value is unknown use an empty string (numbers: 0). Fuel units = LBS (convert if the plan uses x100LBS or KG). RULES: "flight_no" MUST include the operating carrier's IATA (or ICAO if IATA unknown) code directly attached to the number, e.g. "OZ204" or "OZ 204" — NEVER just the bare digits "204" — even if the source prints the flight number and the airline name in separate places, combine them yourself using the known carrier code for that airline; enroute "route" uses GEOGRAPHIC NAMES ONLY (no waypoint codes, e.g. "Incheon -> Yellow Sea -> central Japan -> Narita"); "turbulence" MUST be a THOROUGH waypoint-by-waypoint analysis of the CFP/OFP's navigation log and route data. PRIMARY SOURCE — check for this FIRST: many CFPs/OFPs include a plain NUMERIC turbulence/shear-risk index per waypoint or leg in the navigation log (often labeled "SR" or a similarly short header, distinct from the wind/temp/FL columns — usually a small integer per row). If this numeric index is present anywhere in the document, it is AUTHORITATIVE and you MUST classify severity from it using EXACTLY these thresholds (do not use your own judgment when this index exists): index 0-3 -> LIGHT; index 4-6 -> MODERATE; index 7 or above -> SEVERE. GROUP consecutive waypoints/legs that fall in the same severity bucket into a single segment (do not emit one entry per waypoint). If NO such numeric index exists anywhere in the document, fall back to interpreting SIGWX charts / turbulence forecast text / PIREPs as before, using the same LIGHT/MODERATE/SEVERE wording. Also fold in cruise FL steps and any SIGWX/turbulence chart or forecast text elsewhere in the package. Output ONE ARRAY ENTRY PER DISTINCT TURBULENCE-RELEVANT SEGMENT you can identify (do not artificially cap it at 1 or 2; a long route legitimately has several), each with: "time" = elapsed time from departure for that segment's start, e.g. "Around +1:30", derived from the actual waypoint ETO minus the ETD (not guessed), "detail" = the geographic segment name (not waypoint codes) + the literal word LIGHT, MODERATE, or SEVERE (spelled exactly like that, in English, so the app's own classifier can read it back out of this text) + affected FL range + source — when derived from the numeric index, cite it like "(SR 6, MODERATE)" so it's traceable back to the CFP; ONLY include a segment classified LIGHT or greater — do NOT include smooth/calm/nil/negligible segments, and if the source genuinely shows nothing LIGHT-or-greater anywhere, return an empty array rather than inventing rows; "flight_time" as "H:MM"; "taxi" from the block-out / TAXI field else ""; "date_label" like "2026.05.03, Sun"; "temp_tx"/"temp_tn" are the TAF forecast MAX/MIN temperature for that airport (from the TAF's TX.../TN... groups if present, else your best estimate from the METAR/TAF text) — leave blank only if truly not derivable; "schedule.etd_z"/"schedule.eta_z" MUST be the ZULU/UTC times AS LITERALLY PRINTED in the document (e.g. an OFP line "ETD 1440Z" -> "14:40", "ETA 0109Z" -> "01:09") — COPY THE DIGITS, do not convert or calculate anything, this is the one value in the whole schema that must never involve arithmetic; if only local times are printed with no Z time anywhere, leave etd_z/eta_z empty rather than guessing. "schedule.dep_utc_offset"/"schedule.arr_utc_offset" are the DEP/ARR airport's UTC offset for the flight date as a signed value like "+9:00" or "-7:00" (the standard civil time zone offset of that airport/city ON THAT SPECIFIC DATE — many airports observe Daylight Saving Time part of the year, e.g. US/Canada/Europe typically run 1 hour ahead of their winter offset from spring to autumn, so check the flight date against that region's DST calendar rather than defaulting to winter/standard time) — double-check the sign and magnitude are plausible for that airport before answering, and if the source document ALSO happens to print a local time anywhere (e.g. a flight-log "LT" column or station time), you may use it to sanity-check your offset, but the offset value itself must still be reported as a clean UTC±HH:MM, never a computed local clock time — the app computes local time itself from Z + this offset, so do not try to state a local clock time anywhere in this object. "mel" reports the aircraft's MEL/CDL (Minimum Equipment List / Configuration Deviation List) status from the dispatch release / OFP / tech log pages — "none":true ONLY if the document explicitly states the aircraft has no open MEL/CDL items (or the section is absent), otherwise "none":false and "detail" MUST list every MEL/CDL item found (item number, ATA/system, restriction or procedure), one per line, verbatim/summarized from the source — never leave both "none" and "detail" empty if the document mentions MEL/CDL at all; for weather "period" and the sky/temp/wind/vis/cond values in each block, pick the TAF FM/BECMG/TEMPO group (or METAR) that actually covers that airport's estimated LOCAL time (departure = ETD, arrival/alternate = ETA) — NOT just the first/base group in the TAF — and record which group you used in "period" so it can be verified; weather "raw" must be the COMPLETE ORIGINAL METAR+TAF text for that airport COPIED VERBATIM (every group, not just the one you picked) so the app can highlight the relevant time segment itself — prefer copying it in full, but if it is truly very long, it is far better to copy AS MUCH of it verbatim as you reasonably can (at minimum: the METAR line plus every TAF FM/BECMG/TEMPO group whose time window could plausibly cover this airport's ETD/ETA) than to leave "raw" empty — an empty "raw" is the single worst outcome for this field, worse than a shortened-but-real copy, so never return "" for "raw" if the source document contains ANY METAR/TAF text for that airport. "enroute.speed" is the OFP's representative cruise speed/mach (e.g. "M0.82" or "N0480" if only a groundspeed-coded speed like N0480 is printed — copy whatever format the OFP itself uses, do not convert Mach<->knots yourself); "fuel.zfw_lbs"/"fuel.tow_lbs" are the OFP's Zero Fuel Weight / Takeoff Weight in LBS (convert from KG if needed, same as the other fuel fields) — leave 0 only if genuinely not printed anywhere in the document.
+            const prompt = `You are an airline dispatcher preparing a cabin-crew JOINT BRIEFING from a flight package (FPL / OFP / Dispatch Release / weather). Extract the fields below into STRICT JSON only (no markdown, no code fences). If a value is unknown use an empty string (numbers: 0). Fuel units = LBS (convert if the plan uses x100LBS or KG). RULES: "flight_no" MUST include the operating carrier's IATA (or ICAO if IATA unknown) code directly attached to the number, e.g. "OZ204" or "OZ 204" — NEVER just the bare digits "204" — even if the source prints the flight number and the airline name in separate places, combine them yourself using the known carrier code for that airline; enroute "route" uses GEOGRAPHIC NAMES ONLY (no waypoint codes, e.g. "Incheon -> Yellow Sea -> central Japan -> Narita"); "turbulence" MUST be a THOROUGH waypoint-by-waypoint analysis of the CFP/OFP's navigation log and route data. PRIMARY SOURCE — check for this FIRST: many CFPs/OFPs include a plain NUMERIC turbulence/shear-risk index per waypoint or leg in the navigation log (often labeled "SR" or a similarly short header, distinct from the wind/temp/FL columns — usually a small integer per row). If this numeric index is present anywhere in the document, it is AUTHORITATIVE and you MUST classify severity from it using EXACTLY these thresholds (do not use your own judgment when this index exists): index 0-3 -> LIGHT; index 4-6 -> MODERATE; index 7 or above -> SEVERE. GROUP consecutive waypoints/legs that fall in the same severity bucket into a single segment (do not emit one entry per waypoint). If NO such numeric index exists anywhere in the document, fall back to interpreting SIGWX charts / turbulence forecast text / PIREPs as before, using the same LIGHT/MODERATE/SEVERE wording. Also fold in cruise FL steps and any SIGWX/turbulence chart or forecast text elsewhere in the package. Output ONE ARRAY ENTRY PER DISTINCT TURBULENCE-RELEVANT SEGMENT you can identify (do not artificially cap it at 1 or 2; a long route legitimately has several), each with: "time" = elapsed time from departure for that segment's start, e.g. "Around +1:30", derived from the actual waypoint ETO minus the ETD (not guessed), "detail" = the geographic segment name (not waypoint codes) + the literal word LIGHT, MODERATE, or SEVERE (spelled exactly like that, in English, so the app's own classifier can read it back out of this text) + affected FL range + source — when derived from the numeric index, cite it like "(SR 6, MODERATE)" so it's traceable back to the CFP; ONLY include a segment classified LIGHT or greater — do NOT include smooth/calm/nil/negligible segments, and if the source genuinely shows nothing LIGHT-or-greater anywhere, return an empty array rather than inventing rows; "flight_time" as "H:MM"; "taxi" from the block-out / TAXI field else ""; "date_label" like "2026.05.03, Sun"; "temp_tx"/"temp_tn" are the TAF forecast MAX/MIN temperature for that airport (from the TAF's TX.../TN... groups if present, else your best estimate from the METAR/TAF text) — leave blank only if truly not derivable; "schedule.etd_z"/"schedule.eta_z" MUST be the ZULU/UTC times AS LITERALLY PRINTED in the document (e.g. an OFP line "ETD 1440Z" -> "14:40", "ETA 0109Z" -> "01:09") — COPY THE DIGITS, do not convert or calculate anything, this is the one value in the whole schema that must never involve arithmetic; if only local times are printed with no Z time anywhere, leave etd_z/eta_z empty rather than guessing. "schedule.dep_utc_offset"/"schedule.arr_utc_offset" are the DEP/ARR airport's UTC offset for the flight date as a signed value like "+9:00" or "-7:00" (the standard civil time zone offset of that airport/city ON THAT SPECIFIC DATE — many airports observe Daylight Saving Time part of the year, e.g. US/Canada/Europe typically run 1 hour ahead of their winter offset from spring to autumn, so check the flight date against that region's DST calendar rather than defaulting to winter/standard time) — double-check the sign and magnitude are plausible for that airport before answering, and if the source document ALSO happens to print a local time anywhere (e.g. a flight-log "LT" column or station time), you may use it to sanity-check your offset, but the offset value itself must still be reported as a clean UTC±HH:MM, never a computed local clock time — the app computes local time itself from Z + this offset, so do not try to state a local clock time anywhere in this object. "mel" reports the aircraft's MEL/CDL (Minimum Equipment List / Configuration Deviation List) status from the dispatch release / OFP / tech log pages — "none":true ONLY if the document explicitly states the aircraft has no open MEL/CDL items (or the section is absent), otherwise "none":false and "detail" MUST list every MEL/CDL item found (item number, ATA/system, restriction or procedure), one per line, verbatim/summarized from the source — never leave both "none" and "detail" empty if the document mentions MEL/CDL at all; for weather "period" and the sky/temp/wind/vis/cond values in each block, pick the TAF FM/BECMG/TEMPO group (or METAR) that actually covers that airport's estimated LOCAL time (departure = ETD, arrival/alternate = ETA) — NOT just the first/base group in the TAF — and record which group you used in "period" so it can be verified; report sky/temp/wind/vis/cond as your own concise reading of that group, not a verbatim copy of the source text. "enroute.speed" is the OFP's representative cruise speed/mach (e.g. "M0.82" or "N0480" if only a groundspeed-coded speed like N0480 is printed — copy whatever format the OFP itself uses, do not convert Mach<->knots yourself); "fuel.zfw_lbs"/"fuel.tow_lbs" are the OFP's Zero Fuel Weight / Takeoff Weight in LBS (convert from KG if needed, same as the other fuel fields) — leave 0 only if genuinely not printed anywhere in the document.
 JSON shape:
-{"airline":"","flight_no":"e.g. OZ 123","date":"YYYY-MM-DD","date_label":"YYYY.MM.DD, Day","dep":"IATA","arr":"IATA","route_label":"DEP > ARR","ac_type":"e.g. A21N","ac_reg":"e.g. HL8364","flight_time":"H:MM","gate_spot":"","schedule":{"etd_z":"HH:MM, from the document's Z/UTC time, no conversion","dep_utc_offset":"e.g. +9:00","eta_z":"HH:MM, from the document's Z/UTC time, no conversion","arr_utc_offset":"e.g. -7:00"},"pax":"F x / C y / Y z","taxi":"","alert_level":"BLUE","weather":{"departure":{"title":"Departure - IATA (City / Airport)","period":"the exact METAR/TAF group this row was taken from, e.g. 'TAF FM021200Z' or 'METAR 021200Z' or 'TAF BECMG 1214/1216'","raw":"the FULL, VERBATIM, UNMODIFIED METAR + TAF text block for this airport exactly as printed in the source document, newlines as \\n, nothing paraphrased or omitted","sky":"","temp_tx":"TAF/forecast MAX temp, number only e.g. 28","temp_tn":"TAF/forecast MIN temp, number only e.g. 18","wind":"","vis":"","qnh":"","cond":""},"arrival":{"title":"Arrival - IATA (City / Airport)","period":"the exact METAR/TAF group covering the ESTIMATED ARRIVAL TIME, e.g. 'TAF FM021800Z'","raw":"the FULL verbatim METAR + TAF text block for this airport","sky":"","temp_tx":"forecast MAX temp e.g. 24","temp_tn":"forecast MIN temp e.g. 15","wind":"","vis":"","cond":""},"alternate":{"title":"Alternate - IATA (City / Airport)","period":"the exact METAR/TAF group used","raw":"the FULL verbatim METAR + TAF text block for this airport","sky":"","temp_tx":"forecast MAX temp","temp_tn":"forecast MIN temp","wind":"","vis":"","cond":""},"enroute":{"altitude":"e.g. FL360 -> FL340","route":"geographic names only","wind":"representative cruise wind e.g. 270/80KT","speed":"e.g. M0.82 or N0480, copy OFP's own format"},"turbulence":[{"time":"Around +H:MM","detail":"geographic segment - severity, FL range (source)"} /* as many entries as the CFP's route/SIGWX data actually supports, not limited to 2 */]},"fuel":{"final_reserve_lbs":0,"altn_lbs":0,"trip_lbs":0,"tof_lbs":0,"zfw_lbs":0,"tow_lbs":0},"oat_cruise_c":0,"mel":{"none":true,"detail":"item number, system, restriction — one per line, or empty if none applies"}}
+{"airline":"","flight_no":"e.g. OZ 123","date":"YYYY-MM-DD","date_label":"YYYY.MM.DD, Day","dep":"IATA","arr":"IATA","route_label":"DEP > ARR","ac_type":"e.g. A21N","ac_reg":"e.g. HL8364","flight_time":"H:MM","gate_spot":"","schedule":{"etd_z":"HH:MM, from the document's Z/UTC time, no conversion","dep_utc_offset":"e.g. +9:00","eta_z":"HH:MM, from the document's Z/UTC time, no conversion","arr_utc_offset":"e.g. -7:00"},"pax":"F x / C y / Y z","taxi":"","alert_level":"BLUE","weather":{"departure":{"title":"Departure - IATA (City / Airport)","period":"the exact METAR/TAF group this row was taken from, e.g. 'TAF FM021200Z' or 'METAR 021200Z' or 'TAF BECMG 1214/1216'","sky":"","temp_tx":"TAF/forecast MAX temp, number only e.g. 28","temp_tn":"TAF/forecast MIN temp, number only e.g. 18","wind":"","vis":"","qnh":"","cond":""},"arrival":{"title":"Arrival - IATA (City / Airport)","period":"the exact METAR/TAF group covering the ESTIMATED ARRIVAL TIME, e.g. 'TAF FM021800Z'","sky":"","temp_tx":"forecast MAX temp e.g. 24","temp_tn":"forecast MIN temp e.g. 15","wind":"","vis":"","cond":""},"alternate":{"title":"Alternate - IATA (City / Airport)","period":"the exact METAR/TAF group used","sky":"","temp_tx":"forecast MAX temp","temp_tn":"forecast MIN temp","wind":"","vis":"","cond":""},"enroute":{"altitude":"e.g. FL360 -> FL340","route":"geographic names only","wind":"representative cruise wind e.g. 270/80KT","speed":"e.g. M0.82 or N0480, copy OFP's own format"},"turbulence":[{"time":"Around +H:MM","detail":"geographic segment - severity, FL range (source)"} /* as many entries as the CFP's route/SIGWX data actually supports, not limited to 2 */]},"fuel":{"final_reserve_lbs":0,"altn_lbs":0,"trip_lbs":0,"tof_lbs":0,"zfw_lbs":0,"tow_lbs":0},"oat_cruise_c":0,"mel":{"none":true,"detail":"item number, system, restriction — one per line, or empty if none applies"}}
 TEXT:
 """${src.slice(0, 200000)}"""`;
             try {
@@ -4971,26 +4955,20 @@ TEXT:
                     const detTurb = extractTurbulenceZonesFromOfp(src);
                     if (detTurb.length){ setTurbRows(detTurb); detTurbUsed = true; }
                 } catch(_){}
-                // 마찬가지로 OFP에 "DEPARTURE/ARRIVAL/ALTERNATE/ENROUTE WEATHER" 헤더가 있으면
-                // LLM이 베낀 원문 대신 이 결정론적 추출 결과로 덮어씀(더 신뢰도 높음 — 누락/요약 위험 없음)
+                // OFP에 "ENROUTE WEATHER" 헤더가 있으면 LLM이 베낀 원문 대신 이 결정론적 추출 결과로 덮어씀
+                // (더 신뢰도 높음 — 누락/요약 위험 없음). DEPARTURE/ARRIVAL/ALTERNATE WEATHER는 더 이상
+                // raw 필드 자체가 없음(METAR/TAF 전문을 통째로 보여주던 방식 삭제 — 구조화 필드만 사용).
                 let detWxUsed = [];
                 try {
-                    const depSec = extractWeatherSectionFromOfp(src, 'DEPARTURE WEATHER');
-                    const arrSec = extractWeatherSectionFromOfp(src, 'ARRIVAL WEATHER');
-                    const altSec = extractWeatherSectionFromOfp(src, 'ALTERNATE WEATHER');
                     const enrSec = extractWeatherSectionFromOfp(src, 'ENROUTE WEATHER');
-                    if (depSec.length){ jset('j_wx_dep_raw', depSec.join('\n')); detWxUsed.push('DEP'); }
-                    if (arrSec.length){ jset('j_wx_arr_raw', arrSec.join('\n')); detWxUsed.push('ARR'); }
-                    if (altSec.length){ jset('j_wx_alt_raw', altSec.join('\n')); detWxUsed.push('ALTN'); }
                     if (enrSec.length){ jset('j_wx_enr_raw', enrSec.join('\n')); detWxUsed.push('ENR'); }
-                    ['j_wx_dep_raw','j_wx_arr_raw','j_wx_alt_raw','j_wx_enr_raw'].forEach(id => autoGrowTextarea(document.getElementById(id)));
+                    autoGrowTextarea(document.getElementById('j_wx_enr_raw'));
                 } catch(_){}
-                const offWarn = validateUtcOffsets(), rawWarn = validateWeatherRaw();
+                const offWarn = validateUtcOffsets();
                 setS('✅ 추출 완료 · 확인 필요 → ① Flight Time  ② Alert Level  ③ Taxi Time  ④ DEP/ARR UTC± (강조 표시). 검토·수정 후 PDF를 생성하세요.'
                     + (detTurbUsed ? '  ✈ 난기류는 OFP 항법로그 SR 실측값으로 대체됨.' : '')
                     + (detWxUsed.length ? `  🌦 날씨 원문(${detWxUsed.join('·')})은 OFP 섹션 실측값으로 대체됨.` : '')
                     + (offWarn.length ? `  ⚠ ${offWarn.join(' · ')} — 도착예정(Local)이 틀릴 수 있으니 직접 확인하세요.` : '')
-                    + (rawWarn.length ? `  ⚠ ${rawWarn.join(' · ')} — 해당 공항은 날씨 하이라이트가 표시되지 않습니다. JOINT 탭에서 원문을 직접 붙여넣으세요.` : '')
                     + (truncated ? '  ⚠ 응답이 토큰 한도로 잘려 일부 항목이 누락됐을 수 있습니다 — 값들을 확인하세요.' : ''));
                 return true;
             } catch(err){ setS('❌ 추출 실패: ' + err.message); return false; }
@@ -5039,73 +5017,10 @@ TEXT:
         }
 
         // Pilot 탭 Weather = Joint 탭 Weather 그대로 표시 (읽기전용) + ETD/ETA 시간 배지
-        // ── 원문 METAR/TAF에서 "지금 이 비행에 해당하는" 구간을 찾아 하이라이트 ──
-        // j_date(비행일자, day-of-month) + ETD/ETA(Z, 문서 원문 그대로)로 UTC day/hour/min을 직접 구한다.
-        // (예전엔 로컬시각-offset으로 역산했는데, Z를 그대로 안 쓰고 로컬+offset을 다시 빼서 구하다 보니
-        //  Gemini가 로컬/오프셋 중 하나라도 잘못 넣으면 조용히 틀린 값이 나왔음 — Z는 항상 문서 원문이라 역산 불필요.)
-        // 월 경계(예: 말일→다음달 1일로 넘어가는 TAF)는 근사치로 처리하지 않음 — 드문 엣지케이스, 알려진 한계.
-        function computeUtcDayMinute(kind){
-            // 날짜 구분자를 -, ., /, 공백 모두 허용 (Gemini/사용자 입력이 정확히 YYYY-MM-DD가 아닐 수 있음)
-            const dm = /(\d{4})\s*[-.\/]\s*(\d{1,2})\s*[-.\/]\s*(\d{1,2})/.exec(jgv('j_date') || '');
-            if (!dm) return null;
-            const day = parseInt(dm[3], 10);
-            if (kind === 'dep'){
-                const zMin = parseHHMMToMin(jgv('j_etd_z'));
-                return zMin == null ? null : day * 1440 + zMin;
-            }
-            const et = computeEtdEta();
-            if (!et.etaZ) return null;
-            const zMin = parseHHMMToMin(et.etaZ);
-            return zMin == null ? null : (day + et.etaZDayShift) * 1440 + zMin;
-        }
-        // ckpt-prep-stack의 parseTafLines()와 동일한 방식 — FM/BECMG/TEMPO(PROB 포함)/기본 유효기간을
-        // 전부 동등한 후보로 보고, 목표 시각(targetDayMin)보다 이전(≤)이면서 가장 늦게 시작하는 후보가
-        // 있는 "줄 하나"만 하이라이트한다. BECMG/TEMPO의 끝나는 시각은 더 이상 보지 않음(단순화) —
-        // 사용자가 ckpt와 동일한 단일 하이라이트 방식으로 명시적으로 교체 요청(기존엔 활성 FM/BECMG
-        // 노란색 + 겹치는 TEMPO/PROB 빨간색을 동시에 표시했었음, 그 이중 표시 로직은 폐기).
-        function pickTafHighlight(raw, targetDayMin){
-            if (!raw || targetDayMin == null) return null;
-            const re = /\bFM(\d{2})(\d{2})(\d{2})Z?\b|\b(?:BECMG|TEMPO)\s+(\d{2})(\d{2})\/(\d{2})(\d{2})\b|\b(?:TAF\s+)?(?:[A-Z]{4}\s+\d{6}Z\s+)?(\d{2})(\d{2})\/(\d{2})(\d{2})\b/gi;
-            const candidates = []; let mm;
-            while ((mm = re.exec(raw))){
-                let val;
-                if (mm[1] !== undefined) val = (+mm[1])*1440 + (+mm[2])*60 + (+mm[3]); // FM ddhhmm
-                else if (mm[4] !== undefined) val = (+mm[4])*1440 + (+mm[5])*60;       // BECMG/TEMPO 시작(ddhh)
-                else if (mm[8] !== undefined) val = (+mm[8])*1440 + (+mm[9])*60;       // 기본 유효기간 시작(ddhh)
-                else continue;
-                if (val <= targetDayMin) candidates.push({ index: mm.index, val });
-            }
-            if (!candidates.length) return null;
-            // ckpt 원본과 동일하게 val 기준으로만 정렬(동점이면 안정정렬이 먼저 나온 후보를 유지 —
-            // ES2019+ Array.sort는 표준적으로 stable이라 별도 index 타이브레이크가 필요 없음)
-            candidates.sort((a,b) => b.val - a.val);
-            return candidates[0];
-        }
-        // 첫 METAR 줄의 관측시각(Z)만 뽑음 — "METAR RKSI 100300Z ..." -> "0300Z". 헤더 "<ICAO> METAR (0300Z)"용.
-        function metarZTime(raw){
-            const line = (raw || '').split('\n').find(l => /\bMETAR\b/.test(l));
-            if (!line) return '';
-            const m = /\d{2}(\d{4})Z\b/.exec(line);
-            return m ? `${m[1]}Z` : '';
-        }
-        // 화면 표시용으로만 TAF 줄 앞에 빈 줄 하나 삽입(METAR/TAF 블록 시각 구분) — 저장된 원문(raw) 자체는 안 건드림.
-        // 이미 빈 줄로 구분돼 있으면 중복 삽입 안 함.
-        function insertBlankBeforeTaf(raw){
-            return (raw || '').replace(/([^\n])\n(\s*TAF\b)/, '$1\n\n$2');
-        }
-        function renderWxRawHtml(raw, targetDayMin){
-            if (!raw) return '';
-            const raw2 = insertBlankBeforeTaf(raw);
-            const hit = pickTafHighlight(raw2, targetDayMin);
-            if (!hit) return `<div class="wxraw">${escapeHtml(raw2)}</div>`;
-            // 마커가 포함된 줄 전체를 강조(ckpt와 동일 — 토큰 하나만이 아니라 줄 단위)
-            const lineStart = raw2.lastIndexOf('\n', hit.index) + 1;
-            let lineEnd = raw2.indexOf('\n', hit.index); if (lineEnd < 0) lineEnd = raw2.length;
-            const before = escapeHtml(raw2.slice(0, lineStart));
-            const line = escapeHtml(raw2.slice(lineStart, lineEnd));
-            const after = escapeHtml(raw2.slice(lineEnd));
-            return `<div class="wxraw">${before}<mark class="wx-hi-main">${line}</mark>${after}</div>`;
-        }
+        // METAR/TAF 전문을 통째로 붙여넣어 보여주던 방식(및 그 안에서 해당 시각 줄만 하이라이트하던 기능)은
+        // 삭제 — 실제 OFP에서는 공항별 경계가 깔끔히 안 잘려서 다른 공항 구간까지 통째로 섞여 들어오는 문제가
+        // 있었음(요청: "내용 전체 복사하는거 앱 전체에서 없애라"). 항상 이미 추출된 구조화 필드(Sky/TX·TN/
+        // Wind/Vis/QNH/Cond)만 보여준다 — 데이터가 짧고 필드별로 검증 가능해 위 문제가 구조적으로 발생하지 않음.
         function renderPilotWeather(){
             const targets = document.querySelectorAll('.wx-mirror-target'); // PILOT 탭 + WEATHER BRIEFING 탭, 둘 다 동일 내용 미러
             if (!targets.length) return;
@@ -5116,36 +5031,26 @@ TEXT:
             const etdLocal = et.etdLocal ? `${et.etdLocal}${fmtDayShift(et.etdLocalDayShift)} L` : (et.etdZ ? '계산 불가 — DEP UTC± 필요' : '');
             const etaZ = et.etaZ ? `${et.etaZ}Z${fmtDayShift(et.etaZDayShift)}${et.etaDerived ? ' (est.)' : ''}` : '';
             const etaLocal = et.etaLocal ? `${et.etaLocal}${fmtDayShift(et.etaLocalDayShift)} L` : (et.etaZ ? '계산 불가 — ARR UTC± 필요' : '');
-            const depTargetMin = computeUtcDayMinute('dep'), etaTargetMin = computeUtcDayMinute('eta');
             const altName = (g('j_wx_alt_title').match(/[-–]\s*([A-Za-z0-9]+)/) || [])[1] || '';
-            const block = (icao, titleKo, timeLabel, zVal, localVal, period, raw, targetMin, sky, temp, wind, vis, qnh, cond) => {
-                let body;
-                if (raw){
-                    body = renderWxRawHtml(raw, targetMin);
-                    if (targetMin == null) body += '<p class="jnote">⚠ 하이라이트 불가 — JOINT 탭의 Date(YYYY-MM-DD)와 ETD(Z)/ETA(Z) 입력을 확인하세요.</p>';
-                } else {
-                    const rows = [];
-                    if (sky)  rows.push(`<div><b>Sky</b> ${escapeHtml(sky)}</div>`);
-                    if (temp) rows.push(`<div><b>Temp</b> ${escapeHtml(temp)}</div>`);
-                    if (wind) rows.push(`<div><b>Wind</b> ${escapeHtml(wind)}</div>`);
-                    if (vis)  rows.push(`<div><b>Vis</b> ${escapeHtml(vis)}</div>`);
-                    if (qnh)  rows.push(`<div><b>QNH</b> ${escapeHtml(qnh)}</div>`);
-                    if (cond) rows.push(`<div class="pfwx-cond"><b>Cond</b> ${escapeHtml(cond)}</div>`);
-                    body = rows.length ? `<div class="pfwx-grid">${rows.join('')}</div>` : '<p class="pfwx-empty">입력된 값 없음 — JOINT 탭에서 원문(METAR/TAF)을 붙여넣으면 여기 자동 하이라이트됩니다.</p>';
-                }
-                // raw에 METAR 관측시각이 있으면 "<ICAO> METAR (0300Z)" 식 CDU 헤더로, 없으면 기존 titleKo.
-                const zt = raw ? metarZTime(raw) : '';
-                const metarTitle = (icao && zt) ? `${icao} METAR (${zt})` : titleKo;
+            const block = (titleKo, timeLabel, zVal, localVal, sky, temp, wind, vis, qnh, cond) => {
+                const rows = [];
+                if (sky)  rows.push(`<div><b>Sky</b> ${escapeHtml(sky)}</div>`);
+                if (temp) rows.push(`<div><b>Temp</b> ${escapeHtml(temp)}</div>`);
+                if (wind) rows.push(`<div><b>Wind</b> ${escapeHtml(wind)}</div>`);
+                if (vis)  rows.push(`<div><b>Vis</b> ${escapeHtml(vis)}</div>`);
+                if (qnh)  rows.push(`<div><b>QNH</b> ${escapeHtml(qnh)}</div>`);
+                if (cond) rows.push(`<div class="pfwx-cond"><b>Cond</b> ${escapeHtml(cond)}</div>`);
+                const body = rows.length ? `<div class="pfwx-grid">${rows.join('')}</div>` : '<p class="pfwx-empty">입력된 값 없음 — JOINT 탭에서 채우거나 APPLY로 추출하세요.</p>';
                 let head = '';
                 if (zVal) head += `<div class="jsub">${escapeHtml(timeLabel)}</div><div>${escapeHtml(zVal)}</div>`;
                 if (localVal) head += `<div class="jsub">LOCAL</div><div>${escapeHtml(localVal)}</div>`;
-                head += `<div class="jsub">${escapeHtml(metarTitle)}</div>`;
+                head += `<div class="jsub">${escapeHtml(titleKo)}</div>`;
                 return head + body;
             };
             let html = '';
-            html += block(g('j_dep'), `출발지 (${g('j_dep')||'DEP'})`, 'ETD', etdZ, etdLocal, g('j_wx_dep_period'), g('j_wx_dep_raw'), depTargetMin, g('j_wx_dep_sky'), jTempStr(g('j_wx_dep_tx'), g('j_wx_dep_tn')), g('j_wx_dep_wind'), g('j_wx_dep_vis'), g('j_wx_dep_qnh'), g('j_wx_dep_cond'));
-            html += block(g('j_arr'), `목적지 (${g('j_arr')||'ARR'})`, 'ETA', etaZ, etaLocal, g('j_wx_arr_period'), g('j_wx_arr_raw'), etaTargetMin, g('j_wx_arr_sky'), jTempStr(g('j_wx_arr_tx'), g('j_wx_arr_tn')), g('j_wx_arr_wind'), g('j_wx_arr_vis'), '', g('j_wx_arr_cond'));
-            html += block(altName, `교체공항${altName?` (${altName})`:''}`, 'ETA', etaZ, etaLocal, g('j_wx_alt_period'), g('j_wx_alt_raw'), etaTargetMin, g('j_wx_alt_sky'), jTempStr(g('j_wx_alt_tx'), g('j_wx_alt_tn')), g('j_wx_alt_wind'), g('j_wx_alt_vis'), '', g('j_wx_alt_cond'));
+            html += block(`출발지 (${g('j_dep')||'DEP'})`, 'ETD', etdZ, etdLocal, g('j_wx_dep_sky'), jTempStr(g('j_wx_dep_tx'), g('j_wx_dep_tn')), g('j_wx_dep_wind'), g('j_wx_dep_vis'), g('j_wx_dep_qnh'), g('j_wx_dep_cond'));
+            html += block(`목적지 (${g('j_arr')||'ARR'})`, 'ETA', etaZ, etaLocal, g('j_wx_arr_sky'), jTempStr(g('j_wx_arr_tx'), g('j_wx_arr_tn')), g('j_wx_arr_wind'), g('j_wx_arr_vis'), '', g('j_wx_arr_cond'));
+            html += block(`교체공항${altName?` (${altName})`:''}`, 'ETA', etaZ, etaLocal, g('j_wx_alt_sky'), jTempStr(g('j_wx_alt_tx'), g('j_wx_alt_tn')), g('j_wx_alt_wind'), g('j_wx_alt_vis'), '', g('j_wx_alt_cond'));
             const enrAlt = g('j_wx_enr_alt'), enrSpeed = g('j_wx_enr_speed'), enrWind = g('j_wx_enr_wind'), enrRoute = g('j_wx_enr_route'), enrRaw = g('j_wx_enr_raw');
             if (enrAlt || enrSpeed || enrWind || enrRoute || enrRaw){
                 html += `<div class="jsub">항로 (Enroute)</div><div class="pfwx-grid">`
@@ -5190,8 +5095,7 @@ TEXT:
             el.innerHTML = html;
         }
 
-        // JOINT 탭 Weather 카드 상단 — 원문/구조화 필드(접혀있음)를 대신해 평문 한글로 간단히 요약해서 보여줌.
-        // 데이터 소스(raw METAR/TAF, 구조화 필드)는 그대로 남겨둠 — PILOT 탭 TAF 시간대 하이라이트가 여전히 이 값들을 씀.
+        // JOINT 탭 Weather 카드 상단 — 구조화 필드(접혀있음)를 대신해 평문 한글로 간단히 요약해서 보여줌.
         function renderJointWeatherKoSummary(){
             const el = document.getElementById('jWxKoSummary'); if (!el) return;
             const g = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
@@ -5403,11 +5307,10 @@ RAW OFP/FPL TEXT:
                 } catch(_){}
                 recalcJointMemo(); renderJointSummaryNote();
                 try { renderPilotFlightInfo(); renderPilotWeather(); renderGateTriangle(); } catch(_){}
-                const offWarn = validateUtcOffsets(), rawWarn = validateWeatherRaw();
+                const offWarn = validateUtcOffsets();
                 setS('✅ 적용 완료 — PILOT · JOINT · NOTAM 탭에서 확인·검토하세요.'
                     + (phaseCount ? `  ✈ Expected Turbulence는 종합 리포트 시간대별 분석 ${phaseCount}개 단계로 채워짐.` : '  ⚠ 종합 리포트에서 시간대별 단계를 찾지 못해 난기류 리스트가 비어있을 수 있습니다 — WEATHER 탭에서 리포트를 확인하세요.')
-                    + (offWarn.length ? `  ⚠ JOINT 탭 DEP/ARR UTC± 확인 필요: ${offWarn.join(' · ')}` : '')
-                    + (rawWarn.length ? `  ⚠ ${rawWarn.join(' · ')} (하이라이트 불가 — JOINT 탭에서 원문 직접 붙여넣기)` : ''));
+                    + (offWarn.length ? `  ⚠ JOINT 탭 DEP/ARR UTC± 확인 필요: ${offWarn.join(' · ')}` : ''));
             } catch(err){
                 setS('❌ 적용 중 오류: ' + err.message);
             } finally {
