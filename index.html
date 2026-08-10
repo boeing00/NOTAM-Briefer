@@ -4811,20 +4811,33 @@ Features to locate: ${JSON.stringify(features)}`;
         // "이 공항"의 첫 METAR/TAF 헤더 이후 다른 ICAO의 METAR/TAF 헤더나 다음 WEATHER 섹션 구분자가
         // 나타나면 그 앞까지만 잘라낸다. jset 저장 시점과 렌더링 시점 양쪽에서 호출(출처가 추출이든
         // 수기 붙여넣기든 항상 적용되도록) — 실제 화면에 "여러 공항이 한 박스에 섞이는" 문제를 구조적으로 막음.
+        // 줄(line) 단위가 아니라 문자열 전체를 대상으로 검색함 — 실제 OFP를 PDF에서 텍스트로 뽑으면 항목
+        // 사이 줄바꿈이 거의 없이 한 덩어리로 이어지는 경우가 흔해서(실측: BECMG.../TAF AMD.../ARRIVAL
+        // WEATHER가 전부 한 "줄"에 붙어 있었음), 줄 단위 검사로는 그 안에 숨은 경계를 못 찾는 문제가 있었음.
         function scopeAirportRawText(raw){
             if (!raw) return raw;
-            const lines = String(raw).split('\n');
-            const out = []; let seenIcao = null;
-            for (const line of lines){
-                if (out.length && /-{5,}|\b(?:ARRIVAL|ALTERNATE|DEPARTURE|ENROUTE)\s+WEATHER\b/i.test(line)) break;
-                const m = /\b(?:METAR|TAF(?:\s+AMD)?)\s+([A-Z]{4})\b/.exec(line);
-                if (m){
-                    if (seenIcao && m[1] !== seenIcao) break;
-                    seenIcao = seenIcao || m[1];
-                }
-                out.push(line);
-            }
-            return out.join('\n').trim();
+            const s = String(raw);
+            const first = /\b(?:METAR|TAF(?:\s+AMD)?)\s+([A-Z]{4})\b/.exec(s);
+            if (!first) return s.trim();
+            const icao = first[1];
+            const afterStart = first.index + first[0].length;
+            const boundaryRe = new RegExp(
+                `\\b(?:METAR|TAF(?:\\s+AMD)?)\\s+(?!${icao}\\b)[A-Z]{4}\\b|-{5,}|\\b(?:ARRIVAL|ALTERNATE|DEPARTURE|ENROUTE)\\s+WEATHER\\b`, 'i');
+            const m = boundaryRe.exec(s.slice(afterStart));
+            return (m ? s.slice(0, afterStart + m.index) : s).trim();
+        }
+        // 표시용 줄바꿈 보정 — 위와 같은 이유로 BECMG/TEMPO/PROB/FM/TAF 그룹 앞에 실제 줄바꿈이 없는 원문이
+        // 흔해서, 각 그룹이 최소한 자기 줄에서 시작하도록 강제로 줄바꿈을 넣어준다(내용 자체는 안 바꿈).
+        function normalizeWxLineBreaks(raw){
+            return (raw || '')
+                .replace(/\s*(?=\bTAF\b(?:\s+AMD)?\s+[A-Z]{4}\b)/g, '\n')
+                .replace(/\s+(?=\bBECMG\s+\d{4}\/\d{4}\b)/g, '\n')
+                .replace(/\s+(?=\bTEMPO\s+\d{4}\/\d{4}\b)/g, '\n')
+                .replace(/\s+(?=\bPROB\d{2}\b)/g, '\n')
+                .replace(/\s+(?=\bFM\d{6}Z?\b)/g, '\n')
+                .replace(/[ \t]*\n[ \t]*/g, '\n')
+                .replace(/\n{3,}/g, '\n\n')
+                .trim();
         }
         // 작은 고정 rows짜리 textarea(MEL/CDL 상세, OFP 메모 등)가 스크롤 안쪽에 내용을 숨긴 채로 있으면
         // 화면에서도 안 보이고 PDF 캡처(html2canvas)에도 안 잡힘 — 내용 길이에 맞춰 항상 높이를 늘림(줄이지는 않음).
@@ -5093,16 +5106,11 @@ TEXT:
             candidates.sort((a,b) => b.val - a.val);
             return candidates[0];
         }
-        // 첫 METAR 줄의 관측시각(Z)만 뽑음 — "METAR RKSI 100300Z ..." -> "0300Z". 헤더 "<ICAO> METAR (0300Z)"용.
+        // METAR 관측시각(Z)만 뽑음 — "METAR RKSI 100300Z ..." -> "0300Z". 헤더 "<ICAO> METAR (0300Z)"용.
+        // 줄 단위가 아니라 문자열 전체에서 찾음(줄바꿈이 없는 원문에서도 동작하도록 — scopeAirportRawText와 동일한 이유).
         function metarZTime(raw){
-            const line = (raw || '').split('\n').find(l => /\bMETAR\b/.test(l));
-            if (!line) return '';
-            const m = /\d{2}(\d{4})Z\b/.exec(line);
+            const m = /\bMETAR\b(?:\s+AMD)?\s+[A-Z]{4}\s+\d{2}(\d{4})Z\b/.exec(raw || '');
             return m ? `${m[1]}Z` : '';
-        }
-        // 화면 표시용으로만 TAF 줄 앞에 빈 줄 하나 삽입(저장된 raw 자체는 안 건드림).
-        function insertBlankBeforeTaf(raw){
-            return (raw || '').replace(/([^\n])\n(\s*TAF\b)/, '$1\n\n$2');
         }
         // CDU WX INFO 페이지 스타일 토큰 강조 — 공항 ICAO 코드는 청록, 관측/유효기간(ddhhmmZ, ddhh/ddhh)은 초록.
         function colorizeWxLine(line){
@@ -5112,8 +5120,8 @@ TEXT:
         }
         function renderWxRawHtml(raw, targetDayMin){
             if (!raw) return '';
-            // 표시 직전 한 번 더 방어적으로 스코핑(수기 붙여넣기로 다른 공항 구간이 섞였을 경우까지 커버).
-            const raw2 = insertBlankBeforeTaf(scopeAirportRawText(raw));
+            // 표시 직전 한 번 더 방어적으로 스코핑 + 줄바꿈 보정(수기 붙여넣기·줄바꿈 없는 원문까지 커버).
+            const raw2 = normalizeWxLineBreaks(scopeAirportRawText(raw));
             const hit = pickTafHighlight(raw2, targetDayMin);
             const lines = raw2.split('\n');
             let hitLineIdx = -1;
