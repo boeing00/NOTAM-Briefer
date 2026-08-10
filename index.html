@@ -410,6 +410,10 @@
         /* 여러 줄 입력창(요약/메모/원문 붙여넣기 등)은 테두리·모서리 박스를 없애 "팝업창" 느낌을 제거 — 배경색만 유지해 편집 영역은 구분되게 함 */
         textarea.jinput{resize:vertical;line-height:1.55;border:none;border-radius:0;box-shadow:none}
         textarea.jinput:focus{outline:2px solid var(--cyan-dim);outline-offset:1px}
+        /* 배경 박스("창")까지 완전히 없애고 본문처럼 그냥 이어지게 — MEL/CDL·비행 계획 내용처럼 편집 UI보다
+           읽는 내용 자체가 중요한 필드용. 편집은 그대로 가능(포커스 시 옅은 배경으로만 표시). */
+        textarea.jinput--plain{background:transparent;padding:.2rem 0;resize:none}
+        textarea.jinput--plain:focus{background:#FFFDF8;outline:none}
         .jcard{border:1px solid var(--line);border-radius:12px;background:var(--raised);overflow:hidden}
         .jcard>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:.5rem;padding:.7rem .9rem;
             background:linear-gradient(180deg,#FBF8F1,#F5F0E5);
@@ -656,9 +660,9 @@
                             </div>
                             <div class="jsub">항공기 상태 (MEL / CDL)</div>
                             <label class="scope-chk"><input type="checkbox" id="pf_mel_none" onchange="pfToggleMel()"> MEL/CDL 적용 항목 없음 (항공기 정상)</label>
-                            <div class="jfield"><label>MEL/CDL 적용 항목 (있을 경우)</label><textarea id="pf_mel_detail" class="jinput" rows="2" oninput="autoGrowTextarea(this)" placeholder="MEL/CDL 번호 및 제한·운용 절차"></textarea></div>
+                            <div class="jfield"><label>MEL/CDL 적용 항목 (있을 경우)</label><textarea id="pf_mel_detail" class="jinput jinput--plain" rows="2" oninput="autoGrowTextarea(this)" placeholder="MEL/CDL 번호 및 제한·운용 절차"></textarea></div>
                             <div class="jsub">비행 계획 내용</div>
-                            <div class="jfield"><textarea id="pf_ofp_note" class="jinput" rows="2" oninput="autoGrowTextarea(this)" placeholder="연료 · 순항고도/속도 · ZFW/TOW · 소요시간 · 대체공항 등 OFP 요점"></textarea></div>
+                            <div class="jfield"><textarea id="pf_ofp_note" class="jinput jinput--plain" rows="2" oninput="autoGrowTextarea(this)" placeholder="연료 · 순항고도/속도 · ZFW/TOW · 소요시간 · 대체공항 등 OFP 요점"></textarea></div>
                         </div>
                     </details>
 
