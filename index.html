@@ -4627,11 +4627,11 @@ Features to locate: ${JSON.stringify(features)}`;
             return `${String(h).padStart(2,'0')}+${String(m).padStart(2,'0')}`;
         }
         // Expected Turbulence 전체 내용을 SUMMARY 노트 "■ 난기류" 줄로 그대로 옮겨 표시(요청: 별도 조각
-        // 요약 문장 대신 항목 전부를 옮김). 항목별로 SEVERE=빨강/MODERATE=주황/LIGHT=흐리게 강조하고,
-        // "TIME AFTER DEP" 줄이 이미 있는 항목(SR-zone 포맷)은 그대로 두고, 없는 항목(LLM 자유서술·
-        // 리포트 단계문 등)은 time 필드에서 계산해 추가해준다 — 모든 항목이 TIME AFTER DEP을 갖도록.
+        // 요약 문장 대신 항목 전부를 옮김). LIGHT 등급은 제외 — MODERATE/SEVERE만 표시(요청: "light는 빼").
+        // 항목별로 SEVERE=빨강/MODERATE=주황 강조하고, "TIME AFTER DEP" 줄이 이미 있는 항목(SR-zone 포맷)은
+        // 그대로 두고, 없는 항목(LLM 자유서술·리포트 단계문 등)은 time 필드에서 계산해 추가해준다.
         function renderTurbulenceDetailHtml(){
-            const rows = getTurbRows().filter(t => turbSeverityOk(t.detail));
+            const rows = getTurbRows().filter(t => turbSeverityLevel(t.detail) === 'moderate' || turbSeverityLevel(t.detail) === 'severe');
             if (!rows.length) return '';
             const parts = rows.map(t => {
                 const lines = splitTurbDetailForDisplay(t.detail).slice();
@@ -4640,7 +4640,7 @@ Features to locate: ${JSON.stringify(features)}`;
                     if (elapsedMin != null) lines.push(`TIME AFTER DEP ${fmtElapsedPlus(elapsedMin)}`);
                 }
                 const lvl = turbSeverityLevel(t.detail);
-                const cls = lvl === 'severe' ? 'sev-severe' : lvl === 'moderate' ? 'sev-moderate' : 'sev-light';
+                const cls = lvl === 'severe' ? 'sev-severe' : 'sev-moderate';
                 return `<span class="${cls}">${lines.map(escapeHtml).join('<br>')}</span>`;
             });
             return parts.join('<br>');
