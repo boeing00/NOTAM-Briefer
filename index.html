@@ -464,7 +464,9 @@
         .jsum-paper .h{color:#6b4423;text-decoration:underline}
         .jsum-paper .sub{font-size:1.25rem}
         .jsum-paper .hi{background:#fef08a;padding:0 .15rem;border-radius:2px}
-        .jsum-paper .sev{color:#dc2626;font-weight:700;text-decoration:underline}
+        /* ■ 난기류 항목별 심각도 강조(renderTurbulenceDetailHtml) — SEVERE=빨강, MODERATE=주황, LIGHT=흐리게 */
+        .jsum-paper .sev-severe{color:#dc2626;font-weight:700;text-decoration:underline}
+        .jsum-paper .sev-moderate{color:#c2410c;font-weight:700}
         .jsum-paper .sev-light{opacity:.55}
         .jsum-paper .ftemph{color:#059669;font-weight:800;font-size:2.05rem}
         .jsum-paper .sig{text-align:right;color:#6b7280;font-size:1.35rem;margin-top:.9rem}
@@ -4612,32 +4614,31 @@ Features to locate: ${JSON.stringify(features)}`;
         // (Light 구간과 Moderate/Severe 구간, 이렇게 두 단계로만 묶되, 라벨은 그 구간에 실제 Severe가 있었는지에
         //  따라 "Moderate Turbulence" 또는 "Moderate to Severe Turbulence"로 정확히 표기 — turbList의 상세
         //  지리정보는 Joint PDF·편집 화면에 그대로 남음)
-        function summarizeTurbulenceText(){
-            const parsed = getTurbRows()
-                .filter(t => turbSeverityOk(t.detail))
-                .map(t => ({ startMin: parseElapsedMin(t.time), lvl: turbSeverityLevel(t.detail) }))
-                .filter(t => t.startMin != null)
-                .sort((a,b) => a.startMin - b.startMin);
-            if (!parsed.length) return '';
-            const tierOf = lvl => (lvl === 'moderate' || lvl === 'severe') ? 'MS' : 'L';
-            const ranges = [];
-            parsed.forEach(p => {
-                const tier = tierOf(p.lvl);
-                const last = ranges[ranges.length - 1];
-                if (last && last.tier === tier){ if (p.lvl === 'severe') last.hasSevere = true; return; } // 같은 구간이 이어짐 — 시작시간 유지, 심각도만 갱신
-                ranges.push({ tier, hasSevere: p.lvl === 'severe', startMin: p.startMin, endMin: null });
+        // "HH+MM" — extractTurbulenceZonesFromOfp()의 actm 표기와 동일한 스타일로 경과분을 포맷.
+        // TIME AFTER DEP 줄이 없는 turbList 행(리포트 단계문·수기입력 등)에 계산해서 붙여줄 때 씀.
+        function fmtElapsedPlus(min){
+            if (min == null) return '';
+            const h = Math.floor(min/60), m = min % 60;
+            return `${String(h).padStart(2,'0')}+${String(m).padStart(2,'0')}`;
+        }
+        // Expected Turbulence 전체 내용을 SUMMARY 노트 "■ 난기류" 줄로 그대로 옮겨 표시(요청: 별도 조각
+        // 요약 문장 대신 항목 전부를 옮김). 항목별로 SEVERE=빨강/MODERATE=주황/LIGHT=흐리게 강조하고,
+        // "TIME AFTER DEP" 줄이 이미 있는 항목(SR-zone 포맷)은 그대로 두고, 없는 항목(LLM 자유서술·
+        // 리포트 단계문 등)은 time 필드에서 계산해 추가해준다 — 모든 항목이 TIME AFTER DEP을 갖도록.
+        function renderTurbulenceDetailHtml(){
+            const rows = getTurbRows().filter(t => turbSeverityOk(t.detail));
+            if (!rows.length) return '';
+            const parts = rows.map(t => {
+                const lines = splitTurbDetailForDisplay(t.detail).slice();
+                if (!lines.some(l => /^TIME AFTER DEP\b/.test(l))){
+                    const elapsedMin = parseElapsedMin(t.time);
+                    if (elapsedMin != null) lines.push(`TIME AFTER DEP ${fmtElapsedPlus(elapsedMin)}`);
+                }
+                const lvl = turbSeverityLevel(t.detail);
+                const cls = lvl === 'severe' ? 'sev-severe' : lvl === 'moderate' ? 'sev-moderate' : 'sev-light';
+                return `<span class="${cls}">${lines.map(escapeHtml).join('<br>')}</span>`;
             });
-            const ftH = jFlightHours(), totalMin = ftH > 0 ? Math.round(ftH*60) : null;
-            for (let i = 0; i < ranges.length; i++){
-                ranges[i].endMin = (i+1 < ranges.length) ? ranges[i+1].startMin : totalMin;
-            }
-            const labelOf = r => r.tier === 'L' ? 'Light Turbulence' : (r.hasSevere ? 'Moderate to Severe Turbulence' : 'Moderate Turbulence');
-            const parts = ranges.map(r => {
-                const end = r.endMin != null ? fmtElapsedHM(r.endMin) : '도착';
-                const text = `${fmtElapsedHM(r.startMin)}~${end}까지는 ${labelOf(r)} 예상`;
-                return r.tier === 'L' ? `<span class="sev-light">${escapeHtml(text)}</span>` : `<span class="sev">${escapeHtml(text)}</span>`;
-            });
-            return '이륙후' + parts.map(p => '<br>' + p).join('');
+            return parts.join('<br>');
         }
         function koreanWxSummary(sky, cond, temp){
             const t = ((sky||'') + ' ' + (cond||'')).toUpperCase();
@@ -4725,7 +4726,7 @@ Features to locate: ${JSON.stringify(features)}`;
             const dep = g('j_dep') || 'DEP', arr = g('j_arr') || 'ARR';
             const depDesc = koreanWxSummary(g('j_wx_dep_sky'), g('j_wx_dep_cond'), jTempKo(g('j_wx_dep_tx'), g('j_wx_dep_tn')));
             const arrDesc = koreanWxSummary(g('j_wx_arr_sky'), g('j_wx_arr_cond'), jTempKo(g('j_wx_arr_tx'), g('j_wx_arr_tn')));
-            const turbSummary = summarizeTurbulenceText();
+            const turbDetail = renderTurbulenceDetailHtml();
             const crewIntro = g('j_crew_intro');
             const gate = g('pf_gate');
             const em = v => v ? v : '<span class="empty">—</span>';
@@ -4738,7 +4739,7 @@ Features to locate: ${JSON.stringify(features)}`;
             if (crewIntro) html += `<div class="blk"><span class="h">■ 운항승무원:</span><br>${escapeHtml(crewIntro).replace(/\n/g,'<br>')}</div>`;
             html += `<div class="blk"><span class="h">■ 비행시간:</span> <span class="ftemph">✓ ${escapeHtml(ft)}</span>` + (eta ? ` · 도착예정(Local) ${escapeHtml(eta)}` : etaZOnly ? ` · <span class="empty">도착예정 ${escapeHtml(etaZOnly)}</span>` : ' · <span class="empty">도착예정시간 미상 — ETD(Z)/ETA(Z) 확인 필요</span>') + `</div>`;
             html += `<div class="blk"><span class="h">■ 날씨:</span><br>- ${escapeHtml(dep)}: ${em(escapeHtml(depDesc))}<br>- ${escapeHtml(arr)}: ${em(escapeHtml(arrDesc))}</div>`;
-            html += `<div class="blk"><span class="h">■ 난기류:</span> ${turbSummary || em('')}</div>`;
+            html += `<div class="blk"><span class="h">■ 난기류:</span><br>${turbDetail || em('')}</div>`;
             if (jSummaryMemoApplied.trim()) html += `<div class="blk"><span class="h">■ 메모:</span><br>${escapeHtml(jSummaryMemoApplied.trim()).replace(/\n/g,'<br>')}</div>`;
             // 노트 마지막 부분 — PILOT BRIEFING의 GATE 삼각형 표시를 그대로 복사해서 보여줌
             if (gate) html += `<div class="blk gatemini-row"><span class="h">■ GATE:</span><div class="gatewrap gatewrap--mini"><svg viewBox="0 0 220 190" class="gatesvg" xmlns="http://www.w3.org/2000/svg"><polygon points="110,14 206,176 14,176" fill="none" stroke="#C15F3C" stroke-width="7" stroke-linejoin="round"/></svg><div class="gatewrap__val">${escapeHtml(gate)}</div></div></div>`;
@@ -5110,11 +5111,14 @@ TEXT:
             if (!targets.length) return;
             const g = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
             const et = computeEtdEta();
-            const etd = et.etdZ ? `${et.etdZ}Z${et.etdLocal ? ` / ${et.etdLocal}${fmtDayShift(et.etdLocalDayShift)} Local` : ' (Local 계산 불가 — DEP UTC± 필요)'}` : '';
-            const eta = et.etaZ ? `${et.etaZ}Z${fmtDayShift(et.etaZDayShift)}${et.etaLocal ? ` / ${et.etaLocal}${fmtDayShift(et.etaLocalDayShift)} Local` : ' (Local 계산 불가 — ARR UTC± 필요)'}${et.etaDerived ? ' (est.)' : ''}` : '';
+            // ETD/ETA를 "라벨 줄 + 값 줄"로 따로 쪼갬(Z, LOCAL 각각) — CDU WX INFO 페이지의 줄 구성 그대로.
+            const etdZ = et.etdZ ? `${et.etdZ}Z` : '';
+            const etdLocal = et.etdLocal ? `${et.etdLocal}${fmtDayShift(et.etdLocalDayShift)} L` : (et.etdZ ? '계산 불가 — DEP UTC± 필요' : '');
+            const etaZ = et.etaZ ? `${et.etaZ}Z${fmtDayShift(et.etaZDayShift)}${et.etaDerived ? ' (est.)' : ''}` : '';
+            const etaLocal = et.etaLocal ? `${et.etaLocal}${fmtDayShift(et.etaLocalDayShift)} L` : (et.etaZ ? '계산 불가 — ARR UTC± 필요' : '');
             const depTargetMin = computeUtcDayMinute('dep'), etaTargetMin = computeUtcDayMinute('eta');
             const altName = (g('j_wx_alt_title').match(/[-–]\s*([A-Za-z0-9]+)/) || [])[1] || '';
-            const block = (icao, titleKo, timeLabel, timeVal, period, raw, targetMin, sky, temp, wind, vis, qnh, cond) => {
+            const block = (icao, titleKo, timeLabel, zVal, localVal, period, raw, targetMin, sky, temp, wind, vis, qnh, cond) => {
                 let body;
                 if (raw){
                     body = renderWxRawHtml(raw, targetMin);
@@ -5129,16 +5133,19 @@ TEXT:
                     if (cond) rows.push(`<div class="pfwx-cond"><b>Cond</b> ${escapeHtml(cond)}</div>`);
                     body = rows.length ? `<div class="pfwx-grid">${rows.join('')}</div>` : '<p class="pfwx-empty">입력된 값 없음 — JOINT 탭에서 원문(METAR/TAF)을 붙여넣으면 여기 자동 하이라이트됩니다.</p>';
                 }
-                // raw에 METAR 관측시각이 있으면 "<ICAO> METAR (0300Z)" 식 CDU 헤더로, 없으면 기존 titleKo+ETD/ETA로.
+                // raw에 METAR 관측시각이 있으면 "<ICAO> METAR (0300Z)" 식 CDU 헤더로, 없으면 기존 titleKo.
                 const zt = raw ? metarZTime(raw) : '';
-                const header = (icao && zt) ? `${icao} METAR (${zt})`
-                    : `${titleKo}${timeVal ? ` — ${timeLabel} ${timeVal}` : ''}`;
-                return `<div class="jsub">${escapeHtml(header)}</div>` + body;
+                const metarTitle = (icao && zt) ? `${icao} METAR (${zt})` : titleKo;
+                let head = '';
+                if (zVal) head += `<div class="jsub">${escapeHtml(timeLabel)}</div><div>${escapeHtml(zVal)}</div>`;
+                if (localVal) head += `<div class="jsub">LOCAL</div><div>${escapeHtml(localVal)}</div>`;
+                head += `<div class="jsub">${escapeHtml(metarTitle)}</div>`;
+                return head + body;
             };
             let html = '';
-            html += block(g('j_dep'), `출발지 (${g('j_dep')||'DEP'})`, 'ETD', etd, g('j_wx_dep_period'), g('j_wx_dep_raw'), depTargetMin, g('j_wx_dep_sky'), jTempStr(g('j_wx_dep_tx'), g('j_wx_dep_tn')), g('j_wx_dep_wind'), g('j_wx_dep_vis'), g('j_wx_dep_qnh'), g('j_wx_dep_cond'));
-            html += block(g('j_arr'), `목적지 (${g('j_arr')||'ARR'})`, 'ETA', eta, g('j_wx_arr_period'), g('j_wx_arr_raw'), etaTargetMin, g('j_wx_arr_sky'), jTempStr(g('j_wx_arr_tx'), g('j_wx_arr_tn')), g('j_wx_arr_wind'), g('j_wx_arr_vis'), '', g('j_wx_arr_cond'));
-            html += block(altName, `교체공항${altName?` (${altName})`:''}`, 'ETA', eta, g('j_wx_alt_period'), g('j_wx_alt_raw'), etaTargetMin, g('j_wx_alt_sky'), jTempStr(g('j_wx_alt_tx'), g('j_wx_alt_tn')), g('j_wx_alt_wind'), g('j_wx_alt_vis'), '', g('j_wx_alt_cond'));
+            html += block(g('j_dep'), `출발지 (${g('j_dep')||'DEP'})`, 'ETD', etdZ, etdLocal, g('j_wx_dep_period'), g('j_wx_dep_raw'), depTargetMin, g('j_wx_dep_sky'), jTempStr(g('j_wx_dep_tx'), g('j_wx_dep_tn')), g('j_wx_dep_wind'), g('j_wx_dep_vis'), g('j_wx_dep_qnh'), g('j_wx_dep_cond'));
+            html += block(g('j_arr'), `목적지 (${g('j_arr')||'ARR'})`, 'ETA', etaZ, etaLocal, g('j_wx_arr_period'), g('j_wx_arr_raw'), etaTargetMin, g('j_wx_arr_sky'), jTempStr(g('j_wx_arr_tx'), g('j_wx_arr_tn')), g('j_wx_arr_wind'), g('j_wx_arr_vis'), '', g('j_wx_arr_cond'));
+            html += block(altName, `교체공항${altName?` (${altName})`:''}`, 'ETA', etaZ, etaLocal, g('j_wx_alt_period'), g('j_wx_alt_raw'), etaTargetMin, g('j_wx_alt_sky'), jTempStr(g('j_wx_alt_tx'), g('j_wx_alt_tn')), g('j_wx_alt_wind'), g('j_wx_alt_vis'), '', g('j_wx_alt_cond'));
             const enrAlt = g('j_wx_enr_alt'), enrSpeed = g('j_wx_enr_speed'), enrWind = g('j_wx_enr_wind'), enrRoute = g('j_wx_enr_route'), enrRaw = g('j_wx_enr_raw');
             if (enrAlt || enrSpeed || enrWind || enrRoute || enrRaw){
                 html += `<div class="jsub">항로 (Enroute)</div><div class="pfwx-grid">`
@@ -5163,9 +5170,9 @@ TEXT:
             if (m) return [`AT ${m[1]}`, `SR ${m[2]}`, `TIME AFTER DEP ${m[3]}`];
             return detail ? [detail] : [];
         }
-        // JOINT Weather 카드의 기본(항상 보이는) 표시 — DEP WX / ARR WX / EXPECTED TURBULENCE, 사용자가
-        // 보여준 실제 기내 CDU WX INFO 페이지의 줄 구성 그대로. 새로 파싱하지 않고 이미 채워진
-        // j_wx_dep_wind/vis/tx, j_wx_arr_vis/tx, turbList(getTurbRows) 값만 그대로 조합.
+        // JOINT Weather 카드의 기본(항상 보이는) 표시 — DEP WX / ARR WX만. EXPECTED TURBULENCE는
+        // SUMMARY 노트의 "■ 난기류" 줄로 이동됨(renderTurbulenceDetailHtml) — 여기서는 더 이상 안 보여줌.
+        // 새로 파싱하지 않고 이미 채워진 j_wx_dep_wind/vis/tx, j_wx_arr_vis/tx 값만 그대로 조합.
         function renderJointWxInfoLine(){
             const el = document.getElementById('jWxInfoLine'); if (!el) return;
             const g = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
@@ -5180,11 +5187,6 @@ TEXT:
             let html = '';
             if (depCode && depBits.length) html += `<div class="jwxinfo-hdr">DEP WX</div><div>${escapeHtml(depCode)} ${escapeHtml(depBits.join(' '))}</div>`;
             if (arrCode && arrBits.length) html += `<div class="jwxinfo-hdr">ARR WX</div><div>${escapeHtml(arrCode)} ${escapeHtml(arrBits.join(' '))}</div>`;
-            const turbRows = getTurbRows();
-            if (turbRows.length){
-                html += `<div class="jwxinfo-hdr">EXPECTED TURBULENCE</div>`;
-                turbRows.forEach(t => { splitTurbDetailForDisplay(t.detail).forEach(line => { html += `<div>${escapeHtml(line)}</div>`; }); });
-            }
             el.innerHTML = html;
         }
 
