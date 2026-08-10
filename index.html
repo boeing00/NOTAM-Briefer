@@ -642,7 +642,7 @@
                                 <button class="btn btn--sm btn--cyan" onclick="pfNotamSummary()">↻ NOTAM 요약 불러오기</button>
                             </div>
                             <p id="pf_notam_sum" class="jnote">NOTAM 분석은 NOTAM BRIEFING 탭에서 수행합니다. [↻ NOTAM 요약]으로 분석 결과 요약을 표시합니다.</p>
-                            <div class="jfield"><label>Preflight NOTAM 특이사항 메모</label><textarea id="pf_notam_note" class="jinput" rows="2" placeholder="브리핑에 반영할 핵심 NOTAM (활주로 폐쇄 · 항로/공역 제한 · NAVAID 등)"></textarea></div>
+                            <div class="jfield"><label>Preflight NOTAM 특이사항 메모</label><textarea id="pf_notam_note" class="jinput" rows="2" oninput="autoGrowTextarea(this)" placeholder="브리핑에 반영할 핵심 NOTAM (활주로 폐쇄 · 항로/공역 제한 · NAVAID 등)"></textarea></div>
                         </div>
                     </details>
 
@@ -656,9 +656,9 @@
                             </div>
                             <div class="jsub">항공기 상태 (MEL / CDL)</div>
                             <label class="scope-chk"><input type="checkbox" id="pf_mel_none" onchange="pfToggleMel()"> MEL/CDL 적용 항목 없음 (항공기 정상)</label>
-                            <div class="jfield"><label>MEL/CDL 적용 항목 (있을 경우)</label><textarea id="pf_mel_detail" class="jinput" rows="2" placeholder="MEL/CDL 번호 및 제한·운용 절차"></textarea></div>
+                            <div class="jfield"><label>MEL/CDL 적용 항목 (있을 경우)</label><textarea id="pf_mel_detail" class="jinput" rows="2" oninput="autoGrowTextarea(this)" placeholder="MEL/CDL 번호 및 제한·운용 절차"></textarea></div>
                             <div class="jsub">비행 계획 내용</div>
-                            <div class="jfield"><textarea id="pf_ofp_note" class="jinput" rows="2" placeholder="연료 · 순항고도/속도 · ZFW/TOW · 소요시간 · 대체공항 등 OFP 요점"></textarea></div>
+                            <div class="jfield"><textarea id="pf_ofp_note" class="jinput" rows="2" oninput="autoGrowTextarea(this)" placeholder="연료 · 순항고도/속도 · ZFW/TOW · 소요시간 · 대체공항 등 OFP 요점"></textarea></div>
                         </div>
                     </details>
 
@@ -699,7 +699,7 @@
                     <details class="jcard">
                         <summary>5 · 기타 운항에 필요한 사항</summary>
                         <div class="jcard__body">
-                            <div class="jfield"><textarea id="pf_other" class="jinput" rows="3" placeholder="특별 승객/화물(DG) · 활주로/공항 제한 · 보안 · CIQ · 승무원 편성 · 기타 유의사항"></textarea></div>
+                            <div class="jfield"><textarea id="pf_other" class="jinput" rows="3" oninput="autoGrowTextarea(this)" placeholder="특별 승객/화물(DG) · 활주로/공항 제한 · 보안 · CIQ · 승무원 편성 · 기타 유의사항"></textarea></div>
                         </div>
                     </details>
 
@@ -4127,6 +4127,15 @@ Features to locate: ${JSON.stringify(features)}`;
             const details = Array.from(el.querySelectorAll('details'));
             const prevOpen = details.map(d => d.open);
             details.forEach(d => { d.open = true; });
+            // NOTAM 탭: PDF에는 GOOD TO KNOW(참고/advisory) 목록을 아예 빼고 캡처 — 보통 NOTAM 대부분이 여기
+            // 속해서 위 "전부 펼치기"까지 겹치면 캔버스가 지나치게 커져 일부 브라우저에서 새까맣게/깨져서
+            // 렌더링되는 문제가 있었고, 사용자도 PDF엔 불필요하다고 판단(화면에서는 그대로 보임 — 여기서만 숨김).
+            const hiddenAdv = containerId === 'analysisResult' ? Array.from(el.querySelectorAll('.adv-toggle')) : [];
+            hiddenAdv.forEach(d => { d.style.display = 'none'; });
+            // html2canvas는 textarea "내용"을 제대로 못 그릴 때가 있음(높이를 늘려도 첫 줄만 그리고 나머지는
+            // 빈칸 — 흔한 html2canvas 한계) — 캡처 직전 각 textarea를 똑같이 생긴 읽기전용 텍스트로
+            // 잠깐 바꿔치기해서 캡처하고, 끝나면 원래 textarea로 되돌림.
+            const restoreTextareas = swapTextareasForCapture(el);
             await new Promise(r => setTimeout(r, 120)); // 펼침/보임 반영 레이아웃 리플로우 대기
             try {
                 // windowWidth는 el.scrollWidth가 아니라 "실제 브라우저 창 폭"을 그대로 줌 — el.scrollWidth를
@@ -4142,8 +4151,29 @@ Features to locate: ${JSON.stringify(features)}`;
                 return canvas;
             } finally {
                 details.forEach((d,i) => { d.open = prevOpen[i]; });
+                hiddenAdv.forEach(d => { d.style.display = ''; });
+                restoreTextareas();
                 if (paneWasHidden) pane.classList.add('hidden');
             }
+        }
+        // textarea 하나를 캡처용으로 똑같이 생긴 읽기전용 <div>로 잠깐 바꿔치기(폰트/패딩/테두리/폭을 그대로 복사,
+        // white-space:pre-wrap이라 개행·줄바꿈 전부 살아있음) — html2canvas가 textarea 값 자체를 온전히
+        // 못 그리는 문제를 완전히 피해감. 되돌리는 함수를 반환.
+        function swapTextareasForCapture(el){
+            const swaps = Array.from(el.querySelectorAll('textarea')).map(ta => {
+                const cs = getComputedStyle(ta);
+                const mirror = document.createElement('div');
+                mirror.textContent = ta.value;
+                mirror.style.cssText = `font-family:${cs.fontFamily};font-size:${cs.fontSize};line-height:${cs.lineHeight};
+                    font-weight:${cs.fontWeight};color:${cs.color};background:${cs.backgroundColor};
+                    padding:${cs.padding};border:${cs.border};border-radius:${cs.borderRadius};
+                    width:${ta.offsetWidth}px;min-height:${ta.offsetHeight}px;box-sizing:border-box;
+                    white-space:pre-wrap;word-break:break-word;`;
+                ta.insertAdjacentElement('afterend', mirror);
+                ta.style.display = 'none';
+                return { ta, mirror };
+            });
+            return () => { swaps.forEach(({ ta, mirror }) => { mirror.remove(); ta.style.display = ''; }); };
         }
         const PDF_MARGIN = 28; // pt (≈10mm) — 모든 캡처 PDF 페이지 공통 여백
         // canvas를 usableHpx(페이지당 최대 높이, 캔버스 px) 기준으로 몇 조각으로 나눌지 계산만 함(실제 pdf에는 안 그림).
@@ -4603,7 +4633,7 @@ Features to locate: ${JSON.stringify(features)}`;
             if (jSummaryMemoApplied.trim()) html += `<div class="blk"><span class="h">■ 메모:</span><br>${escapeHtml(jSummaryMemoApplied.trim()).replace(/\n/g,'<br>')}</div>`;
             // 노트 마지막 부분 — PILOT BRIEFING의 GATE 삼각형 표시를 그대로 복사해서 보여줌
             if (gate) html += `<div class="blk gatemini-row"><span class="h">■ GATE:</span><div class="gatewrap gatewrap--mini"><svg viewBox="0 0 220 190" class="gatesvg" xmlns="http://www.w3.org/2000/svg"><polygon points="110,14 206,176 14,176" fill="none" stroke="#C15F3C" stroke-width="7" stroke-linejoin="round"/></svg><div class="gatewrap__val">${escapeHtml(gate)}</div></div></div>`;
-            html += `<div class="sig">안전 비행! _ 기장</div>`;
+            html += `<div class="sig">항상 여러분의 안전한 비행을 기원합니다~</div>`;
             el.innerHTML = html;
         }
         // 요약 텍스트(PDF용) 박스에 사용자가 자유롭게 입력한 내용을 SUMMARY 노트에 반영.
@@ -4665,6 +4695,13 @@ Features to locate: ${JSON.stringify(features)}`;
 
         // ── Phase 2: 공유 PDF(FPL/OFP) → Gemini 추출 → Joint 폼 자동채움 ──
         function jset(id, v){ if (v === undefined || v === null) return; const e = document.getElementById(id); if (e && String(v).trim() !== '') e.value = String(v); }
+        // 작은 고정 rows짜리 textarea(MEL/CDL 상세, OFP 메모 등)가 스크롤 안쪽에 내용을 숨긴 채로 있으면
+        // 화면에서도 안 보이고 PDF 캡처(html2canvas)에도 안 잡힘 — 내용 길이에 맞춰 항상 높이를 늘림(줄이지는 않음).
+        function autoGrowTextarea(el){
+            if (!el) return;
+            el.style.height = 'auto';
+            el.style.height = (el.scrollHeight + 2) + 'px';
+        }
         function jVerifyFlash(ids){ ids.forEach(id => { const e = document.getElementById(id); if (e){ e.classList.add('j-verify'); setTimeout(() => e.classList.remove('j-verify'), 4500); } }); }
 
         // "204" 같이 항공사 코드 없이 편명만 넘어온 경우를 대비한 안전망(1차 방어는 추출 프롬프트 자체).
@@ -4722,6 +4759,7 @@ Features to locate: ${JSON.stringify(features)}`;
             if (o.flight_time) ofpParts.push(`비행시간 ${o.flight_time}`);
             if (w.alternate && w.alternate.title) ofpParts.push(`대체공항 ${w.alternate.title}`);
             if (ofpParts.length) jset('pf_ofp_note', ofpParts.join(' · '));
+            ['pf_mel_detail','pf_ofp_note'].forEach(id => autoGrowTextarea(document.getElementById(id))); // jset은 oninput을 안 거치므로 직접 높이 갱신
             setJointAlert((o.alert_level || 'BLUE').toUpperCase());
             recalcJointMemo(); autoJointSummary();
             try { renderPilotFlightInfo(); renderPilotWeather(); renderGateTriangle(); } catch(_){}
