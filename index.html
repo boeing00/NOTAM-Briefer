@@ -431,8 +431,10 @@
         .jtbl{width:100%;border-collapse:collapse;font-family:"IBM Plex Sans KR";font-size:.71rem}
         .jtbl th,.jtbl td{border:1px solid var(--line);padding:.4rem .5rem;text-align:left;vertical-align:top;color:var(--text)}
         .jtbl th{background:#F5F0E5;font-weight:600;color:var(--muted)}
-        .jalert{display:flex;gap:.4rem;flex-wrap:wrap}
-        .jalert__b{font-family:"Lora","Noto Serif KR",Georgia,serif;font-weight:700;font-size:.72rem;letter-spacing:.04em;
+        .jalert{display:flex;gap:.4rem;flex-wrap:wrap;align-items:flex-start}
+        .jalertcol{display:flex;flex-direction:column;align-items:center;gap:.18rem}
+        .jalertcol__num{font-family:"IBM Plex Mono";font-size:.62rem;line-height:1.4;letter-spacing:.02em;color:var(--muted)}
+        .jalert__b{font-family:"Lora","Noto Serif KR",Georgia,serif;font-weight:700;font-size:.72rem;letter-spacing:.04em;line-height:1.6;
             padding:.35rem .75rem;border-radius:7px;border:1px solid var(--line);background:#FFFFFF;color:var(--dim);cursor:pointer;transition:all .12s}
         .jalert__b[data-on="1"][data-lvl="GREEN"]{background:#2E7D32;color:#fff;border-color:#2E7D32}
         .jalert__b[data-on="1"][data-lvl="BLUE"]{background:#1565C0;color:#fff;border-color:#1565C0}
@@ -440,8 +442,10 @@
         .jalert__b[data-on="1"][data-lvl="ORANGE"]{background:#E65100;color:#fff;border-color:#E65100}
         .jalert__b[data-on="1"][data-lvl="RED"]{background:#B71C1C;color:#fff;border-color:#B71C1C}
         .jsum-paper .t.trow{display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap}
-        .jsum-paper .jalert--mini{display:flex;gap:.22rem;flex-wrap:wrap}
-        .jsum-paper .jalert__b--mini{font-size:.56rem;padding:.14rem .36rem;border-radius:5px;letter-spacing:.02em}
+        .jsum-paper .jalert--mini{display:flex;gap:.22rem;flex-wrap:wrap;align-items:flex-start}
+        .jsum-paper .jalertcol{display:flex;flex-direction:column;align-items:center;gap:.14rem}
+        .jsum-paper .jalertcol__num{font-family:"IBM Plex Mono";font-size:.5rem;line-height:1.4;letter-spacing:.02em;color:#8a7a56}
+        .jsum-paper .jalert__b--mini{font-size:.56rem;line-height:1.6;padding:.14rem .36rem;border-radius:5px;letter-spacing:.02em}
         .jfltno{font-family:"Lora","Noto Serif KR",Georgia,serif;font-weight:700;font-size:1.5rem;color:var(--accent-hi);line-height:1.1}
         .jnote{font-family:"IBM Plex Mono";font-size:.65rem;color:var(--dim);line-height:1.5}
         .j-verify{outline:2px solid var(--accent)!important;outline-offset:1px;background:#FFF7EF!important;transition:outline-color 1s,background 1s}
@@ -465,7 +469,7 @@
         .jsum-edit>summary{cursor:pointer;font-family:"IBM Plex Mono";font-size:.68rem;color:var(--muted);list-style:none}
         .jsum-edit>summary::-webkit-details-marker{display:none}
         .jsum-edit>summary::before{content:"✎ "}
-        .jtime{font-family:"IBM Plex Mono";font-size:.66rem;font-weight:600;color:var(--cyan);background:var(--surface);border:1px solid var(--cyan-dim);border-radius:5px;padding:.05rem .4rem;margin-left:.4rem;white-space:nowrap}
+        .jtime{font-family:"IBM Plex Mono";font-size:.66rem;font-weight:600;line-height:1.6;color:var(--cyan);background:var(--surface);border:1px solid var(--cyan-dim);border-radius:5px;padding:.05rem .4rem;margin-left:.4rem;white-space:nowrap;display:inline-block}
         .pfwx-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem .8rem;font-family:"IBM Plex Mono";font-size:.74rem;color:var(--text);margin:.3rem 0 .8rem}
         .pfwx-grid b{color:var(--muted);font-weight:600;margin-right:.25rem}
         .pfwx-cond{grid-column:1/-1}
@@ -540,6 +544,16 @@
                 <div class="jfield" style="max-width:120px"><label>비행시간</label><input id="quickFt" class="jinput" placeholder="2:20"></div>
                 <div class="jfield" style="max-width:110px"><label>Gate</label><input id="quickGate" class="jinput" placeholder="32 또는 B7"></div>
                 <div class="jfield" style="max-width:160px"><label>예상 Taxi Time</label><input id="quickTaxi" class="jinput" placeholder="20 min"></div>
+                <div class="jfield" style="max-width:320px">
+                    <label>Security Alert Level</label>
+                    <span class="jalert" id="pilotInputAlertRow">
+                        <span class="jalertcol"><button type="button" class="jalert__b" data-lvl="GREEN" data-on="0" onclick="setJointAlert('GREEN')">GREEN</button><span class="jalertcol__num">Alert5</span></span>
+                        <span class="jalertcol"><button type="button" class="jalert__b" data-lvl="BLUE" data-on="0" onclick="setJointAlert('BLUE')">BLUE</button><span class="jalertcol__num">Alert4</span></span>
+                        <span class="jalertcol"><button type="button" class="jalert__b" data-lvl="YELLOW" data-on="0" onclick="setJointAlert('YELLOW')">YELLOW</button><span class="jalertcol__num">Alert3</span></span>
+                        <span class="jalertcol"><button type="button" class="jalert__b" data-lvl="ORANGE" data-on="0" onclick="setJointAlert('ORANGE')">ORANGE</button><span class="jalertcol__num">Alert2</span></span>
+                        <span class="jalertcol"><button type="button" class="jalert__b" data-lvl="RED" data-on="0" onclick="setJointAlert('RED')">RED</button><span class="jalertcol__num">Alert1</span></span>
+                    </span>
+                </div>
                 <button id="btnPilotInputApply" class="btn btn--sm btn--go" onclick="applyPilotInput()">✅ 전체 적용</button>
                 <span id="pilotInputStatus" class="keystat"></span>
             </div>
@@ -4106,9 +4120,11 @@ Features to locate: ${JSON.stringify(features)}`;
         function setJointAlert(lvl){
             if (!JB_LEVELS.includes(lvl)) lvl = 'BLUE';
             currentJointAlert = lvl;
-            document.querySelectorAll('#jAlertRow .jalert__b').forEach(b => {
+            // Summary 노트 안 미니 버튼 + 헤더 Pilot Input 안 버튼, 둘 다 동기화
+            document.querySelectorAll('#jAlertRow .jalert__b, #pilotInputAlertRow .jalert__b').forEach(b => {
                 b.setAttribute('data-on', b.getAttribute('data-lvl') === lvl ? '1' : '0');
             });
+            try { renderPilotFlightInfo(); } catch(_){} // Pilot 탭 Alert 배지 즉시 갱신
         }
 
         // flight_time "H:MM" 또는 숫자(시간) → 소수 시간
@@ -4204,6 +4220,40 @@ Features to locate: ${JSON.stringify(features)}`;
         // 대신 탭에 실제로 보이는 화면(입력한 값·편집한 서식 그대로)을 캡처해서 PDF로 만든다.
         // 부수 효과로 pdfmake의 오래된 한글(CJK) 미지원 한계도 자동으로 해결됨(화면은 웹폰트로 한글이 정상 표시되므로).
         // 요소 하나를 캔버스로 캡처(접혀있는 details는 잠깐 펼쳤다가 원복) — 단독 PDF 저장과 통합 PDF 둘 다 이 헬퍼를 공유.
+        // el 내부에서 "여기서 페이지를 잘라도 안전한" Y좌표(el 상단 기준 CSS px) 목록을 구함.
+        // 형제 요소 사이의 "빈 여백 한가운데"만 후보로 삼는다 — 요소의 정확한 가장자리(top/bottom)를
+        // 그대로 쓰면 html2canvas 렌더링과 getBoundingClientRect 측정 사이 몇 px 오차만으로도
+        // 글자 윗부분이 잘려 보일 수 있어서, 실제로 비어있는 gap 안쪽으로 한 번 더 들어간 지점을 씀.
+        // 두 종류로 나눔: cardBreaks(최상위 카드 사이 경계만) / fineBreaks(카드 내부 필드 사이까지 포함,
+        // 깊이 2까지) — appendCanvasToPdf가 카드 하나를 통째로 다음 페이지로 넘길지, 아니면
+        // (카드 하나가 한 페이지보다 큰 경우에만) 카드 내부에서 어쩔 수 없이 잘라야 할지 판단하는 데 씀.
+        function computeSafeBreakOffsets(el){
+            const top = el.getBoundingClientRect().top;
+            const collectGaps = (node, out) => {
+                const kids = Array.from(node.children)
+                    .filter(c => getComputedStyle(c).display !== 'none')
+                    .map(c => c.getBoundingClientRect())
+                    .filter(r => r.height > 6)
+                    .sort((a,b) => a.top - b.top);
+                for (let i = 0; i < kids.length - 1; i++){
+                    const gapStart = kids[i].bottom, gapEnd = kids[i+1].top;
+                    if (gapEnd - gapStart > 3) out.push(Math.round((gapStart + gapEnd) / 2 - top));
+                }
+            };
+            const cardGaps = [], fineGaps = [];
+            collectGaps(el, cardGaps); // 최상위(카드) 레벨만
+            const walk = (node, depth) => {
+                collectGaps(node, fineGaps);
+                if (depth < 2){
+                    Array.from(node.children).forEach(c => {
+                        if (getComputedStyle(c).display !== 'none') walk(c, depth + 1);
+                    });
+                }
+            };
+            walk(el, 0);
+            const finish = arr => { arr.push(0, el.scrollHeight); return Array.from(new Set(arr)).filter(v => v >= 0 && v <= el.scrollHeight).sort((a,b) => a - b); };
+            return { cardBreaks: finish(cardGaps), fineBreaks: finish(fineGaps) };
+        }
         async function captureElementCanvas(containerId){
             const el = document.getElementById(containerId);
             if (!el) throw new Error('캡처할 영역을 찾지 못했습니다: ' + containerId);
@@ -4218,28 +4268,94 @@ Features to locate: ${JSON.stringify(features)}`;
             details.forEach(d => { d.open = true; });
             await new Promise(r => setTimeout(r, 120)); // 펼침/보임 반영 레이아웃 리플로우 대기
             try {
-                return await html2canvas(el, { scale:2, backgroundColor:'#FBF9F4', useCORS:true, windowWidth: el.scrollWidth });
+                // windowWidth는 el.scrollWidth가 아니라 "실제 브라우저 창 폭"을 그대로 줌 — el.scrollWidth를
+                // 쓰면 html2canvas가 그 값을 시뮬레이션 창 폭으로 삼아 내부적으로 다시 레이아웃하면서
+                // (반응형 padding/제약 때문에) 실제 화면보다 살짝 좁게 줄바꿈되어, 문서 뒤로 갈수록
+                // getBoundingClientRect로 잰 안전 절단선과 실제 캔버스 상의 위치가 조금씩 어긋났었음.
+                const canvas = await html2canvas(el, { scale:2, backgroundColor:'#FBF9F4', useCORS:true, windowWidth: window.innerWidth, windowHeight: window.innerHeight });
+                // 안전 절단선을 캡처 시점(펼침/보임 상태)에 CSS px로 구해서 캔버스 px로 환산해 붙여둠
+                const { cardBreaks, fineBreaks } = computeSafeBreakOffsets(el);
+                const scaleY = canvas.height / el.scrollHeight;
+                canvas.__cardBreaks = cardBreaks.map(v => v * scaleY);
+                canvas.__fineBreaks = fineBreaks.map(v => v * scaleY);
+                return canvas;
             } finally {
                 details.forEach((d,i) => { d.open = prevOpen[i]; });
                 if (paneWasHidden) pane.classList.add('hidden');
             }
         }
+        const PDF_MARGIN = 28; // pt (≈10mm) — 모든 캡처 PDF 페이지 공통 여백
+        // canvas를 usableHpx(페이지당 최대 높이, 캔버스 px) 기준으로 몇 조각으로 나눌지 계산만 함(실제 pdf에는 안 그림).
+        // 카드가 페이지 중간에 걸리면(남은 공간에 다 안 들어가면) 그 카드는 통째로 다음 조각에서 시작한다 —
+        // canvas.__cardBreaks(카드 사이 경계)를 최우선으로 쓰고, 카드 하나가 한 페이지보다 큰 드문 경우에만
+        // canvas.__fineBreaks(카드 내부 필드 경계)로 어쩔 수 없이 나눔. appendCanvasToPdf와 pageCountFor가 공유.
+        function computePageSlices(canvas, usableHpx){
+            const cardBreaks = canvas.__cardBreaks || [];
+            const fineBreaks = canvas.__fineBreaks || [];
+            const slices = [];
+            let cursor = 0;
+            while (cursor < canvas.height - 1){
+                const maxTarget = Math.min(cursor + usableHpx, canvas.height);
+                let target = maxTarget;
+                if (maxTarget < canvas.height - 1){
+                    let cardSnap = -1;
+                    for (let i = cardBreaks.length - 1; i >= 0; i--){
+                        if (cardBreaks[i] <= maxTarget + 0.5 && cardBreaks[i] > cursor){ cardSnap = cardBreaks[i]; break; }
+                    }
+                    if (cardSnap > cursor){
+                        target = cardSnap; // 카드 경계에서 깔끔하게 조각 종료 (다음 카드는 다음 조각에서 시작)
+                    } else {
+                        const findSnap = minRatio => {
+                            const minAllowed = cursor + usableHpx * minRatio;
+                            for (let i = fineBreaks.length - 1; i >= 0; i--){
+                                if (fineBreaks[i] <= maxTarget + 0.5 && fineBreaks[i] >= minAllowed) return fineBreaks[i];
+                            }
+                            return -1;
+                        };
+                        const snapped = findSnap(0.55) >= 0 ? findSnap(0.55) : findSnap(0.15);
+                        if (snapped > cursor) target = snapped;
+                    }
+                }
+                slices.push({ start: cursor, end: Math.max(cursor + 1, target) });
+                cursor = slices[slices.length - 1].end;
+            }
+            return slices;
+        }
+        // canvas를 A4+PDF_MARGIN 기준으로 실제 그렸을 때 몇 페이지가 필요한지만 미리 계산 (목차 페이지 번호 산정용).
+        function pageCountFor(canvas){
+            const { jsPDF } = window.jspdf;
+            const tmp = new jsPDF('p', 'pt', 'a4');
+            const pageW = tmp.internal.pageSize.getWidth(), pageH = tmp.internal.pageSize.getHeight();
+            const imgW = pageW - PDF_MARGIN * 2;
+            const pxPerPt = canvas.width / imgW;
+            const usableHpx = (pageH - PDF_MARGIN * 2) * pxPerPt;
+            return computePageSlices(canvas, usableHpx).length;
+        }
         // 캡처한 캔버스를 jsPDF 문서에 여러 페이지로 이어붙임. startNewPage=true면 새 섹션을 새 페이지에서 시작
         // (통합 PDF에서 탭 사이 경계용) — 첫 섹션은 jsPDF가 이미 만들어둔 1페이지를 그대로 씀.
         function appendCanvasToPdf(pdf, canvas, startNewPage){
             const pageW = pdf.internal.pageSize.getWidth(), pageH = pdf.internal.pageSize.getHeight();
-            const imgW = pageW, imgH = canvas.height * imgW / canvas.width;
-            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const imgW = pageW - PDF_MARGIN * 2;        // 모든 페이지에서 동일한 폭으로 그림
+            const pxPerPt = canvas.width / imgW;        // 캔버스 px ↔ 출력 pt 환산 비율
+            const usableHpx = (pageH - PDF_MARGIN * 2) * pxPerPt; // 페이지당 최대 높이(캔버스 px)
+            const slices = computePageSlices(canvas, usableHpx);
+
             if (startNewPage) pdf.addPage();
-            let heightLeft = imgH, position = 0;
-            pdf.addImage(imgData, 'JPEG', 0, position, imgW, imgH);
-            heightLeft -= pageH;
-            while (heightLeft > 0){
-                position = heightLeft - imgH; // 다음 페이지에서 이미지를 위로 밀어 이어 붙임
-                pdf.addPage();
-                pdf.addImage(imgData, 'JPEG', 0, position, imgW, imgH);
-                heightLeft -= pageH;
-            }
+
+            const work = document.createElement('canvas');
+            const wctx = work.getContext('2d');
+            slices.forEach((s, i) => {
+                if (i > 0) pdf.addPage();
+                const sliceH = Math.max(1, Math.round(s.end - s.start));
+                work.width = canvas.width;
+                work.height = sliceH;
+                wctx.clearRect(0, 0, work.width, work.height);
+                wctx.drawImage(canvas, 0, s.start, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+                const sliceData = work.toDataURL('image/jpeg', 0.95);
+                const sliceHpt = sliceH / pxPerPt;
+                pdf.addImage(sliceData, 'JPEG', PDF_MARGIN, PDF_MARGIN, imgW, sliceHpt);
+            });
+            return slices.length;
         }
         async function capturePanelToPdf(containerId, filename, statusElId){
             const st = statusElId ? document.getElementById(statusElId) : null;
@@ -4308,6 +4424,69 @@ Features to locate: ${JSON.stringify(features)}`;
             setS(`✅ ${sel.length}개 PDF 생성 완료`);
         }
         // 선택한 탭들을 한 파일로 이어붙여 통합 PDF 1개로 (탭마다 새 페이지에서 시작)
+        // jsPDF의 기본(helvetica 등) 폰트는 한글 글리프가 없어 pdf.text()로 한글을 쓰면 깨짐(tofu) —
+        // 표지·목차처럼 한글이 들어가는 페이지는 나머지 PDF와 동일하게 항상 "HTML을 화면 밖에서 잠깐
+        // 그린 뒤 html2canvas로 캡처 → 이미지로 삽입" 방식을 씀. 이 함수가 그 공용 헬퍼.
+        // el(같은 DOM에 남겨진 실제 노드)을 반환하므로, 캡처 후 좌표를 재는 용도로도 재사용 가능.
+        async function captureOffscreenHtml(html){
+            const host = document.createElement('div');
+            host.style.cssText = 'position:fixed;left:-99999px;top:0;';
+            host.innerHTML = html;
+            document.body.appendChild(host);
+            await new Promise(r => setTimeout(r, 60)); // 웹폰트/레이아웃 반영 대기
+            const inner = host.firstElementChild;
+            try {
+                const canvas = await html2canvas(inner, { scale:2, backgroundColor:'#FBF9F4', useCORS:true, windowWidth: window.innerWidth, windowHeight: window.innerHeight });
+                return { canvas, inner, host };
+            } catch(e){ host.remove(); throw e; }
+        }
+        // A4 페이지 비율과 맞춘 고정 CSS px 크기 — 이 크기로 만든 div를 그대로 전체 페이지에 꽉 채워 넣음.
+        const PDF_PAGE_CSSW = 794, PDF_PAGE_CSSH = 1123; // A4 @ 96dpi 비율
+        // 표지(1페이지): JOINT Summary 노트(손글씨 노트 스타일)를 페이지 중앙에 예쁘게 배치.
+        async function renderCoverPage(pdf, coverCanvas, tag){
+            const pageW = pdf.internal.pageSize.getWidth(), pageH = pdf.internal.pageSize.getHeight();
+            const stamp = new Date().toISOString().slice(0, 16).replace('T', ' ') + 'Z';
+            const bodyHtml = coverCanvas
+                ? `<img src="${coverCanvas.toDataURL('image/png')}" style="max-width:100%;max-height:780px;object-fit:contain;">`
+                : `<div style="font-family:'IBM Plex Sans KR',sans-serif;color:#a89a78;font-size:14px;text-align:center;max-width:520px;line-height:1.6;">(Summary 노트가 비어 있습니다 — JOINT 탭에서 "요약 노트 생성" 후 다시 만들어 보세요)</div>`;
+            const html = `<div style="width:${PDF_PAGE_CSSW}px;height:${PDF_PAGE_CSSH}px;box-sizing:border-box;padding:64px 52px;display:flex;flex-direction:column;align-items:center;background:#FBF9F4;">
+                <div style="text-align:center;">
+                    <div style="font-family:'Lora','Noto Serif KR',Georgia,serif;font-weight:800;font-size:30px;letter-spacing:.04em;color:#c05a2e;">PILOT OPS CENTER</div>
+                    <div style="font-family:'IBM Plex Sans KR',sans-serif;font-size:14px;color:#8a7a56;margin-top:10px;">전체 브리핑 보고서 · Full Briefing Report</div>
+                </div>
+                <div style="flex:1;display:flex;align-items:center;justify-content:center;width:100%;">${bodyHtml}</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#b0a488;">${escapeHtml(tag)} · 생성 ${stamp}</div>
+            </div>`;
+            const { canvas, host } = await captureOffscreenHtml(html);
+            try { pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pageW, pageH); }
+            finally { host.remove(); }
+        }
+        // 목차(2페이지): 포함된 탭 각각을 클릭하면 해당 탭 시작 페이지로 바로 이동하는 링크로 나열.
+        // 텍스트 자체는 이미지(캡처)이므로, 각 행의 실제 위치를 CSS px로 재서 그 위에 투명한 pdf.link()만 겹침.
+        async function renderTocPage(pdf, entries){
+            const pageW = pdf.internal.pageSize.getWidth(), pageH = pdf.internal.pageSize.getHeight();
+            const rowsHtml = entries.map((en, i) => `
+                <div class="pdftoc-row" data-i="${i}" style="display:flex;align-items:baseline;justify-content:space-between;padding:15px 0;border-bottom:1px solid #ece4d2;">
+                    <span style="font-family:'Lora','Noto Serif KR',Georgia,serif;font-weight:700;font-size:16px;color:#1565C0;">${escapeHtml(en.label)} BRIEFING</span>
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a7a56;">p.${en.startPage}</span>
+                </div>`).join('');
+            const html = `<div style="width:${PDF_PAGE_CSSW}px;height:${PDF_PAGE_CSSH}px;box-sizing:border-box;padding:70px 56px;background:#FBF9F4;">
+                <div style="font-family:'Lora','Noto Serif KR',Georgia,serif;font-weight:800;font-size:25px;color:#3a3226;">목차 · Contents</div>
+                <div style="height:2px;background:#c9bd9c;margin:16px 0 22px;"></div>
+                ${rowsHtml}
+            </div>`;
+            const { canvas, inner, host } = await captureOffscreenHtml(html);
+            try {
+                pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pageW, pageH);
+                const innerTop = inner.getBoundingClientRect().top, innerLeft = inner.getBoundingClientRect().left;
+                const sx = pageW / PDF_PAGE_CSSW, sy = pageH / PDF_PAGE_CSSH; // 고정 CSS px → pt, html2canvas scale과 무관
+                Array.from(inner.querySelectorAll('.pdftoc-row')).forEach((rowEl, i) => {
+                    const r = rowEl.getBoundingClientRect();
+                    pdf.link((r.left - innerLeft) * sx, (r.top - innerTop) * sy, r.width * sx, r.height * sy, { pageNumber: entries[i].startPage });
+                });
+            } finally { host.remove(); }
+        }
+        // 통합 PDF: 1p 표지(JOINT Summary) → 2p 목차(각 탭 클릭 이동) → 이후 선택한 탭들, 탭마다 새 페이지.
         async function generateCombinedReportPdf(){
             const st = document.getElementById('wbFullReportStatus');
             const setS = m => { if (st) st.textContent = m; };
@@ -4317,15 +4496,40 @@ Features to locate: ${JSON.stringify(features)}`;
             try {
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('p', 'pt', 'a4');
+                const tag = reportFileTag();
+
+                setS('🖨 표지(Summary) 캡처 중…');
+                try { renderJointSummaryNote(); } catch(_){} // 최신 데이터로 노트 갱신 후 캡처
+                let coverCanvas = null;
+                if (document.getElementById('jSummaryNote')){
+                    try { coverCanvas = await captureElementCanvas('jSummaryNote'); } catch(_){ coverCanvas = null; }
+                }
+                await renderCoverPage(pdf, coverCanvas, tag); // jsPDF가 이미 만들어둔 1페이지에 그대로 그림
+
+                pdf.addPage(); // 2페이지 = 목차 (내용은 각 탭 페이지 수를 안 뒤에 채움)
+                const tocPage = pdf.internal.getNumberOfPages();
+
+                const tabRuns = [];
                 for (let i = 0; i < sel.length; i++){
                     const t = sel[i];
-                    setS(`🖨 (${i+1}/${sel.length}) ${t.label} 캡처 중…`);
+                    setS(`🖨 (${i + 1}/${sel.length}) ${t.label} 캡처 중…`);
                     const canvas = await captureElementCanvas(t.container);
-                    appendCanvasToPdf(pdf, canvas, i > 0);
+                    tabRuns.push({ label: t.label, canvas, pages: pageCountFor(canvas) });
                 }
-                const fname = 'FullBriefing_' + reportFileTag() + '.pdf';
+                let nextPage = tocPage + 1;
+                tabRuns.forEach(tr => { tr.startPage = nextPage; nextPage += tr.pages; });
+
+                pdf.setPage(tocPage);
+                await renderTocPage(pdf, tabRuns);
+
+                tabRuns.forEach(tr => {
+                    pdf.addPage();
+                    appendCanvasToPdf(pdf, tr.canvas, false);
+                });
+
+                const fname = 'FullBriefing_' + tag + '.pdf';
                 pdf.save(fname);
-                setS('✅ ' + fname + ' 생성됨 (' + sel.map(t=>t.label).join(' · ') + ')');
+                setS('✅ ' + fname + ' 생성됨 (표지·목차 + ' + sel.map(t => t.label).join(' · ') + ')');
             } catch(e){ setS('❌ 통합 PDF 생성 실패: ' + e.message); }
         }
 
@@ -4527,7 +4731,8 @@ Features to locate: ${JSON.stringify(features)}`;
             const em = v => v ? v : '<span class="empty">—</span>';
             // Security Alert Level — 노트 제목 줄 옆에 수평으로 작게 배치 (별도 박스 대신 노트 안에서 직접 선택)
             const lvl = JB_LEVELS.includes(currentJointAlert) ? currentJointAlert : 'BLUE';
-            const alertBtns = JB_LEVELS.map(l => `<button type="button" class="jalert__b jalert__b--mini" data-lvl="${l}" data-on="${l===lvl?'1':'0'}" onclick="setJointAlert('${l}')">${l}</button>`).join('');
+            // GREEN=Alert5 ~ RED=Alert1 (역순 번호) — 버튼 바로 아래 작게 표기
+            const alertBtns = JB_LEVELS.map((l,i) => `<span class="jalertcol"><button type="button" class="jalert__b jalert__b--mini" data-lvl="${l}" data-on="${l===lvl?'1':'0'}" onclick="setJointAlert('${l}')">${l}</button><span class="jalertcol__num">Alert${JB_LEVELS.length - i}</span></span>`).join('');
             let html = '';
             html += `<div class="t trow"><span>✈️ 비행 브리핑: ${escapeHtml(flt)}</span><span class="jalert jalert--mini" id="jAlertRow" title="Security Alert Level (미지정 시 BLUE)">${alertBtns}</span></div>`;
             if (crewIntro) html += `<div class="blk"><span class="h">■ 운항승무원:</span><br>${escapeHtml(crewIntro).replace(/\n/g,'<br>')}</div>`;
@@ -4786,7 +4991,8 @@ TEXT:
             const g = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
             const chip = (l,v) => v ? `<div><b>${escapeHtml(l)}</b> ${escapeHtml(v)}</div>` : '';
             const lvl = JB_LEVELS.includes(currentJointAlert) ? currentJointAlert : 'BLUE';
-            const alertBadge = `<span class="jtime" style="background:${JB_ALERT_C[lvl]};color:${JB_ALERT_TC[lvl]};border-color:${JB_ALERT_C[lvl]}">Alert ${escapeHtml(lvl)}</span>`;
+            const alertNum = JB_LEVELS.length - JB_LEVELS.indexOf(lvl); // GREEN=5 ~ RED=1
+            const alertBadge = `<span class="jtime" style="background:${JB_ALERT_C[lvl]};color:${JB_ALERT_TC[lvl]};border-color:${JB_ALERT_C[lvl]}">Alert${alertNum} ${escapeHtml(lvl)}</span>`;
             const rows = [
                 chip('Date', g('j_date')), chip('Flight No', g('j_flightno')),
                 chip('DEP', g('j_dep')), chip('ARR', g('j_arr')),
