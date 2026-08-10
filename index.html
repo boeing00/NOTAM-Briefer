@@ -467,6 +467,7 @@
         /* ■ 난기류 항목별 심각도 강조(renderTurbulenceDetailHtml) — SEVERE=빨강, MODERATE=주황, LIGHT=흐리게 */
         .jsum-paper .sev-severe{color:#dc2626;font-weight:700;text-decoration:underline}
         .jsum-paper .sev-moderate{color:#c2410c;font-weight:700}
+        .jsum-paper .sev-plain{color:#111}
         .jsum-paper .sev-light{opacity:.55}
         .jsum-paper .ftemph{color:#059669;font-weight:800;font-size:2.05rem}
         .jsum-paper .sig{text-align:right;color:#6b7280;font-size:1.35rem;margin-top:.9rem}
@@ -4637,11 +4638,15 @@ Features to locate: ${JSON.stringify(features)}`;
                 const lines = splitTurbDetailForDisplay(t.detail).slice();
                 if (!lines.some(l => /^TIME AFTER DEP\b/.test(l))){
                     const elapsedMin = parseElapsedMin(t.time);
-                    if (elapsedMin != null) lines.push(`TIME AFTER DEP ${fmtElapsedPlus(elapsedMin)}`);
+                    if (elapsedMin != null) lines.unshift(`TIME AFTER DEP ${fmtElapsedPlus(elapsedMin)}`);
                 }
                 const lvl = turbSeverityLevel(t.detail);
                 const cls = lvl === 'severe' ? 'sev-severe' : 'sev-moderate';
-                return `<span class="${cls}">${lines.map(escapeHtml).join('<br>')}</span>`;
+                const label = lvl === 'severe' ? 'SEVERE' : 'MODERATE';
+                // 요청: "Moderate와 severe 글자만 color로 나머지는 검은색 text로" — 등급 단어만 색을 넣고,
+                // TIME AFTER DEP/AT/SR 본문 줄은 검은색으로(.jsum-paper 기본 텍스트색이 파란색 잉크라
+                // 그냥 두면 검은색이 아니라 파란색이 됨 — .sev-plain으로 명시적으로 덮어씀).
+                return `<span class="${cls}">${label}</span><br><span class="sev-plain">${lines.map(escapeHtml).join('<br>')}</span>`;
             });
             // 항목 사이는 빈 줄(<br><br>)로 확실히 구분 — 항목 내부 줄(AT/SR/TIME AFTER DEP)은 촘촘하게,
             // 다음 항목과는 눈에 띄게 떨어지도록.
@@ -5198,11 +5203,12 @@ TEXT:
         // 이미 채워진 j_wx_dep_wind/vis/tx, j_wx_arr_vis/tx 필드만 그대로 조합(사용자가 보여준 CDU WX INFO
         // 페이지의 DEP WX/ARR WX 줄과 동일한 항목 구성 — ARR 줄엔 WIND를 넣지 않음, 원본 예시와 동일).
         // extractTurbulenceZonesFromOfp()가 만드는 "AT <label>   SR <range>   TIME AFTER DEP <time>" 한 줄을
-        // CDU 페이지처럼 3줄(AT/SR/TIME AFTER DEP)로 쪼갬 — 이 정확한 포맷이 아닌 값(LLM 자유서술·리포트
-        // 단계문 등)은 통째로 한 줄로 그대로 보여줌(우아한 폴백, 데이터 손실 없음).
+        // CDU 페이지처럼 3줄로 쪼갬 — TIME AFTER DEP을 맨 앞으로 옮겨서 경과시간이 가장 먼저 보이게 함
+        // (요청: "경과 시간을 앞쪽으로 이동"). 이 정확한 포맷이 아닌 값(LLM 자유서술·리포트 단계문 등)은
+        // 통째로 한 줄로 그대로 보여줌(우아한 폴백, 데이터 손실 없음).
         function splitTurbDetailForDisplay(detail){
             const m = /^AT\s+(.+?)\s{2,}SR\s+(\S+)\s{2,}TIME AFTER DEP\s+(.+)$/.exec(detail || '');
-            if (m) return [`AT ${m[1]}`, `SR ${m[2]}`, `TIME AFTER DEP ${m[3]}`];
+            if (m) return [`TIME AFTER DEP ${m[3]}`, `AT ${m[1]}`, `SR ${m[2]}`];
             return detail ? [detail] : [];
         }
         // JOINT Weather 카드의 기본(항상 보이는) 표시 — DEP WX / ARR WX만. EXPECTED TURBULENCE는
