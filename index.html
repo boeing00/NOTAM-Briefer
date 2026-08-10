@@ -497,14 +497,16 @@
         .jwx-ko{background:#F5F8FF;border:1px solid var(--line);border-radius:8px;padding:.6rem .8rem;margin:.3rem 0 1rem;font-size:.86rem;line-height:1.65;color:var(--text)}
         .jwx-ko ul{margin:0;padding-left:1.1rem}
         .jwx-ko li{margin:.28rem 0}
-        /* WX INFO 요약줄 — "RKSI WIND 110/10KT VIS +65M TEMP 32°C" 식, 이미 입력된 dep/arr wind·vis·temp 필드만 조합
+        /* JOINT Weather 카드의 기본 표시 — DEP WX / ARR WX / EXPECTED TURBULENCE, 실기 CDU WX INFO 페이지의
+           줄 구성 그대로(라벨 줄 + 값 줄). 이미 채워진 필드만 조합 — 새 파싱 없음.
            (화면 스타일은 CDU 흉내를 내지 않고 나머지 카드와 동일한 톤 — 요청 범위는 "내용 형식"만) */
         .jwxinfo:empty{display:none}
         .jwxinfo{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.84rem;letter-spacing:.01em;
-            background:var(--raised);border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;margin:.3rem 0;
-            line-height:1.7;color:var(--text)}
+            background:var(--raised);border:1px solid var(--line);border-radius:8px;padding:.6rem .8rem;margin:.3rem 0;
+            line-height:1.6;color:var(--text)}
         .jwxinfo div{white-space:pre-wrap}
-        .jwxinfo b{font-weight:700;margin-right:.4rem}
+        .jwxinfo-hdr{font-weight:700;margin-top:.7rem}
+        .jwxinfo-hdr:first-child{margin-top:0}
         .gatebar{display:flex;align-items:center;gap:1rem;margin:.2rem 0 1rem;flex-wrap:wrap}
         .pilottop{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:.8rem}
         .pilottop .eyebrow{margin:0}
@@ -827,70 +829,75 @@
                     <details class="jcard">
                         <summary>Weather</summary>
                         <div class="jcard__body">
+                            <!-- 기본으로 보이는 건 이 요약뿐 — DEP WX/ARR WX/EXPECTED TURBULENCE, 이미 추출/입력된
+                                 값만으로 조립(renderJointWxInfoLine). 원문 편집이 필요하면 아래 "원문·상세 입력" 열기. -->
                             <div id="jWxInfoLine" class="jwxinfo"></div>
-                            <div class="jbtnrow"><button type="button" class="btn btn--sm btn--cyan" onclick="renderJointWeatherKoSummary()">🇰🇷 평문 요약 새로고침</button></div>
-                            <div id="jWxKoSummary" class="jwx-ko"></div>
                             <details class="jsum-edit">
-                                <summary>Departure 원문 · 상세 입력 (편집)</summary>
+                                <summary>원문 · 상세 입력 (편집, 평소엔 숨김)</summary>
+                                <div class="jbtnrow"><button type="button" class="btn btn--sm btn--cyan" onclick="renderJointWeatherKoSummary()">🇰🇷 평문 요약 새로고침</button></div>
+                                <div id="jWxKoSummary" class="jwx-ko"></div>
+                                <details class="jsum-edit">
+                                    <summary>Departure 원문 · 상세 입력 (편집)</summary>
+                                    <div class="jgrid2">
+                                        <div class="jfield"><label>Title</label><input id="j_wx_dep_title" class="jinput" placeholder="Departure – ICN (Seoul / Incheon Intl)"></div>
+                                        <div class="jfield"><label>METAR/TAF 구간 (참고)</label><input id="j_wx_dep_period" class="jinput" placeholder="e.g. TAF FM021200Z 또는 METAR 021200Z"></div>
+                                    </div>
+                                    <div class="jfield"><label>원문 (METAR/TAF 전체 · 줄바꿈 그대로 붙여넣기 — PILOT 탭에서 해당 시간대 하이라이트)</label><textarea id="j_wx_dep_raw" class="jinput" rows="4" placeholder="METAR RKSI 021200Z ...&#10;TAF RKSI 021100Z 0212/0318 ... FM021800Z ..."></textarea></div>
+                                    <div class="jgrid3">
+                                        <div class="jfield"><label>Sky</label><input id="j_wx_dep_sky" class="jinput"></div>
+                                        <div class="jfield"><label>TX (최고)</label><input id="j_wx_dep_tx" class="jinput" placeholder="e.g. 28 or TX28/0500Z"></div>
+                                        <div class="jfield"><label>TN (최저)</label><input id="j_wx_dep_tn" class="jinput" placeholder="e.g. 18 or TN18/2100Z"></div>
+                                        <div class="jfield"><label>Wind</label><input id="j_wx_dep_wind" class="jinput"></div>
+                                        <div class="jfield"><label>Visibility</label><input id="j_wx_dep_vis" class="jinput"></div>
+                                        <div class="jfield"><label>QNH</label><input id="j_wx_dep_qnh" class="jinput"></div>
+                                        <div class="jfield"><label>Conditions</label><input id="j_wx_dep_cond" class="jinput" placeholder="VMC – Normal departure expected"></div>
+                                    </div>
+                                </details>
+                                <details class="jsum-edit">
+                                    <summary>Arrival 원문 · 상세 입력 (편집)</summary>
+                                    <div class="jgrid2">
+                                        <div class="jfield"><label>Title</label><input id="j_wx_arr_title" class="jinput" placeholder="Arrival – NRT (Tokyo / Narita Intl)"></div>
+                                        <div class="jfield"><label>METAR/TAF 구간 (참고)</label><input id="j_wx_arr_period" class="jinput" placeholder="e.g. TAF FM021800Z 또는 METAR 021800Z"></div>
+                                    </div>
+                                    <div class="jfield"><label>원문 (METAR/TAF 전체 · 줄바꿈 그대로 붙여넣기 — PILOT 탭에서 해당 시간대 하이라이트)</label><textarea id="j_wx_arr_raw" class="jinput" rows="4" placeholder="METAR RJAA 021800Z ...&#10;TAF RJAA 021700Z 0218/0324 ... FM022100Z ..."></textarea></div>
+                                    <div class="jgrid3">
+                                        <div class="jfield"><label>Sky</label><input id="j_wx_arr_sky" class="jinput"></div>
+                                        <div class="jfield"><label>TX (최고)</label><input id="j_wx_arr_tx" class="jinput" placeholder="e.g. 24 or TX24/0500Z"></div>
+                                        <div class="jfield"><label>TN (최저)</label><input id="j_wx_arr_tn" class="jinput" placeholder="e.g. 15 or TN15/2100Z"></div>
+                                        <div class="jfield"><label>Wind</label><input id="j_wx_arr_wind" class="jinput"></div>
+                                        <div class="jfield"><label>Visibility</label><input id="j_wx_arr_vis" class="jinput"></div>
+                                        <div class="jfield"><label>Conditions</label><input id="j_wx_arr_cond" class="jinput"></div>
+                                    </div>
+                                </details>
+                                <details class="jsum-edit">
+                                    <summary>Alternate 원문 · 상세 입력 (편집)</summary>
+                                    <div class="jgrid2">
+                                        <div class="jfield"><label>Title</label><input id="j_wx_alt_title" class="jinput" placeholder="Alternate – HND (Tokyo / Haneda Intl)"></div>
+                                        <div class="jfield"><label>METAR/TAF 구간 (참고)</label><input id="j_wx_alt_period" class="jinput" placeholder="e.g. TAF FM021800Z 또는 METAR 021800Z"></div>
+                                    </div>
+                                    <div class="jfield"><label>원문 (METAR/TAF 전체 · 줄바꿈 그대로 붙여넣기 — PILOT 탭에서 해당 시간대 하이라이트)</label><textarea id="j_wx_alt_raw" class="jinput" rows="4" placeholder="METAR RJTT 021800Z ...&#10;TAF RJTT 021700Z 0218/0324 ... FM022100Z ..."></textarea></div>
+                                    <div class="jgrid3">
+                                        <div class="jfield"><label>Sky</label><input id="j_wx_alt_sky" class="jinput"></div>
+                                        <div class="jfield"><label>TX (최고)</label><input id="j_wx_alt_tx" class="jinput"></div>
+                                        <div class="jfield"><label>TN (최저)</label><input id="j_wx_alt_tn" class="jinput"></div>
+                                        <div class="jfield"><label>Wind</label><input id="j_wx_alt_wind" class="jinput"></div>
+                                        <div class="jfield"><label>Visibility</label><input id="j_wx_alt_vis" class="jinput"></div>
+                                        <div class="jfield"><label>Conditions</label><input id="j_wx_alt_cond" class="jinput"></div>
+                                    </div>
+                                </details>
+                                <div class="jsub">Enroute</div>
                                 <div class="jgrid2">
-                                    <div class="jfield"><label>Title</label><input id="j_wx_dep_title" class="jinput" placeholder="Departure – ICN (Seoul / Incheon Intl)"></div>
-                                    <div class="jfield"><label>METAR/TAF 구간 (참고)</label><input id="j_wx_dep_period" class="jinput" placeholder="e.g. TAF FM021200Z 또는 METAR 021200Z"></div>
+                                    <div class="jfield"><label>Altitude</label><input id="j_wx_enr_alt" class="jinput" placeholder="FL360 -> FL340 -> FL300"></div>
+                                    <div class="jfield"><label>Speed</label><input id="j_wx_enr_speed" class="jinput" placeholder="M0.82 / N0480"></div>
+                                    <div class="jfield"><label>Wind</label><input id="j_wx_enr_wind" class="jinput" placeholder="270/80KT"></div>
+                                    <div class="jfield"><label>Route (지리 명칭만, 웨이포인트 코드 금지 · PDF 폰트 제약상 화살표는 -> 로 입력)</label><input id="j_wx_enr_route" class="jinput" placeholder="Incheon -> Yellow Sea -> central Japan -> Narita"></div>
                                 </div>
-                                <div class="jfield"><label>원문 (METAR/TAF 전체 · 줄바꿈 그대로 붙여넣기 — PILOT 탭에서 해당 시간대 하이라이트)</label><textarea id="j_wx_dep_raw" class="jinput" rows="4" placeholder="METAR RKSI 021200Z ...&#10;TAF RKSI 021100Z 0212/0318 ... FM021800Z ..."></textarea></div>
-                                <div class="jgrid3">
-                                    <div class="jfield"><label>Sky</label><input id="j_wx_dep_sky" class="jinput"></div>
-                                    <div class="jfield"><label>TX (최고)</label><input id="j_wx_dep_tx" class="jinput" placeholder="e.g. 28 or TX28/0500Z"></div>
-                                    <div class="jfield"><label>TN (최저)</label><input id="j_wx_dep_tn" class="jinput" placeholder="e.g. 18 or TN18/2100Z"></div>
-                                    <div class="jfield"><label>Wind</label><input id="j_wx_dep_wind" class="jinput"></div>
-                                    <div class="jfield"><label>Visibility</label><input id="j_wx_dep_vis" class="jinput"></div>
-                                    <div class="jfield"><label>QNH</label><input id="j_wx_dep_qnh" class="jinput"></div>
-                                    <div class="jfield"><label>Conditions</label><input id="j_wx_dep_cond" class="jinput" placeholder="VMC – Normal departure expected"></div>
-                                </div>
+                                <div class="jfield"><label>Enroute Weather 원문 (SIGWX/WINTEM 등 OFP 항로 기상 섹션 · 줄바꿈 그대로 붙여넣기)</label><textarea id="j_wx_enr_raw" class="jinput" rows="3" oninput="autoGrowTextarea(this)" placeholder="OFP의 ENROUTE WEATHER 섹션 원문"></textarea></div>
+                                <div class="jsub">Expected Turbulence <span class="jnote" style="margin:0 0 0 .4rem">— CFP(OFP) 항로상 SIGWX/난기류 구간을 waypoint 단위로 자세히 나눠서 기입</span></div>
+                                <div id="turbList"></div>
+                                <div class="jbtnrow"><button type="button" class="btn btn--sm btn--cyan" onclick="addTurbRow()">+ 구간 추가</button></div>
+                                <p class="jnote">※ 마지막 행 "Pax Safety – Turn on Seat Belt Sign before entering CB areas – PA announcement required" 는 PDF에 자동 고정 추가됩니다.</p>
                             </details>
-                            <details class="jsum-edit">
-                                <summary>Arrival 원문 · 상세 입력 (편집)</summary>
-                                <div class="jgrid2">
-                                    <div class="jfield"><label>Title</label><input id="j_wx_arr_title" class="jinput" placeholder="Arrival – NRT (Tokyo / Narita Intl)"></div>
-                                    <div class="jfield"><label>METAR/TAF 구간 (참고)</label><input id="j_wx_arr_period" class="jinput" placeholder="e.g. TAF FM021800Z 또는 METAR 021800Z"></div>
-                                </div>
-                                <div class="jfield"><label>원문 (METAR/TAF 전체 · 줄바꿈 그대로 붙여넣기 — PILOT 탭에서 해당 시간대 하이라이트)</label><textarea id="j_wx_arr_raw" class="jinput" rows="4" placeholder="METAR RJAA 021800Z ...&#10;TAF RJAA 021700Z 0218/0324 ... FM022100Z ..."></textarea></div>
-                                <div class="jgrid3">
-                                    <div class="jfield"><label>Sky</label><input id="j_wx_arr_sky" class="jinput"></div>
-                                    <div class="jfield"><label>TX (최고)</label><input id="j_wx_arr_tx" class="jinput" placeholder="e.g. 24 or TX24/0500Z"></div>
-                                    <div class="jfield"><label>TN (최저)</label><input id="j_wx_arr_tn" class="jinput" placeholder="e.g. 15 or TN15/2100Z"></div>
-                                    <div class="jfield"><label>Wind</label><input id="j_wx_arr_wind" class="jinput"></div>
-                                    <div class="jfield"><label>Visibility</label><input id="j_wx_arr_vis" class="jinput"></div>
-                                    <div class="jfield"><label>Conditions</label><input id="j_wx_arr_cond" class="jinput"></div>
-                                </div>
-                            </details>
-                            <details class="jsum-edit">
-                                <summary>Alternate 원문 · 상세 입력 (편집)</summary>
-                                <div class="jgrid2">
-                                    <div class="jfield"><label>Title</label><input id="j_wx_alt_title" class="jinput" placeholder="Alternate – HND (Tokyo / Haneda Intl)"></div>
-                                    <div class="jfield"><label>METAR/TAF 구간 (참고)</label><input id="j_wx_alt_period" class="jinput" placeholder="e.g. TAF FM021800Z 또는 METAR 021800Z"></div>
-                                </div>
-                                <div class="jfield"><label>원문 (METAR/TAF 전체 · 줄바꿈 그대로 붙여넣기 — PILOT 탭에서 해당 시간대 하이라이트)</label><textarea id="j_wx_alt_raw" class="jinput" rows="4" placeholder="METAR RJTT 021800Z ...&#10;TAF RJTT 021700Z 0218/0324 ... FM022100Z ..."></textarea></div>
-                                <div class="jgrid3">
-                                    <div class="jfield"><label>Sky</label><input id="j_wx_alt_sky" class="jinput"></div>
-                                    <div class="jfield"><label>TX (최고)</label><input id="j_wx_alt_tx" class="jinput"></div>
-                                    <div class="jfield"><label>TN (최저)</label><input id="j_wx_alt_tn" class="jinput"></div>
-                                    <div class="jfield"><label>Wind</label><input id="j_wx_alt_wind" class="jinput"></div>
-                                    <div class="jfield"><label>Visibility</label><input id="j_wx_alt_vis" class="jinput"></div>
-                                    <div class="jfield"><label>Conditions</label><input id="j_wx_alt_cond" class="jinput"></div>
-                                </div>
-                            </details>
-                            <div class="jsub">Enroute</div>
-                            <div class="jgrid2">
-                                <div class="jfield"><label>Altitude</label><input id="j_wx_enr_alt" class="jinput" placeholder="FL360 -> FL340 -> FL300"></div>
-                                <div class="jfield"><label>Speed</label><input id="j_wx_enr_speed" class="jinput" placeholder="M0.82 / N0480"></div>
-                                <div class="jfield"><label>Wind</label><input id="j_wx_enr_wind" class="jinput" placeholder="270/80KT"></div>
-                                <div class="jfield"><label>Route (지리 명칭만, 웨이포인트 코드 금지 · PDF 폰트 제약상 화살표는 -> 로 입력)</label><input id="j_wx_enr_route" class="jinput" placeholder="Incheon -> Yellow Sea -> central Japan -> Narita"></div>
-                            </div>
-                            <div class="jfield"><label>Enroute Weather 원문 (SIGWX/WINTEM 등 OFP 항로 기상 섹션 · 줄바꿈 그대로 붙여넣기)</label><textarea id="j_wx_enr_raw" class="jinput" rows="3" oninput="autoGrowTextarea(this)" placeholder="OFP의 ENROUTE WEATHER 섹션 원문"></textarea></div>
-                            <div class="jsub">Expected Turbulence <span class="jnote" style="margin:0 0 0 .4rem">— CFP(OFP) 항로상 SIGWX/난기류 구간을 waypoint 단위로 자세히 나눠서 기입</span></div>
-                            <div id="turbList"></div>
-                            <div class="jbtnrow"><button type="button" class="btn btn--sm btn--cyan" onclick="addTurbRow()">+ 구간 추가</button></div>
-                            <p class="jnote">※ 마지막 행 "Pax Safety – Turn on Seat Belt Sign before entering CB areas – PA announcement required" 는 PDF에 자동 고정 추가됩니다.</p>
                         </div>
                     </details>
 
@@ -5073,16 +5080,29 @@ TEXT:
             candidates.sort((a,b) => b.val - a.val);
             return candidates[0];
         }
+        // 첫 METAR 줄의 관측시각(Z)만 뽑음 — "METAR RKSI 100300Z ..." -> "0300Z". 헤더 "<ICAO> METAR (0300Z)"용.
+        function metarZTime(raw){
+            const line = (raw || '').split('\n').find(l => /\bMETAR\b/.test(l));
+            if (!line) return '';
+            const m = /\d{2}(\d{4})Z\b/.exec(line);
+            return m ? `${m[1]}Z` : '';
+        }
+        // 화면 표시용으로만 TAF 줄 앞에 빈 줄 하나 삽입(METAR/TAF 블록 시각 구분) — 저장된 원문(raw) 자체는 안 건드림.
+        // 이미 빈 줄로 구분돼 있으면 중복 삽입 안 함.
+        function insertBlankBeforeTaf(raw){
+            return (raw || '').replace(/([^\n])\n(\s*TAF\b)/, '$1\n\n$2');
+        }
         function renderWxRawHtml(raw, targetDayMin){
             if (!raw) return '';
-            const hit = pickTafHighlight(raw, targetDayMin);
-            if (!hit) return `<div class="wxraw">${escapeHtml(raw)}</div>`;
+            const raw2 = insertBlankBeforeTaf(raw);
+            const hit = pickTafHighlight(raw2, targetDayMin);
+            if (!hit) return `<div class="wxraw">${escapeHtml(raw2)}</div>`;
             // 마커가 포함된 줄 전체를 강조(ckpt와 동일 — 토큰 하나만이 아니라 줄 단위)
-            const lineStart = raw.lastIndexOf('\n', hit.index) + 1;
-            let lineEnd = raw.indexOf('\n', hit.index); if (lineEnd < 0) lineEnd = raw.length;
-            const before = escapeHtml(raw.slice(0, lineStart));
-            const line = escapeHtml(raw.slice(lineStart, lineEnd));
-            const after = escapeHtml(raw.slice(lineEnd));
+            const lineStart = raw2.lastIndexOf('\n', hit.index) + 1;
+            let lineEnd = raw2.indexOf('\n', hit.index); if (lineEnd < 0) lineEnd = raw2.length;
+            const before = escapeHtml(raw2.slice(0, lineStart));
+            const line = escapeHtml(raw2.slice(lineStart, lineEnd));
+            const after = escapeHtml(raw2.slice(lineEnd));
             return `<div class="wxraw">${before}<mark class="wx-hi-main">${line}</mark>${after}</div>`;
         }
         function renderPilotWeather(){
@@ -5094,13 +5114,11 @@ TEXT:
             const eta = et.etaZ ? `${et.etaZ}Z${fmtDayShift(et.etaZDayShift)}${et.etaLocal ? ` / ${et.etaLocal}${fmtDayShift(et.etaLocalDayShift)} Local` : ' (Local 계산 불가 — ARR UTC± 필요)'}${et.etaDerived ? ' (est.)' : ''}` : '';
             const depTargetMin = computeUtcDayMinute('dep'), etaTargetMin = computeUtcDayMinute('eta');
             const altName = (g('j_wx_alt_title').match(/[-–]\s*([A-Za-z0-9]+)/) || [])[1] || '';
-            const block = (titleKo, timeLabel, timeVal, period, raw, targetMin, sky, temp, wind, vis, qnh, cond) => {
+            const block = (icao, titleKo, timeLabel, timeVal, period, raw, targetMin, sky, temp, wind, vis, qnh, cond) => {
                 let body;
                 if (raw){
                     body = renderWxRawHtml(raw, targetMin);
-                    body += (targetMin != null)
-                        ? '<p class="jnote">🖍 노란색 = 해당 시각 기준 가장 최근에 시작된 상태(FM/BECMG/TEMPO 통틀어 하나만)</p>'
-                        : '<p class="jnote">⚠ 하이라이트 불가 — JOINT 탭의 Date(YYYY-MM-DD)와 ETD(Z)/ETA(Z) 입력을 확인하세요.</p>';
+                    if (targetMin == null) body += '<p class="jnote">⚠ 하이라이트 불가 — JOINT 탭의 Date(YYYY-MM-DD)와 ETD(Z)/ETA(Z) 입력을 확인하세요.</p>';
                 } else {
                     const rows = [];
                     if (sky)  rows.push(`<div><b>Sky</b> ${escapeHtml(sky)}</div>`);
@@ -5111,13 +5129,16 @@ TEXT:
                     if (cond) rows.push(`<div class="pfwx-cond"><b>Cond</b> ${escapeHtml(cond)}</div>`);
                     body = rows.length ? `<div class="pfwx-grid">${rows.join('')}</div>` : '<p class="pfwx-empty">입력된 값 없음 — JOINT 탭에서 원문(METAR/TAF)을 붙여넣으면 여기 자동 하이라이트됩니다.</p>';
                 }
-                return `<div class="jsub">${escapeHtml(titleKo)}${timeVal ? `<span class="jtime">${escapeHtml(timeLabel)} ${escapeHtml(timeVal)}</span>` : ''}</div>`
-                    + (period ? `<p class="jnote">📡 출처 구간: ${escapeHtml(period)}</p>` : '') + body;
+                // raw에 METAR 관측시각이 있으면 "<ICAO> METAR (0300Z)" 식 CDU 헤더로, 없으면 기존 titleKo+ETD/ETA로.
+                const zt = raw ? metarZTime(raw) : '';
+                const header = (icao && zt) ? `${icao} METAR (${zt})`
+                    : `${titleKo}${timeVal ? ` — ${timeLabel} ${timeVal}` : ''}`;
+                return `<div class="jsub">${escapeHtml(header)}</div>` + body;
             };
             let html = '';
-            html += block(`출발지 (${g('j_dep')||'DEP'})`, 'ETD', etd, g('j_wx_dep_period'), g('j_wx_dep_raw'), depTargetMin, g('j_wx_dep_sky'), jTempStr(g('j_wx_dep_tx'), g('j_wx_dep_tn')), g('j_wx_dep_wind'), g('j_wx_dep_vis'), g('j_wx_dep_qnh'), g('j_wx_dep_cond'));
-            html += block(`목적지 (${g('j_arr')||'ARR'})`, 'ETA', eta, g('j_wx_arr_period'), g('j_wx_arr_raw'), etaTargetMin, g('j_wx_arr_sky'), jTempStr(g('j_wx_arr_tx'), g('j_wx_arr_tn')), g('j_wx_arr_wind'), g('j_wx_arr_vis'), '', g('j_wx_arr_cond'));
-            html += block(`교체공항${altName?` (${altName})`:''}`, 'ETA', eta, g('j_wx_alt_period'), g('j_wx_alt_raw'), etaTargetMin, g('j_wx_alt_sky'), jTempStr(g('j_wx_alt_tx'), g('j_wx_alt_tn')), g('j_wx_alt_wind'), g('j_wx_alt_vis'), '', g('j_wx_alt_cond'));
+            html += block(g('j_dep'), `출발지 (${g('j_dep')||'DEP'})`, 'ETD', etd, g('j_wx_dep_period'), g('j_wx_dep_raw'), depTargetMin, g('j_wx_dep_sky'), jTempStr(g('j_wx_dep_tx'), g('j_wx_dep_tn')), g('j_wx_dep_wind'), g('j_wx_dep_vis'), g('j_wx_dep_qnh'), g('j_wx_dep_cond'));
+            html += block(g('j_arr'), `목적지 (${g('j_arr')||'ARR'})`, 'ETA', eta, g('j_wx_arr_period'), g('j_wx_arr_raw'), etaTargetMin, g('j_wx_arr_sky'), jTempStr(g('j_wx_arr_tx'), g('j_wx_arr_tn')), g('j_wx_arr_wind'), g('j_wx_arr_vis'), '', g('j_wx_arr_cond'));
+            html += block(altName, `교체공항${altName?` (${altName})`:''}`, 'ETA', eta, g('j_wx_alt_period'), g('j_wx_alt_raw'), etaTargetMin, g('j_wx_alt_sky'), jTempStr(g('j_wx_alt_tx'), g('j_wx_alt_tn')), g('j_wx_alt_wind'), g('j_wx_alt_vis'), '', g('j_wx_alt_cond'));
             const enrAlt = g('j_wx_enr_alt'), enrSpeed = g('j_wx_enr_speed'), enrWind = g('j_wx_enr_wind'), enrRoute = g('j_wx_enr_route'), enrRaw = g('j_wx_enr_raw');
             if (enrAlt || enrSpeed || enrWind || enrRoute || enrRaw){
                 html += `<div class="jsub">항로 (Enroute)</div><div class="pfwx-grid">`
@@ -5134,6 +5155,17 @@ TEXT:
         // WX INFO 요약줄 — "<ICAO> WIND ### VIS ### TEMP ##°C" 식 한 줄 요약. 새로 파싱하지 않고
         // 이미 채워진 j_wx_dep_wind/vis/tx, j_wx_arr_vis/tx 필드만 그대로 조합(사용자가 보여준 CDU WX INFO
         // 페이지의 DEP WX/ARR WX 줄과 동일한 항목 구성 — ARR 줄엔 WIND를 넣지 않음, 원본 예시와 동일).
+        // extractTurbulenceZonesFromOfp()가 만드는 "AT <label>   SR <range>   TIME AFTER DEP <time>" 한 줄을
+        // CDU 페이지처럼 3줄(AT/SR/TIME AFTER DEP)로 쪼갬 — 이 정확한 포맷이 아닌 값(LLM 자유서술·리포트
+        // 단계문 등)은 통째로 한 줄로 그대로 보여줌(우아한 폴백, 데이터 손실 없음).
+        function splitTurbDetailForDisplay(detail){
+            const m = /^AT\s+(.+?)\s{2,}SR\s+(\S+)\s{2,}TIME AFTER DEP\s+(.+)$/.exec(detail || '');
+            if (m) return [`AT ${m[1]}`, `SR ${m[2]}`, `TIME AFTER DEP ${m[3]}`];
+            return detail ? [detail] : [];
+        }
+        // JOINT Weather 카드의 기본(항상 보이는) 표시 — DEP WX / ARR WX / EXPECTED TURBULENCE, 사용자가
+        // 보여준 실제 기내 CDU WX INFO 페이지의 줄 구성 그대로. 새로 파싱하지 않고 이미 채워진
+        // j_wx_dep_wind/vis/tx, j_wx_arr_vis/tx, turbList(getTurbRows) 값만 그대로 조합.
         function renderJointWxInfoLine(){
             const el = document.getElementById('jWxInfoLine'); if (!el) return;
             const g = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
@@ -5146,8 +5178,13 @@ TEXT:
             if (g('j_wx_arr_vis')) arrBits.push(`VIS ${g('j_wx_arr_vis')}`);
             if (g('j_wx_arr_tx')) arrBits.push(`TEMP ${g('j_wx_arr_tx')}°C`);
             let html = '';
-            if (depCode && depBits.length) html += `<div><b>DEP WX</b> ${escapeHtml(depCode)} ${escapeHtml(depBits.join(' '))}</div>`;
-            if (arrCode && arrBits.length) html += `<div><b>ARR WX</b> ${escapeHtml(arrCode)} ${escapeHtml(arrBits.join(' '))}</div>`;
+            if (depCode && depBits.length) html += `<div class="jwxinfo-hdr">DEP WX</div><div>${escapeHtml(depCode)} ${escapeHtml(depBits.join(' '))}</div>`;
+            if (arrCode && arrBits.length) html += `<div class="jwxinfo-hdr">ARR WX</div><div>${escapeHtml(arrCode)} ${escapeHtml(arrBits.join(' '))}</div>`;
+            const turbRows = getTurbRows();
+            if (turbRows.length){
+                html += `<div class="jwxinfo-hdr">EXPECTED TURBULENCE</div>`;
+                turbRows.forEach(t => { splitTurbDetailForDisplay(t.detail).forEach(line => { html += `<div>${escapeHtml(line)}</div>`; }); });
+            }
             el.innerHTML = html;
         }
 
