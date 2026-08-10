@@ -465,9 +465,14 @@
         .jsum-paper .sub{font-size:1.25rem}
         .jsum-paper .hi{background:#fef08a;padding:0 .15rem;border-radius:2px}
         /* ■ 난기류 항목별 심각도 강조(renderTurbulenceDetailHtml) — SEVERE=빨강, MODERATE=주황, LIGHT=흐리게 */
-        .jsum-paper .sev-severe{color:#dc2626;font-weight:700;text-decoration:underline}
-        .jsum-paper .sev-moderate{color:#c2410c;font-weight:700}
+        .jsum-paper .sev-severe{color:#ef4444;font-weight:700;text-decoration:underline}
+        .jsum-paper .sev-moderate{color:#fb923c;font-weight:700}
         .jsum-paper .sev-plain{color:#111}
+        /* 요청: "위아래 장평 줄이고" — 난기류 블록 세로 간격 축소(줄간격 + 항목 사이 여백) */
+        .jsum-paper .turb-compact{line-height:1.1}
+        .jsum-paper .turb-entry{margin:.15rem 0}
+        .jsum-paper .turb-entry:first-child{margin-top:0}
+        .jsum-paper .turb-entry:last-child{margin-bottom:0}
         .jsum-paper .sev-light{opacity:.55}
         .jsum-paper .ftemph{color:#059669;font-weight:800;font-size:2.05rem}
         .jsum-paper .sig{text-align:right;color:#6b7280;font-size:1.35rem;margin-top:.9rem}
@@ -4646,11 +4651,11 @@ Features to locate: ${JSON.stringify(features)}`;
                 // 요청: "Moderate와 severe 글자만 color로 나머지는 검은색 text로" — 등급 단어만 색을 넣고,
                 // TIME AFTER DEP/AT/SR 본문 줄은 검은색으로(.jsum-paper 기본 텍스트색이 파란색 잉크라
                 // 그냥 두면 검은색이 아니라 파란색이 됨 — .sev-plain으로 명시적으로 덮어씀).
-                return `<span class="${cls}">${label}</span><br><span class="sev-plain">${lines.map(escapeHtml).join('<br>')}</span>`;
+                return `<div class="turb-entry"><span class="${cls}">${label}</span><br><span class="sev-plain">${lines.map(escapeHtml).join('<br>')}</span></div>`;
             });
-            // 항목 사이는 빈 줄(<br><br>)로 확실히 구분 — 항목 내부 줄(AT/SR/TIME AFTER DEP)은 촘촘하게,
-            // 다음 항목과는 눈에 띄게 떨어지도록.
-            return parts.join('<br><br>');
+            // 요청: "위아래 줄이고" — 항목 내부·항목 사이 세로 간격을 줄임(.turb-compact 줄간격 축소 +
+            // .turb-entry 여백 축소, <br><br> 대신 CSS margin으로 통제).
+            return `<div class="turb-compact">${parts.join('')}</div>`;
         }
         function koreanWxSummary(sky, cond, temp){
             const t = ((sky||'') + ' ' + (cond||'')).toUpperCase();
@@ -4748,11 +4753,12 @@ Features to locate: ${JSON.stringify(features)}`;
             const alertBtns = JB_LEVELS.map((l,i) => `<span class="jalertcol"><button type="button" class="jalert__b jalert__b--mini" data-lvl="${l}" data-on="${l===lvl?'1':'0'}" onclick="setJointAlert('${l}')">${l}</button><span class="jalertcol__num">Alert${JB_LEVELS.length - i}</span></span>`).join('');
             let html = '';
             html += `<div class="t trow"><span>✈️ 비행 브리핑: ${escapeHtml(flt)}</span><span class="jalert jalert--mini" id="jAlertRow" title="Security Alert Level (미지정 시 BLUE)">${alertBtns}</span></div>`;
+            // 요약 텍스트(PDF용) 박스에 적용된 메모는 노트 맨 위에 배치(요청: "메모는 summary 가장 위에")
+            if (jSummaryMemoApplied.trim()) html += `<div class="blk"><span class="h">■ 메모:</span><br>${escapeHtml(jSummaryMemoApplied.trim()).replace(/\n/g,'<br>')}</div>`;
             if (crewIntro) html += `<div class="blk"><span class="h">■ 운항승무원:</span><br>${escapeHtml(crewIntro).replace(/\n/g,'<br>')}</div>`;
             html += `<div class="blk"><span class="h">■ 비행시간:</span> <span class="ftemph">✓ ${escapeHtml(ft)}</span>` + (eta ? ` · 도착예정(Local) ${escapeHtml(eta)}` : etaZOnly ? ` · <span class="empty">도착예정 ${escapeHtml(etaZOnly)}</span>` : ' · <span class="empty">도착예정시간 미상 — ETD(Z)/ETA(Z) 확인 필요</span>') + `</div>`;
             html += `<div class="blk"><span class="h">■ 날씨:</span><br>- ${escapeHtml(dep)}: ${em(escapeHtml(depDesc))}<br>- ${escapeHtml(arr)}: ${em(escapeHtml(arrDesc))}</div>`;
             html += `<div class="blk"><span class="h">■ 난기류:</span><br>${turbDetail || em('')}</div>`;
-            if (jSummaryMemoApplied.trim()) html += `<div class="blk"><span class="h">■ 메모:</span><br>${escapeHtml(jSummaryMemoApplied.trim()).replace(/\n/g,'<br>')}</div>`;
             // 노트 마지막 부분 — PILOT BRIEFING의 GATE 삼각형 표시를 그대로 복사해서 보여줌
             if (gate) html += `<div class="blk gatemini-row"><span class="h">■ GATE:</span><div class="gatewrap gatewrap--mini"><svg viewBox="0 0 220 190" class="gatesvg" xmlns="http://www.w3.org/2000/svg"><polygon points="110,14 206,176 14,176" fill="none" stroke="#C15F3C" stroke-width="7" stroke-linejoin="round"/></svg><div class="gatewrap__val">${escapeHtml(gate)}</div></div></div>`;
             html += `<div class="sig">항상 여러분의 안전한 비행을 기원합니다~</div>`;
