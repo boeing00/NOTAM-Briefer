@@ -5029,51 +5029,40 @@ TEXT:
             const zMin = parseHHMMToMin(et.etaZ);
             return zMin == null ? null : (day + et.etaZDayShift) * 1440 + zMin;
         }
-        function pickTafSegment(raw, targetDayMin){
+        // ckpt-prep-stack의 parseTafLines()와 동일한 방식 — FM/BECMG/TEMPO(PROB 포함)/기본 유효기간을
+        // 전부 동등한 후보로 보고, 목표 시각(targetDayMin)보다 이전(≤)이면서 가장 늦게 시작하는 후보가
+        // 있는 "줄 하나"만 하이라이트한다. BECMG/TEMPO의 끝나는 시각은 더 이상 보지 않음(단순화) —
+        // 사용자가 ckpt와 동일한 단일 하이라이트 방식으로 명시적으로 교체 요청(기존엔 활성 FM/BECMG
+        // 노란색 + 겹치는 TEMPO/PROB 빨간색을 동시에 표시했었음, 그 이중 표시 로직은 폐기).
+        function pickTafHighlight(raw, targetDayMin){
             if (!raw || targetDayMin == null) return null;
-            const tafIdx = raw.search(/\bTAF\b/i);
-            if (tafIdx < 0) return null; // METAR 단독 텍스트 — 고를 하위 구간 없음
-            const re = /\bFM(\d{2})(\d{2})(\d{2})Z\b|\bBECMG\s+(\d{2})(\d{2})\/(\d{2})(\d{2})\b|\bTEMPO\s+(\d{2})(\d{2})\/(\d{2})(\d{2})\b|\bPROB(\d{2})(?:\s+TEMPO)?\s+(\d{2})(\d{2})\/(\d{2})(\d{2})\b/gi;
-            const markers = []; let mm;
+            const re = /\bFM(\d{2})(\d{2})(\d{2})Z?\b|\b(?:BECMG|TEMPO)\s+(\d{2})(\d{2})\/(\d{2})(\d{2})\b|\b(?:TAF\s+)?(?:[A-Z]{4}\s+\d{6}Z\s+)?(\d{2})(\d{2})\/(\d{2})(\d{2})\b/gi;
+            const candidates = []; let mm;
             while ((mm = re.exec(raw))){
-                if (mm.index < tafIdx) continue;
-                if (mm[1] !== undefined) markers.push({ type:'FM', index:mm.index, startMin:(+mm[1])*1440+(+mm[2])*60+(+mm[3]) });
-                else if (mm[4] !== undefined) markers.push({ type:'BECMG', index:mm.index, startMin:(+mm[4])*1440+(+mm[5])*60, endMin:(+mm[6])*1440+(+mm[7])*60 });
-                else if (mm[8] !== undefined) markers.push({ type:'TEMPO', index:mm.index, startMin:(+mm[8])*1440+(+mm[9])*60, endMin:(+mm[10])*1440+(+mm[11])*60 });
-                else if (mm[12] !== undefined) markers.push({ type:'PROB', index:mm.index, startMin:(+mm[13])*1440+(+mm[14])*60, endMin:(+mm[15])*1440+(+mm[16])*60 });
+                let val;
+                if (mm[1] !== undefined) val = (+mm[1])*1440 + (+mm[2])*60 + (+mm[3]); // FM ddhhmm
+                else if (mm[4] !== undefined) val = (+mm[4])*1440 + (+mm[5])*60;       // BECMG/TEMPO 시작(ddhh)
+                else if (mm[8] !== undefined) val = (+mm[8])*1440 + (+mm[9])*60;       // 기본 유효기간 시작(ddhh)
+                else continue;
+                if (val <= targetDayMin) candidates.push({ index: mm.index, val });
             }
-            markers.sort((a,b) => a.index - b.index);
-            const primaries = markers.filter(x => x.type === 'FM' || x.type === 'BECMG');
-            let active = null;
-            for (const p of primaries){ const eff = p.type === 'FM' ? p.startMin : p.endMin; if (eff <= targetDayMin) active = p; else break; }
-            const mainStart = active ? active.index : tafIdx;
-            const nextPrimary = primaries.find(p => active ? p.index > active.index : true);
-            const mainEnd = nextPrimary ? nextPrimary.index : raw.length;
-            const overlays = markers.filter(x => (x.type === 'TEMPO' || x.type === 'PROB')
-                && x.index >= mainStart && x.index < mainEnd && x.startMin <= targetDayMin && targetDayMin <= x.endMin
-            ).map(x => {
-                const nextAfter = markers.find(y => y.index > x.index);
-                return { start:x.index, end: nextAfter ? Math.min(nextAfter.index, mainEnd) : mainEnd };
-            });
-            return { mainStart, mainEnd, overlays };
+            if (!candidates.length) return null;
+            // ckpt 원본과 동일하게 val 기준으로만 정렬(동점이면 안정정렬이 먼저 나온 후보를 유지 —
+            // ES2019+ Array.sort는 표준적으로 stable이라 별도 index 타이브레이크가 필요 없음)
+            candidates.sort((a,b) => b.val - a.val);
+            return candidates[0];
         }
         function renderWxRawHtml(raw, targetDayMin){
             if (!raw) return '';
-            const seg = pickTafSegment(raw, targetDayMin);
-            if (!seg) return `<div class="wxraw">${escapeHtml(raw)}</div>`;
-            const { mainStart, mainEnd, overlays } = seg;
-            const cuts = new Set([0, raw.length, mainStart, mainEnd]);
-            overlays.forEach(o => { cuts.add(Math.max(o.start, mainStart)); cuts.add(Math.min(o.end, mainEnd)); });
-            const points = Array.from(cuts).filter(p => p >= 0 && p <= raw.length).sort((a,b) => a - b);
-            let html = '';
-            for (let i = 0; i < points.length - 1; i++){
-                const a = points[i], b = points[i+1]; if (a >= b) continue;
-                const chunk = escapeHtml(raw.slice(a, b));
-                const inOverlay = overlays.some(o => a >= Math.max(o.start, mainStart) && b <= Math.min(o.end, mainEnd));
-                const inMain = a >= mainStart && b <= mainEnd;
-                html += inOverlay ? `<mark class="wx-hi-temp">${chunk}</mark>` : inMain ? `<mark class="wx-hi-main">${chunk}</mark>` : chunk;
-            }
-            return `<div class="wxraw">${html}</div>`;
+            const hit = pickTafHighlight(raw, targetDayMin);
+            if (!hit) return `<div class="wxraw">${escapeHtml(raw)}</div>`;
+            // 마커가 포함된 줄 전체를 강조(ckpt와 동일 — 토큰 하나만이 아니라 줄 단위)
+            const lineStart = raw.lastIndexOf('\n', hit.index) + 1;
+            let lineEnd = raw.indexOf('\n', hit.index); if (lineEnd < 0) lineEnd = raw.length;
+            const before = escapeHtml(raw.slice(0, lineStart));
+            const line = escapeHtml(raw.slice(lineStart, lineEnd));
+            const after = escapeHtml(raw.slice(lineEnd));
+            return `<div class="wxraw">${before}<mark class="wx-hi-main">${line}</mark>${after}</div>`;
         }
         function renderPilotWeather(){
             const targets = document.querySelectorAll('.wx-mirror-target'); // PILOT 탭 + WEATHER BRIEFING 탭, 둘 다 동일 내용 미러
@@ -5089,7 +5078,7 @@ TEXT:
                 if (raw){
                     body = renderWxRawHtml(raw, targetMin);
                     body += (targetMin != null)
-                        ? '<p class="jnote">🖍 노란색 = 해당 시각 주 상태 · 빨강 = 그 시각 겹치는 TEMPO/PROB (일시적 변화)</p>'
+                        ? '<p class="jnote">🖍 노란색 = 해당 시각 기준 가장 최근에 시작된 상태(FM/BECMG/TEMPO 통틀어 하나만)</p>'
                         : '<p class="jnote">⚠ 하이라이트 불가 — JOINT 탭의 Date(YYYY-MM-DD)와 ETD(Z)/ETA(Z) 입력을 확인하세요.</p>';
                 } else {
                     const rows = [];
