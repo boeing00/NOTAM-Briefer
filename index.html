@@ -497,6 +497,14 @@
         .jwx-ko{background:#F5F8FF;border:1px solid var(--line);border-radius:8px;padding:.6rem .8rem;margin:.3rem 0 1rem;font-size:.86rem;line-height:1.65;color:var(--text)}
         .jwx-ko ul{margin:0;padding-left:1.1rem}
         .jwx-ko li{margin:.28rem 0}
+        /* WX INFO 요약줄 — "RKSI WIND 110/10KT VIS +65M TEMP 32°C" 식, 이미 입력된 dep/arr wind·vis·temp 필드만 조합
+           (화면 스타일은 CDU 흉내를 내지 않고 나머지 카드와 동일한 톤 — 요청 범위는 "내용 형식"만) */
+        .jwxinfo:empty{display:none}
+        .jwxinfo{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.84rem;letter-spacing:.01em;
+            background:var(--raised);border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;margin:.3rem 0;
+            line-height:1.7;color:var(--text)}
+        .jwxinfo div{white-space:pre-wrap}
+        .jwxinfo b{font-weight:700;margin-right:.4rem}
         .gatebar{display:flex;align-items:center;gap:1rem;margin:.2rem 0 1rem;flex-wrap:wrap}
         .pilottop{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:.8rem}
         .pilottop .eyebrow{margin:0}
@@ -819,6 +827,7 @@
                     <details class="jcard">
                         <summary>Weather</summary>
                         <div class="jcard__body">
+                            <div id="jWxInfoLine" class="jwxinfo"></div>
                             <div class="jbtnrow"><button type="button" class="btn btn--sm btn--cyan" onclick="renderJointWeatherKoSummary()">🇰🇷 평문 요약 새로고침</button></div>
                             <div id="jWxKoSummary" class="jwx-ko"></div>
                             <details class="jsum-edit">
@@ -4539,15 +4548,20 @@ Features to locate: ${JSON.stringify(features)}`;
                 else { if (current.length){ zones.push(current); current = []; } }
             });
             if (current.length) zones.push(current);
+            // 표시 포맷: "AT <waypoint(들)>   SR <범위>   TIME AFTER DEP <이륙후경과>" — 사용자가 실제 FMS
+            // CDU WX INFO 페이지에서 쓰는 문구 그대로(콜론(:) 대신 '+'로 시/분 구분, 시작=끝이면 슬래시 생략).
+            // actm은 이미 "HH.MM"(2자리.2자리) 형식이라 '.'을 '+'로만 바꾸면 그 표기가 된다.
             return zones.map(zone => {
                 const startPt = zone[0], endPt = zone[zone.length - 1];
                 const srs = zone.map(p => parseInt(p.sr, 10));
                 const minSr = Math.min(...srs), maxSr = Math.max(...srs);
                 const srStr = minSr === maxSr ? String(minSr).padStart(2,'0') : `${String(minSr).padStart(2,'0')}-${String(maxSr).padStart(2,'0')}`;
-                const hasSevere = srs.some(s => s >= 7);
                 const label = startPt.wpt === endPt.wpt ? startPt.wpt : `${startPt.wpt} / ${endPt.wpt}`;
-                const sevWord = hasSevere ? 'MODERATE TO SEVERE' : 'MODERATE';
-                return { time: actmToElapsed(startPt.actm), detail: `${label} — ${sevWord} Turbulence (SR ${srStr}, OFP 항법로그 실측)` };
+                const toPlus = actm => (actm || '').replace('.', '+');
+                const timeStr = startPt.actm === endPt.actm ? toPlus(startPt.actm) : `${toPlus(startPt.actm)} / ${toPlus(endPt.actm)}`;
+                // time 칸은 기존 그대로("Around +H:MM") 유지 — parseElapsedMin()이 콜론 형식을 기대하므로
+                // summarizeTurbulenceText() 등 다운스트림 시간 파싱을 건드리지 않기 위함.
+                return { time: actmToElapsed(startPt.actm), detail: `AT ${label}   SR ${srStr}   TIME AFTER DEP ${timeStr}` };
             });
         }
         // detail 텍스트에서 심각도 등급 판정 (jTurbCell 강조, turbSeverityOk 필터, 요약문 버킷 분류가 모두 공유)
@@ -4556,6 +4570,14 @@ Features to locate: ${JSON.stringify(features)}`;
             if (/\bSEV(ERE)?\b/.test(d)) return 'severe';
             if (/\bMOD(ERATE)?\b/.test(d)) return 'moderate';
             if (/\bLIGHT\b|\bLGT\b|\bLT\b|\bCHOP\b|\bTURB/.test(d)) return 'light';
+            // extractTurbulenceZonesFromOfp()의 "AT ... SR nn[-nn] ..." 포맷엔 단어가 없으므로 SR 수치로 역산
+            // (구간 추출 자체가 SR>=4에서만 생성되므로 SR<4는 여기 등장하지 않음 — LIGHT는 텍스트 키워드 경로만 해당)
+            const srM = /\bSR\s+(\d{2})(?:-(\d{2}))?\b/.exec(d);
+            if (srM){
+                const maxSr = srM[2] ? parseInt(srM[2],10) : parseInt(srM[1],10);
+                if (maxSr >= 7) return 'severe';
+                if (maxSr >= 4) return 'moderate';
+            }
             return null;
         }
         // Expected Turbulence: LIGHT 이상만 요약/PDF에 반영 (NIL/SMOOTH/CALM 등은 제외, 심각도 표현이 없는 항목도 제외)
@@ -5107,6 +5129,26 @@ TEXT:
             }
             targets.forEach(el => { el.innerHTML = html; });
             renderJointWeatherKoSummary();
+            renderJointWxInfoLine();
+        }
+        // WX INFO 요약줄 — "<ICAO> WIND ### VIS ### TEMP ##°C" 식 한 줄 요약. 새로 파싱하지 않고
+        // 이미 채워진 j_wx_dep_wind/vis/tx, j_wx_arr_vis/tx 필드만 그대로 조합(사용자가 보여준 CDU WX INFO
+        // 페이지의 DEP WX/ARR WX 줄과 동일한 항목 구성 — ARR 줄엔 WIND를 넣지 않음, 원본 예시와 동일).
+        function renderJointWxInfoLine(){
+            const el = document.getElementById('jWxInfoLine'); if (!el) return;
+            const g = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
+            const depCode = g('j_dep'), arrCode = g('j_arr');
+            const depBits = [];
+            if (g('j_wx_dep_wind')) depBits.push(`WIND ${g('j_wx_dep_wind')}`);
+            if (g('j_wx_dep_vis')) depBits.push(`VIS ${g('j_wx_dep_vis')}`);
+            if (g('j_wx_dep_tx')) depBits.push(`TEMP ${g('j_wx_dep_tx')}°C`);
+            const arrBits = [];
+            if (g('j_wx_arr_vis')) arrBits.push(`VIS ${g('j_wx_arr_vis')}`);
+            if (g('j_wx_arr_tx')) arrBits.push(`TEMP ${g('j_wx_arr_tx')}°C`);
+            let html = '';
+            if (depCode && depBits.length) html += `<div><b>DEP WX</b> ${escapeHtml(depCode)} ${escapeHtml(depBits.join(' '))}</div>`;
+            if (arrCode && arrBits.length) html += `<div><b>ARR WX</b> ${escapeHtml(arrCode)} ${escapeHtml(arrBits.join(' '))}</div>`;
+            el.innerHTML = html;
         }
 
         // JOINT 탭 Weather 카드 상단 — 원문/구조화 필드(접혀있음)를 대신해 평문 한글로 간단히 요약해서 보여줌.
