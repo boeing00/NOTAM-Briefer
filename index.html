@@ -5363,8 +5363,12 @@ RAW OFP/FPL TEXT:
 """${src.slice(0, 200000)}"""`;
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(key)}`;
+                // thinkingConfig:{thinkingBudget:0} — 다른 Gemini 호출들과 동일하게 사고(thinking) 토큰을
+                // 끄고 전체 토큰 예산을 눈에 보이는 리포트 텍스트에만 씀(이게 빠져있으면 모델이 사고에
+                // 토큰을 먼저 소모해 실제 출력이 중간에 잘리는 원인이 됨). maxOutputTokens도 8192는 여러
+                // 단계(2번 섹션이 단계 수 제한 없음)를 다 쓰기엔 낮아서 32768로 올림(JOINT 추출과 동일 한도).
                 const res = await geminiFetch(url,
-                    { contents:[{ parts:[{ text: prompt }] }], generationConfig:{ temperature:0.3, maxOutputTokens:8192 } },
+                    { contents:[{ parts:[{ text: prompt }] }], generationConfig:{ temperature:0.3, maxOutputTokens:32768, thinkingConfig:{ thinkingBudget:0 } } },
                     (delay) => setS(`요청 한도 도달 · ${Math.round(delay/1000)}초 후 재시도`));
                 if (!res.ok){ const t = await res.text(); throw new Error((typeof apiErrText === 'function') ? apiErrText(res.status, t) : ('HTTP ' + res.status)); }
                 const data = await res.json();
